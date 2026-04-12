@@ -24,7 +24,12 @@
 - 更新 `docs/shared/api-contracts.md`，添加新端点到对应模块表格
 - 如涉及新表/字段，更新 `docs/shared/data-models.md`
 
-### 5. 验证
+### 5. 单元测试
+- 后端：为 Service 和 Controller 编写 JUnit 5 测试（正常 + 异常流程）
+- 前端：为 API 调用封装和相关组件编写 Vitest 测试
+- 运行测试确保全部通过
+
+### 6. 验证
 - 使用 Swagger UI 或 curl 验证端点响应
 - 检查错误码、分页、权限是否符合规范
 
@@ -58,6 +63,10 @@
 - 更新 `docs/shared/data-models.md`，添加新表结构
 - 在对应模块的 `design-*.md` 中标记 Checklist 已完成
 
-### 6. 验证
+### 6. 单元测试
+- 为 Repository 和相关 Service 方法编写单元测试
+- 运行 `mvn test` 确保全部通过
+
+### 7. 验证
 - 启动后端服务，确认 Flyway 迁移成功执行
 - 确认表结构与设计一致

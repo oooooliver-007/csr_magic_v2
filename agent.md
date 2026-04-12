@@ -42,7 +42,7 @@ CSR Magic 是一个银行 CSR（企业社会责任）活动管理平台，提供
 | 状态管理 | Zustand | - |
 | 表单验证 | React Hook Form + Zod | - |
 | 后端框架 | Spring Boot | 3.4 |
-| 后端语言 | Java | 17+ |
+| 后端语言 | Java | 21+ |
 | ORM | Spring Data JPA / Hibernate | - |
 | 数据库 | PostgreSQL | 16 |
 | 数据库迁移 | Flyway | - |
@@ -126,4 +126,6 @@ d:\windsurf_workspaces4\
 
 | 日期 | 功能 | 决策 | 原因 |
 |------|------|------|------|
-| | | | |
+| 2026-04-12 | auth/login-register | 前后端项目从零搭建，后端 Spring Boot 3.4 + JWT(jjwt 0.12.6)，前端 Vite 6 + React 19 + TailwindCSS 4 | 首个功能实现，建立项目脚手架 |
+| 2026-04-12 | auth/login-register | Token 存储使用 localStorage（accessToken + refreshToken + user JSON） | MVP 阶段简化方案，后续可迁移到 httpOnly cookie |
+| 2026-04-12 | auth/login-register | 登录页遵循 UI 原型居中卡片布局，但增加了用户名/密码表单（原型仅展示角色选择按钮） | 原型为演示用，实际需要完整登录表单 |

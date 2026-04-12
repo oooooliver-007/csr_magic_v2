@@ -108,3 +108,31 @@ app/
 - Prompt 模板化，支持变量替换
 - 模板文件放在 `app/prompts/` 或常量中
 - 禁止在代码逻辑中硬编码 prompt 文本
+
+## 测试规范
+
+### 通用原则
+- 每个功能实现完成后必须编写单元测试
+- 测试覆盖正常流程和异常流程
+- 测试命名清晰描述被测场景，使用中文注释说明测试意图
+- 禁止测试之间相互依赖，每个测试独立运行
+
+### 后端测试（JUnit 5 + Mockito）
+- 路径：`src/test/java/com/csr/{module}/`
+- **Service 测试**：使用 `@ExtendWith(MockitoExtension.class)` + `@Mock` 注入依赖
+- **Controller 测试**：使用 `@WebMvcTest` + `MockMvc` 验证 HTTP 状态码、响应体、参数校验
+- 命名：`{ClassName}Test.java`
+- 运行：`mvn test`
+
+### 前端测试（Vitest + React Testing Library）
+- 路径：`src/__tests__/` 或组件同目录 `*.test.tsx`
+- **组件测试**：使用 `render` + `screen` + `userEvent` 验证渲染和交互
+- **Store 测试**：直接调用 action 验证状态变更
+- **Service 测试**：mock axios 验证请求参数和响应处理
+- 命名：`{Name}.test.tsx` 或 `{name}.test.ts`
+- 运行：`npx vitest run`
+
+### 端到端测试（Playwright MCP）
+- 功能验收时使用 Playwright MCP 工具执行 E2E 测试
+- 测试场景对标 spec-*.md 验收标准
+- 至少覆盖：页面渲染、正常业务流程、异常流程（验证/错误提示）

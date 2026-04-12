@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: csr-magic-backend
+
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/CSR_DB?currentSchema=csr_v2}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:xiapeng123}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: ${SERVER_PORT:8080}
+
+# JWT 配置
+jwt:
+  secret: ${JWT_SECRET:your-256-bit-secret-key-here-change-in-production-environment}
+  access-token-expiration: ${JWT_ACCESS_EXPIRATION:3600000}
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+# 日志配置
+logging:
+  level:
+    com.csr: DEBUG
+    org.springframework.security: DEBUG

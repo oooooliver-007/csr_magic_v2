@@ -49,18 +49,18 @@ depends_on: []
 - **安全配置**：`/api/v2/auth/**` 路径放行（不需要认证）
 
 ## 实现步骤清单（Implementation Checklist）
-1. [ ] 后端：创建 User Entity（如不存在）+ UserRepository
-2. [ ] 后端：创建 AuthService（register + login 逻辑）
-3. [ ] 后端：创建 AuthController（POST /auth/login、POST /auth/register）
-4. [ ] 后端：配置 Spring Security 放行 auth 路径
-5. [ ] 后端：BCrypt 密码加密配置
-6. [ ] 前端：创建 authApi.ts（login、register 方法）
-7. [ ] 前端：创建 LoginPage.tsx（表单 + 验证 + 调用 API）
-8. [ ] 前端：创建 RegisterPage.tsx（表单 + 验证 + 调用 API）
-9. [ ] 前端：创建 auth Zustand store（存储用户信息 + Token）
-10. [ ] 前端：创建 PrivateRoute 路由守卫组件
-11. [ ] 前端：响应式适配检查
-12. [ ] 对照 spec-login-register.md 验收标准自检
+1. [x] 后端：创建 User Entity（如不存在）+ UserRepository
+2. [x] 后端：创建 AuthService（register + login 逻辑）
+3. [x] 后端：创建 AuthController（POST /auth/login、POST /auth/register）
+4. [x] 后端：配置 Spring Security 放行 auth 路径
+5. [x] 后端：BCrypt 密码加密配置
+6. [x] 前端：创建 authApi.ts（login、register 方法）
+7. [x] 前端：创建 LoginPage.tsx（表单 + 验证 + 调用 API）
+8. [x] 前端：创建 RegisterPage.tsx（表单 + 验证 + 调用 API）
+9. [x] 前端：创建 auth Zustand store（存储用户信息 + Token）
+10. [x] 前端：创建 PrivateRoute 路由守卫组件
+11. [x] 前端：响应式适配检查
+12. [x] 对照 spec-login-register.md 验收标准自检
 
 ## UI 原型参考
 

@@ -125,7 +125,28 @@ description: |
 | 新增/修改数据表 | `docs/shared/data-models.md` |
 | 重要技术决策 | `agent.md` 的 Decision Log |
 
-### 3.4 进度报告
+### 3.4 单元测试
+
+Checklist 所有编码步骤完成后，为本次实现的代码生成单元测试：
+
+#### 后端单元测试（JUnit 5 + Mockito）
+- 路径：`csr_magic_backend/src/test/java/com/csr/{module}/`
+- **Service 测试**：测试核心业务逻辑（正常流程 + 异常流程），使用 `@MockBean` mock 依赖
+- **Controller 测试**：使用 `@WebMvcTest` + `MockMvc` 测试 HTTP 请求/响应、状态码、参数校验
+- 命名规范：`{ClassName}Test.java`（如 `AuthServiceImplTest.java`、`AuthControllerTest.java`）
+
+#### 前端单元测试（Vitest + React Testing Library）
+- 路径：`csr_magic_frontend/src/__tests__/` 或组件同目录 `*.test.tsx`
+- **组件测试**：测试渲染输出、用户交互、表单验证、错误提示
+- **Store 测试**：测试 Zustand store 的 action 和状态变更
+- **Service 测试**：测试 API 调用封装（mock axios）
+- 命名规范：`{ComponentName}.test.tsx` 或 `{serviceName}.test.ts`
+
+生成测试后执行并确保全部通过：
+- 后端：`mvn test -pl csr_magic_backend`
+- 前端：`npx vitest run`
+
+### 3.5 进度报告
 
 每完成 Checklist 中的一步，输出简要进度：
 ```
@@ -136,17 +157,37 @@ description: |
 
 所有 Checklist 步骤完成后，执行验收自检：
 
-### 4.1 验收标准检查
+### 4.1 单元测试检查
+
+确认单元测试全部通过：
+- 后端：`mvn test` 全部绿色
+- 前端：`npx vitest run` 全部绿色
+- 输出测试覆盖率摘要
+
+### 4.2 Playwright 端到端测试
+
+启动前后端服务后，使用 Playwright MCP 执行端到端测试：
+
+1. **启动服务**：确认后端（端口 8080）和前端（端口 3000）正常运行
+2. **测试场景设计**：根据 spec-*.md 验收标准，设计对应的 E2E 测试场景，至少覆盖：
+   - 页面渲染正确性（UI 元素存在）
+   - 正常业务流程（提交表单、跳转、数据展示）
+   - 异常流程（表单验证、错误提示、权限拦截）
+   - 响应式布局（如需要）
+3. **执行测试**：使用 `mcp7_browser_navigate`、`mcp7_browser_snapshot`、`mcp7_browser_run_code` 等工具执行
+4. **输出结果**：以表格形式汇总每个测试场景的通过/失败状态
+
+### 4.3 验收标准检查
 
 逐项对照 spec-*.md 的验收标准，对每一项输出通过/未通过：
 ```
 验收自检结果：
 ✅ [通过] 登录页正确渲染，包含用户名、密码输入框和登录按钮
 ✅ [通过] 注册页包含所有必填字段和验证
-⚠️ [待验证] 页面在桌面端和移动端均正常显示（需手动测试）
+✅ [通过] Playwright E2E 测试全部通过
 ```
 
-### 4.2 Guard Rails 最终检查
+### 4.4 Guard Rails 最终检查
 
 确认以下 Guard Rails 未被违反：
 - [ ] 无 `any` 类型（TypeScript）
@@ -156,13 +197,15 @@ description: |
 - [ ] 无 mock 数据或 TODO 占位符
 - [ ] 遵循现有代码的命名和分层模式
 
-### 4.3 完成报告
+### 4.5 完成报告
 
 输出最终完成报告：
 ```
 🎉 功能实现完成
 - 模块：{module} / 功能：{feature}
 - Checklist：{completed}/{total} 步完成
+- 单元测试：后端 {N} 个 ✅ / 前端 {M} 个 ✅
+- Playwright E2E：{P}/{Q} 场景通过
 - 验收标准：{passed}/{total} 项通过
 - Guard Rails：全部通过 ✅
 - 文档更新：api-contracts ✅ / data-models ✅ / decision-log ✅
