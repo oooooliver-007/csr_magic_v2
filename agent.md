@@ -1,0 +1,129 @@
+# CSR Magic — 项目导航地图
+
+## 项目概述
+
+CSR Magic 是一个银行 CSR（企业社会责任）活动管理平台，提供两部分功能：
+- **员工端（Employee Web App）**：浏览和参与 CSR 活动、AI 对话报名、AI 海报生成
+- **管理端（Admin Dashboard）**：管理事件/活动、审核参与记录、数据看板、用户管理
+
+本项目非银行内部正式应用，需适配桌面端和移动端浏览器。
+
+## 架构总览
+
+```
+┌──────────────────────────────────────────────┐
+│    csr_magic_frontend (Vite + React 19)       │
+│    员工端 Web App  +  管理端 Dashboard         │
+│    Port: 3000                                 │
+└───────────────┬──────────────────────────────┘
+                │ REST API /api/v2/*
+                ▼
+┌──────────────────────────────────────────────┐
+│    csr_magic_backend (Spring Boot 3.4)        │
+│    Auth / Event / Activity / User / Notify    │
+│    Port: 8080                                 │
+└──────┬──────────────┬────────────────────────┘
+       │              │ HTTP
+       ▼              ▼
+┌─────────────┐  ┌───────────────────────────┐
+│ PostgreSQL16 │  │ csr_ai_service (FastAPI)   │
+│              │  │ Qwen + Wan 2.7 Image Pro   │
+└─────────────┘  │ Port: 8000                  │
+                 └───────────────────────────┘
+```
+
+## 技术栈速览
+
+| 层 | 技术 | 版本 |
+|----|------|------|
+| 前端框架 | Vite + React | 19 |
+| 前端语言 | TypeScript | 5.x |
+| UI 框架 | TailwindCSS + Lucide + Recharts | - |
+| 状态管理 | Zustand | - |
+| 表单验证 | React Hook Form + Zod | - |
+| 后端框架 | Spring Boot | 3.4 |
+| 后端语言 | Java | 17+ |
+| ORM | Spring Data JPA / Hibernate | - |
+| 数据库 | PostgreSQL | 16 |
+| 数据库迁移 | Flyway | - |
+| AI 框架 | FastAPI + Pydantic v2 | Python 3.11+ |
+| AI 模型（对话） | Qwen（通义千问）via DashScope | - |
+| AI 模型（图像） | Wan 2.7 Image Pro（通义万相）via DashScope | - |
+| 认证 | Spring Security + JWT | - |
+
+## 模块索引
+
+| 模块 | 路径 | 功能数 | 说明 |
+|------|------|--------|------|
+| auth | `docs/modules/auth/` | 2 | 登录/注册、JWT 认证 |
+| event | `docs/modules/event/` | 1 | 事件 CRUD |
+| activity | `docs/modules/activity/` | 4 | 活动列表、详情+报名、CRUD（管理端）、模板系统 |
+| participation | `docs/modules/participation/` | 1 | 报名/退出 |
+| dashboard | `docs/modules/dashboard/` | 1 | 统计看板 |
+| notification | `docs/modules/notification/` | 1 | 站内通知系统 |
+| user-management | `docs/modules/user-management/` | 1 | 用户 CRUD + 角色 |
+| user-profile | `docs/modules/user-profile/` | 2 | 个人设置、我的参与记录 |
+| ai-poster | `docs/modules/ai-poster/` | 2 | 海报工作台、海报画廊 |
+| ai-chat-registration | `docs/modules/ai-chat-registration/` | 2 | 对话界面、Agent 对话流程 |
+
+## 服务目录结构
+
+```
+d:\windsurf_workspaces4\
+├── .windsurfrules                  # 全局规则
+├── agent.md                        # 本文件
+├── docs/
+│   ├── shared/                     # 跨模块共享知识
+│   ├── exemplar/                   # 参考实现样本
+│   ├── modules/                    # 按模块→功能细分
+│   └── reference/                  # 原始参考文档（只读）
+├── UI_UX_prototype/                # UI/UX 原型（Vite + React，Port 3001）— 前端交互设计权威参考
+├── csr_magic_frontend/             # Vite + React 19 + TypeScript
+├── csr_magic_backend/              # Spring Boot 3.4 + Maven + JPA
+└── csr_ai_service/                 # Python FastAPI + DashScope
+```
+
+## 前端路由
+
+**员工端**：
+| 路由 | 页面 |
+|------|------|
+| `/login` | 登录 |
+| `/register` | 注册 |
+| `/` | 首页（活动动态 + 个人统计） |
+| `/activities` | 活动列表 |
+| `/activities/:id` | 活动详情 + 报名 |
+| `/activities/:id/chat` | AI 对话报名 |
+| `/my` | 个人中心（参与记录 + 设置） |
+| `/poster` | AI 海报工作台 |
+
+**管理端**：
+| 路由 | 页面 |
+|------|------|
+| `/admin` | 数据看板 |
+| `/admin/events` | 事件管理 |
+| `/admin/activities` | 活动管理 |
+| `/admin/participations` | 参与明细 + 审核 |
+| `/admin/users` | 用户管理 |
+| `/admin/notifications` | 通知管理 |
+
+## 关键设计决策
+
+| 决策 | 方案 | 原因 |
+|------|------|------|
+| 认证方案 | JWT Access Token + httpOnly Refresh Token | 安全性 + 无状态 |
+| 文件存储 | 本地 StaticFiles（MVP）→ OSS/MinIO（后续） | 渐进式演进 |
+| AI 模型 | 阿里云 DashScope API（Qwen + Wan 2.7） | 统一平台、中文优化 |
+| 前端状态 | Zustand（全局）+ React Query（服务端状态） | 轻量 + 缓存 |
+| 数据库迁移 | Flyway | 版本化管理 |
+| API 风格 | RESTful JSON，`/api/v2/` 前缀 | 统一规范 |
+| 活动模板 | 5 种模板（基础/捐赠/志愿者/签到/自定义） | 覆盖主要场景 |
+| 响应式断点 | `md`（768px）为主断点 | Desktop-First + Mobile-Ready |
+
+## 架构决策记录（Decision Log）
+
+> 工程师实现功能时做的重要技术决策记录于此，供后续功能参考，避免冲突。
+
+| 日期 | 功能 | 决策 | 原因 |
+|------|------|------|------|
+| | | | |

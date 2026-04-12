@@ -1,0 +1,51 @@
+# CSR Magic 后端服务规则
+
+## 技术栈
+- Spring Boot 3.4 + Maven + Java 17+
+- Spring Data JPA / Hibernate + PostgreSQL 16
+- Spring Security + JWT（HS256）
+- Flyway（数据库迁移）
+- SpringDoc OpenAPI（API 文档）
+
+## 包结构
+```
+com.csr.{module}/
+├── controller/       # REST Controller
+├── service/          # Service 接口 + 实现
+├── repository/       # Spring Data Repository
+├── entity/           # JPA Entity
+├── dto/              # 请求/响应 DTO
+└── exception/        # 模块级异常
+```
+
+公共模块：
+```
+com.csr.common/
+├── ApiResponse.java          # 统一响应包装
+├── GlobalExceptionHandler.java
+└── SecurityConfig.java
+```
+
+## 编码规范
+- 严格三层：Controller → Service Interface → Service Impl → Repository
+- Controller 只做参数接收和响应包装，业务逻辑在 Service 层
+- 使用 Java record 作为 DTO
+- 请求 DTO 命名：`Create{Entity}Request` / `Update{Entity}Request`
+- 响应 DTO 命名：`{Entity}Response`，提供 `from(Entity)` 静态工厂方法
+- Entity ↔ DTO 转换不使用 Entity 直接暴露给前端
+- 构造函数注入（不用 @Autowired）
+- 类级别 `@Transactional(readOnly = true)`，写方法单独 `@Transactional`
+- 时间字段使用 `java.time.Instant`（UTC）
+- 日志使用 SLF4J，禁止 System.out.println
+- 密码使用 BCrypt 加密
+- Flyway 脚本命名：`V{version}__{description}.sql`
+
+## API 规范
+- 统一前缀：`/api/v2/`
+- 统一响应：`ApiResponse<T>` — `{ code, message, data }`
+- 分页：Spring Pageable 自动解析 `?page=0&size=20&sort=createdAt,desc`
+- 请求校验：`@Valid` + Jakarta Validation 注解
+- 权限注解：`@PreAuthorize("hasRole('ADMIN')")`
+
+## 端口
+- HTTP 服务：8080

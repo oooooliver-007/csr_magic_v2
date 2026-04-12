@@ -1,0 +1,57 @@
+# CSR Magic — 全局规则
+
+## 项目身份
+CSR Magic 是一个银行 CSR（企业社会责任）活动管理平台，采用 monorepo 架构，包含三个服务：
+- 前端服务：`csr_magic_frontend/`（Vite + React 19 + TypeScript）
+- 后端服务：`csr_magic_backend/`（Spring Boot 3.4 + Maven + JPA）
+- AI 服务：`csr_ai_service/`（Python FastAPI + DashScope API）
+
+## 语言约定
+- 所有文档、注释、commit message 使用中文
+- 代码变量名、函数名、API 路径、数据库字段使用英文
+
+## 上下文加载指令（必须遵守）
+- 始终读取 `agent.md` 了解项目全景和架构决策日志
+- 实现功能前必须按顺序读取：
+  1. `docs/modules/{module}/_index.md` — 模块概览
+  2. `docs/modules/{module}/spec-{feature}.md` — 功能规格（做什么）
+  3. `docs/modules/{module}/design-{feature}.md` — 技术设计（怎么做）
+- 读取 design-*.md 顶部的 **Context Manifest**（YAML frontmatter），按其声明加载所需的 shared docs
+- 首次实现某类功能时必须参考 `docs/exemplar/` 中的参考实现样本
+- 涉及新增 API 时引用 `docs/shared/api-contracts.md`
+- 涉及数据库变更时引用 `docs/shared/data-models.md`
+- 编码规范详见 `docs/shared/coding-standards.md`
+- API 设计规范详见 `docs/shared/api-guidelines.md`
+- 涉及前端 UI 时引用 `docs/shared/ui-design-tokens.md`（设计令牌 + 原型组件映射）
+- 前端页面实现必须参考 `UI_UX_prototype/` 中对应的原型组件代码
+
+## Guard Rails — 禁止事项（NEVER）
+- NEVER 在 TypeScript 中使用 `any` 类型，使用 `unknown` 或具体类型
+- NEVER 硬编码 API Key、密码或密钥，必须使用环境变量
+- NEVER 在 React 组件内直接调用 fetch/axios，必须通过 `services/` 层封装
+- NEVER 硬编码 API URL，必须使用环境变量或配置文件
+- NEVER 跳过错误处理，所有 API 调用必须有 try/catch 或 .catch()
+- NEVER 删除或修改现有测试用例（除非明确要求）
+- NEVER 在代码中放置 mock 数据或 TODO 占位符提交到主分支
+- NEVER 跳过 design-*.md 中的 Implementation Checklist 步骤
+
+## Guard Rails — 必须事项（ALWAYS）
+- ALWAYS 新增 API 端点后更新 `docs/shared/api-contracts.md`
+- ALWAYS 新增/修改数据表后更新 `docs/shared/data-models.md`
+- ALWAYS 遵循现有代码的命名和分层模式（参考 exemplar）
+- ALWAYS 重要技术决策记录到 `agent.md` 的 Decision Log
+- ALWAYS 按 design-*.md 的 Implementation Checklist 顺序执行
+- ALWAYS 完成后对照 spec-*.md 的验收标准逐项自检
+
+## 跨服务基础规则
+- API 风格：RESTful JSON，统一前缀 `/api/v2/`
+- 时间格式：ISO 8601 UTC（`2026-01-01T00:00:00Z`）
+- 错误响应：统一 `{ code, message, data }` 结构
+- 字段映射：前端 camelCase ↔ 后端 camelCase ↔ 数据库 snake_case
+- 分页：`page`（从0开始）+ `size` + `totalElements` + `totalPages`
+- 认证：Bearer JWT Token，httpOnly cookie 存 refresh token
+
+## Git 规范
+- 分支命名：`feat/{module-name}/{feature-name}`
+- Commit 格式：conventional commits（`feat:` / `fix:` / `docs:` / `refactor:`）
+- PR 描述需引用对应的 spec-*.md 和 design-*.md
