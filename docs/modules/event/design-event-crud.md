@@ -50,19 +50,19 @@ depends_on:
 - **权限**：所有端点需 ADMIN 角色
 
 ## 实现步骤清单（Implementation Checklist）
-1. [ ] 后端：创建 Event Entity + EventRepository
-2. [ ] 后端：创建 DTO（CreateEventRequest、UpdateEventRequest、EventResponse）
-3. [ ] 后端：创建 EventService 接口 + EventServiceImpl
-4. [ ] 后端：创建 EventController（5 个端点）
-5. [ ] 后端：Flyway 迁移脚本（event 表）
-6. [ ] 前端：创建 types/event.ts 类型定义
-7. [ ] 前端：创建 services/eventApi.ts
-8. [ ] 前端：创建 EventManagementPage.tsx（表格+搜索+分页）
-9. [ ] 前端：创建 EventFormDrawer.tsx（创建/编辑抽屉）
-10. [ ] 前端：创建 EventViewDrawer.tsx（只读查看抽屉）
-11. [ ] 前端：接入路由 /admin/events
-12. [ ] 前端：响应式适配（表格→卡片）
-13. [ ] 对照 spec-event-crud.md 验收标准自检
+1. [x] 后端：创建 Event Entity + EventRepository
+2. [x] 后端：创建 DTO（CreateEventRequest、UpdateEventRequest、EventResponse）
+3. [x] 后端：创建 EventService 接口 + EventServiceImpl
+4. [x] 后端：创建 EventController（5 个端点）
+5. [x] 后端：Flyway 迁移脚本（event 表）
+6. [x] 前端：创建 types/event.ts 类型定义
+7. [x] 前端：创建 services/eventApi.ts
+8. [x] 前端：创建 EventManagementPage.tsx（表格+搜索+分页）
+9. [x] 前端：创建 EventFormDrawer.tsx（创建/编辑抽屉）
+10. [x] 前端：创建 EventViewDrawer.tsx（只读查看抽屉）
+11. [x] 前端：接入路由 /admin/events
+12. [x] 前端：响应式适配（表格→卡片）
+13. [x] 对照 spec-event-crud.md 验收标准自检
 
 ## 引用
 - 对应功能规格：spec-event-crud.md

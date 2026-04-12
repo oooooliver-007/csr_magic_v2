@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import PrivateRoute from './components/PrivateRoute';
+import AdminLayout from './components/AdminLayout';
+import EventManagementPage from './pages/admin/EventManagementPage';
 import { useAuthStore } from './stores/authStore';
 
 function HomePage() {
@@ -45,7 +47,12 @@ export default function App() {
       {/* 受保护路由 */}
       <Route element={<PrivateRoute />}>
         <Route path="/" element={<HomePage />} />
-        <Route path="/admin" element={<HomePage />} />
+
+        {/* 管理端路由 */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<HomePage />} />
+          <Route path="events" element={<EventManagementPage />} />
+        </Route>
       </Route>
 
       {/* 兜底重定向 */}

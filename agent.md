@@ -134,3 +134,6 @@ d:\windsurf_workspaces4\
 | 2026-04-12 | auth/jwt-auth | 前端 Axios 拦截器使用独立 refreshClient 实例发送刷新请求，避免循环拦截 + 并发队列处理 | 防止多请求同时触发 refresh |
 | 2026-04-12 | auth/jwt-auth | logout 端点放入 SecurityConfig permitAll 列表，Controller 自行处理 Token 无效场景 | Token 过期后用户仍需能调用 logout，不应被 Security 层拦截 |
 | 2026-04-12 | auth/jwt-auth | 前端 logout/refresh 等认证相关 API 必须使用独立 axios 实例 + 显式传 Token，禁止依赖 apiClient 拦截器隐式附加 | 拦截器依赖 localStorage 读 Token，但 Token 可能已被其他流程（如 401 拦截器 clearAuth）清除 |
+| 2026-04-12 | event/event-crud | GlobalExceptionHandler 改为动态 HTTP 状态码（BusinessException.code 直接映射 HTTP status），不再固定 400 | 支持 404 等非 400 业务异常正确返回对应 HTTP 状态码 |
+| 2026-04-12 | event/event-crud | EventController 使用 @PreAuthorize("hasRole('ADMIN')") 限制权限，不依赖 URL 模式匹配 | 灵活、声明式、可审计 |
+| 2026-04-12 | event/event-crud | 前端管理端采用 AdminLayout（固定侧边栏 + Outlet），路由嵌套在 /admin 下 | 统一管理端布局，后续模块复用 |

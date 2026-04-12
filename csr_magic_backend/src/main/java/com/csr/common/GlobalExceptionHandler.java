@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -26,8 +27,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(BusinessException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiResponse<Void> handleBusiness(BusinessException ex) {
+    public ApiResponse<Void> handleBusiness(BusinessException ex, HttpServletResponse response) {
+        response.setStatus(ex.getCode());
         return ApiResponse.error(ex.getCode(), ex.getMessage());
     }
 

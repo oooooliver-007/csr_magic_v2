@@ -94,7 +94,7 @@ class AuthControllerTest {
         mockMvc.perform(post("/api/v2/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value(401));
     }
 
@@ -139,7 +139,7 @@ class AuthControllerTest {
     @DisplayName("POST /auth/refresh 缺少 Token 返回 401")
     void refresh_missingToken() throws Exception {
         mockMvc.perform(post("/api/v2/auth/refresh"))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value(401));
     }
 
