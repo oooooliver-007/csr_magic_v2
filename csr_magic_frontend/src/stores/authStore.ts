@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { User } from '../types/auth';
+import { authApi } from '../services/authApi';
 
 interface AuthState {
   accessToken: string | null;
@@ -25,10 +26,17 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: () => {
+    // 先取 token，再清 localStorage，最后通知后端使 Token 失效
+    const token = localStorage.getItem('accessToken');
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     set({ accessToken: null, refreshToken: null, user: null, isAuthenticated: false });
+    if (token) {
+      authApi.logout(token).catch(() => {
+        // 登出 API 失败不阻塞前端登出流程
+      });
+    }
   },
 
   loadFromStorage: () => {

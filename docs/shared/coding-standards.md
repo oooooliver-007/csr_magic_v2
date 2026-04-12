@@ -56,6 +56,9 @@
 - 所有 API 调用通过 `services/` 层封装
 - 使用 Axios 实例（`apiClient.ts`），统一配置 baseURL 和拦截器
 - 禁止在组件中直接使用 fetch 或 axios
+- **认证相关 API（refresh / logout 等）必须使用独立 axios 实例**，不经过 apiClient 拦截器
+  - 原因：apiClient 请求拦截器依赖 localStorage 读 Token，但 Token 可能已被其他流程（如 401 响应拦截器）清除
+  - 正确做法：调用方显式传入 Token 参数，API 方法内部设置 Authorization header
 
 ## 后端规范（Java / Spring Boot）
 
@@ -121,6 +124,8 @@ app/
 - 路径：`src/test/java/com/csr/{module}/`
 - **Service 测试**：使用 `@ExtendWith(MockitoExtension.class)` + `@Mock` 注入依赖
 - **Controller 测试**：使用 `@WebMvcTest` + `MockMvc` 验证 HTTP 状态码、响应体、参数校验
+  - **必须同时包含权限配置测试**：不能只用 `addFilters=false` 绕过 Security Filter，还需测试 `permitAll` / `authenticated` / `hasRole` 路径是否配置正确
+  - 特别注意：登出、刷新等端点必须验证无 Token 时也能正常访问
 - 命名：`{ClassName}Test.java`
 - 运行：`mvn test`
 

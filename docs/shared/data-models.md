@@ -28,6 +28,15 @@
 | created_at | TIMESTAMPTZ | NOT NULL | |
 | updated_at | TIMESTAMPTZ | | |
 
+### token_blacklist（Token 黑名单表）
+
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| id | BIGSERIAL | PK | |
+| jti | VARCHAR(100) | UNIQUE, NOT NULL | Token 唯一标识 |
+| expired_at | TIMESTAMPTZ | NOT NULL | Token 过期时间 |
+| created_at | TIMESTAMPTZ | NOT NULL | 加入黑名单时间 |
+
 ### event（事件表）
 
 | 字段 | 类型 | 约束 | 说明 |

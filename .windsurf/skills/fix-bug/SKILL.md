@@ -41,6 +41,7 @@ description: |
 ### 2.1 编码修复
 - **最小化修改范围**：只改必要的代码，能改一行就不改两行
 - **不修改或删除现有测试用例**（除非测试本身有误）
+- **必须补充回归测试**：新增能复现该 Bug 的测试用例，确保修复后该用例通过，防止未来回退
 - 遵循 `.windsurfrules` 和 `docs/shared/coding-standards.md` 编码规范
 - Guard Rails 检查：无 `any` 类型、无硬编码、有错误处理
 
@@ -72,9 +73,39 @@ description: |
 - 建议 commit message：fix({module}): {description}
 ```
 
+## 阶段 4：经验沉淀
+
+当 Bug 暴露出规范或测试策略盲区时，执行以下更新，防止同类问题再次发生：
+
+### 4.1 判断是否需要沉淀
+
+满足以下任一条件即需沉淀：
+- 现有测试未覆盖到该 Bug 场景（测试盲区）
+- 现有编码规范/设计文档未约束导致该 Bug 的编码模式（规范盲区）
+- 问题涉及跨服务/跨层交互的隐含约定（架构盲区）
+
+### 4.2 更新对象
+
+| 经验类型 | 更新目标 |
+|---------|---------|
+| 技术决策/架构约定 | `agent.md` Decision Log |
+| 功能设计约束 | `docs/modules/{module}/design-*.md` |
+| 通用编码规范 | `docs/shared/coding-standards.md` |
+| 测试策略改进 | `implement-feature` Skill 的测试阶段 |
+| 新增 API 子流程 | `implement-feature/references/sub-procedures.md` |
+
+### 4.3 完成报告中体现
+
+在修复报告中增加经验沉淀项：
+```
+📝 经验沉淀：
+- 更新了 {file}：{what_was_added}
+```
+
 ## 重要提醒
 
 - 所有文档、注释使用中文；代码变量名、函数名、API 路径使用英文
 - 修复前必须先定位根因，不盲目改代码
 - 优先最小上游修复，避免在多个位置打补丁
 - Commit message 使用 `fix:` 前缀
+- Bug 修复后必须判断是否需要经验沉淀，防止同类问题复发

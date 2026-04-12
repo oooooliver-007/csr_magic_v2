@@ -129,3 +129,8 @@ d:\windsurf_workspaces4\
 | 2026-04-12 | auth/login-register | 前后端项目从零搭建，后端 Spring Boot 3.4 + JWT(jjwt 0.12.6)，前端 Vite 6 + React 19 + TailwindCSS 4 | 首个功能实现，建立项目脚手架 |
 | 2026-04-12 | auth/login-register | Token 存储使用 localStorage（accessToken + refreshToken + user JSON） | MVP 阶段简化方案，后续可迁移到 httpOnly cookie |
 | 2026-04-12 | auth/login-register | 登录页遵循 UI 原型居中卡片布局，但增加了用户名/密码表单（原型仅展示角色选择按钮） | 原型为演示用，实际需要完整登录表单 |
+| 2026-04-12 | auth/jwt-auth | JwtAuthFilter 检查 Token 黑名单（PostgreSQL token_blacklist 表），登出时将 jti 加入黑名单 | Phase 4 迁移 Redis，当前 MVP 用 DB |
+| 2026-04-12 | auth/jwt-auth | Refresh Token 通过 X-Refresh-Token 请求头传递（兼容 localStorage 方案），优先从 cookie 读取 | 兼容 MVP localStorage + 未来 httpOnly cookie |
+| 2026-04-12 | auth/jwt-auth | 前端 Axios 拦截器使用独立 refreshClient 实例发送刷新请求，避免循环拦截 + 并发队列处理 | 防止多请求同时触发 refresh |
+| 2026-04-12 | auth/jwt-auth | logout 端点放入 SecurityConfig permitAll 列表，Controller 自行处理 Token 无效场景 | Token 过期后用户仍需能调用 logout，不应被 Security 层拦截 |
+| 2026-04-12 | auth/jwt-auth | 前端 logout/refresh 等认证相关 API 必须使用独立 axios 实例 + 显式传 Token，禁止依赖 apiClient 拦截器隐式附加 | 拦截器依赖 localStorage 读 Token，但 Token 可能已被其他流程（如 401 拦截器 clearAuth）清除 |

@@ -14,6 +14,8 @@
 3. 创建/更新 Controller 端点
 4. 如涉及新表，创建 Flyway 迁移脚本 + Entity + Repository
 5. 配置权限（公开 / 认证 / Admin）
+   - **逐一审查** SecurityConfig 中 `permitAll` 列表是否包含所有不需认证的端点
+   - **特别注意**：涉及 Token 操作的端点（如 logout、refresh）通常需要 `permitAll`，由 Controller 自行校验 Token
 
 ### 3. 前端对接
 1. 在 `types/` 中创建/更新 TypeScript 类型
@@ -26,7 +28,10 @@
 
 ### 5. 单元测试
 - 后端：为 Service 和 Controller 编写 JUnit 5 测试（正常 + 异常流程）
+  - Controller 测试**必须包含权限集成测试**：验证无 Token 访问 permitAll 端点返回 200、无 Token 访问受保护端点返回 401
+  - 不能只用 `addFilters=false` 绕过 Security Filter
 - 前端：为 API 调用封装和相关组件编写 Vitest 测试
+  - 认证相关 API 测试需验证 Token 显式传递（非拦截器隐式附加）
 - 运行测试确保全部通过
 
 ### 6. 验证
