@@ -52,3 +52,9 @@ export interface UserListParams {
   keyword?: string;
   region?: string;
 }
+
+export interface MyStatsResponse {
+  activityCount: number;
+  volunteerHours: number;
+  totalDonation: number;
+}

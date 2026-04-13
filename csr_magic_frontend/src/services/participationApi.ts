@@ -1,6 +1,6 @@
 import apiClient from './apiClient';
-import type { Participation, SignupRequest } from '../types/participation';
-import type { ApiResponse } from '../types/common';
+import type { Participation, SignupRequest, MyParticipation } from '../types/participation';
+import type { ApiResponse, PageResponse } from '../types/common';
 
 const BASE = '/api/v2/participations';
 
@@ -10,4 +10,7 @@ export const participationApi = {
 
   withdraw: (id: number) =>
     apiClient.post<ApiResponse<void>>(`${BASE}/${id}/withdraw`),
+
+  getMyParticipations: (params: { page?: number; size?: number } = {}) =>
+    apiClient.get<ApiResponse<PageResponse<MyParticipation>>>(`${BASE}/my`, { params }),
 };

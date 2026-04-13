@@ -72,4 +72,14 @@ describe('userApi', () => {
       newPassword: 'newpass123',
     });
   });
+
+  it('getMyStats 调用 GET /api/v2/users/me/stats', async () => {
+    const mockResponse = { data: { code: 200, data: { activityCount: 5, volunteerHours: 24.5, totalDonation: 350 } } };
+    vi.mocked(apiClient.get).mockResolvedValue(mockResponse);
+
+    const result = await userApi.getMyStats();
+
+    expect(apiClient.get).toHaveBeenCalledWith('/api/v2/users/me/stats');
+    expect(result).toEqual(mockResponse);
+  });
 });

@@ -1,5 +1,5 @@
 import apiClient from './apiClient';
-import type { UserInfo, UserDetail, UpdateUserRequest, ResetPasswordRequest, UserListParams, UpdateMeRequest, ChangePasswordRequest } from '../types/user';
+import type { UserInfo, UserDetail, UpdateUserRequest, ResetPasswordRequest, UserListParams, UpdateMeRequest, ChangePasswordRequest, MyStatsResponse } from '../types/user';
 import type { PageResponse, ApiResponse } from '../types/common';
 
 const BASE = '/api/v2/users';
@@ -15,6 +15,9 @@ export const userApi = {
 
   changePassword: (data: ChangePasswordRequest) =>
     apiClient.put<ApiResponse<void>>(`${BASE}/me/password`, data),
+
+  getMyStats: () =>
+    apiClient.get<ApiResponse<MyStatsResponse>>(`${BASE}/me/stats`),
 
   // ===== 管理端端点 =====
 

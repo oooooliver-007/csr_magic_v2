@@ -6,6 +6,7 @@ import com.csr.activity.repository.ActivityRepository;
 import com.csr.auth.entity.User;
 import com.csr.auth.repository.UserRepository;
 import com.csr.common.BusinessException;
+import com.csr.participation.dto.MyParticipationResponse;
 import com.csr.participation.dto.ParticipationResponse;
 import com.csr.participation.dto.SignupRequest;
 import com.csr.participation.entity.ParticipationState;
@@ -14,6 +15,8 @@ import com.csr.participation.exception.ParticipationNotFoundException;
 import com.csr.participation.repository.UserActivityRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -89,5 +92,11 @@ public class ParticipationServiceImpl implements ParticipationService {
 
         userActivityRepository.delete(participation);
         log.info("用户 {} 退出活动，参与记录 ID: {}", userId, participationId);
+    }
+
+    @Override
+    public Page<MyParticipationResponse> getMyParticipations(Long userId, Pageable pageable) {
+        return userActivityRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
+                .map(MyParticipationResponse::from);
     }
 }

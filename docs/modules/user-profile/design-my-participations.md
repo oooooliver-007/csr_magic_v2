@@ -47,16 +47,16 @@ depends_on:
 - **Repository**：UserActivityRepository — 聚合查询
 
 ## 实现步骤清单（Implementation Checklist）
-1. [ ] 后端：UserService 增加 getMyStats 方法
-2. [ ] 后端：UserController 增加 GET /users/me/stats 端点
-3. [ ] 后端：编写聚合查询（参与数/时长/捐赠）
-4. [ ] 前端：创建 ContributionStats.tsx
-5. [ ] 前端：创建 ParticipationList.tsx（含状态标签颜色区分）
-6. [ ] 前端：创建 MyPosterGallery.tsx
-7. [ ] 前端：创建 MyProfilePage.tsx（Tab 切换 + 整合组件）
-8. [ ] 前端：实现 CSV 导出功能
-9. [ ] 前端：接入路由 /my
-10. [ ] 对照 spec-my-participations.md 验收标准自检
+1. [x] 后端：UserService 增加 getMyStats 方法
+2. [x] 后端：UserController 增加 GET /users/me/stats 端点
+3. [x] 后端：编写聚合查询（参与数/时长/捐赠）
+4. [x] 前端：创建 ContributionStats.tsx
+5. [x] 前端：创建 ParticipationList.tsx（含状态标签颜色区分）
+6. [x] 前端：创建 MyPosterGallery.tsx
+7. [x] 前端：创建 MyProfilePage.tsx（Tab 切换 + 整合组件）
+8. [x] 前端：实现 CSV 导出功能
+9. [x] 前端：接入路由 /my
+10. [x] 对照 spec-my-participations.md 验收标准自检
 
 ## UI 原型参考
 

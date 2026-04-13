@@ -1,10 +1,13 @@
 package com.csr.participation.controller;
 
 import com.csr.common.ApiResponse;
+import com.csr.participation.dto.MyParticipationResponse;
 import com.csr.participation.dto.ParticipationResponse;
 import com.csr.participation.dto.SignupRequest;
 import com.csr.participation.service.ParticipationService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,6 +35,12 @@ public class ParticipationController {
         Long userId = getCurrentUserId();
         participationService.withdraw(id, userId);
         return ApiResponse.success(null);
+    }
+
+    @GetMapping("/my")
+    public ApiResponse<Page<MyParticipationResponse>> getMyParticipations(Pageable pageable) {
+        Long userId = getCurrentUserId();
+        return ApiResponse.success(participationService.getMyParticipations(userId, pageable));
     }
 
     private Long getCurrentUserId() {

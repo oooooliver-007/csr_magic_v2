@@ -5,6 +5,7 @@ import com.csr.auth.repository.UserRepository;
 import com.csr.common.BusinessException;
 import com.csr.participation.entity.UserActivity;
 import com.csr.participation.repository.UserActivityRepository;
+import com.csr.user.dto.MyStatsResponse;
 import com.csr.user.dto.UpdateMeRequest;
 import com.csr.user.dto.UpdateUserRequest;
 import com.csr.user.dto.UserDetailResponse;
@@ -159,5 +160,13 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         log.info("用户修改密码: userId={}", userId);
+    }
+
+    @Override
+    public MyStatsResponse getMyStats(Long userId) {
+        long activityCount = userActivityRepository.countByUserId(userId);
+        double volunteerHours = userActivityRepository.sumVolunteerHoursByUserId(userId);
+        double totalDonation = userActivityRepository.sumDonationByUserId(userId);
+        return new MyStatsResponse(activityCount, volunteerHours, totalDonation);
     }
 }

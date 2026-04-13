@@ -148,3 +148,6 @@ d:\windsurf_workspaces4\
 | 2026-04-13 | activity/activity-detail | ActivityController.getById 改为返回 ActivityDetailResponse（含 currentUserParticipation），从 SecurityContextHolder 获取当前用户 ID | 详情页需展示当前用户参与状态，无需额外 API 调用 |
 | 2026-04-13 | activity/activity-detail | 提前创建 participation 包（entity/repository/service/controller）实现 signup/withdraw | activity-detail 功能依赖报名/退出能力，最小化实现后续 participation 模块可扩展 |
 | 2026-04-13 | activity/activity-detail | user_activity 表添加 UNIQUE(user_id, activity_id) 索引 | 防止同一用户重复报名同一活动 |
+| 2026-04-13 | user-profile/my-participations | 贡献统计通过 native query 聚合：志愿时长=VOLUNTEER 活动时长，捐赠=DONATION 表单 amount 字段 | 数据库无显式统计列，基于现有 template_type + form_data 推算 |
+| 2026-04-13 | user-profile/my-participations | MyProfilePage 改为 Tab 页面（个人设置/参与记录/我的海报），Tab 切换不刷新页面 | 个人中心整合所有子功能，遵循 spec 交互要求 |
+| 2026-04-13 | user-profile/my-participations | CSV 导出在前端生成（BOM + UTF-8），无需后端端点 | MVP 简化方案，数据量小（单用户记录），避免额外 API |

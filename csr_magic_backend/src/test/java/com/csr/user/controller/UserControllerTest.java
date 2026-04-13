@@ -5,6 +5,7 @@ import com.csr.common.GlobalExceptionHandler;
 import com.csr.common.JwtAuthFilter;
 import com.csr.common.JwtUtil;
 import com.csr.auth.repository.TokenBlacklistRepository;
+import com.csr.user.dto.MyStatsResponse;
 import com.csr.user.dto.UserDetailResponse;
 import com.csr.user.dto.UserResponse;
 import com.csr.user.service.UserService;
@@ -322,5 +323,36 @@ class UserControllerTest {
                         .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400));
+    }
+
+    // === /me/stats 端点测试 ===
+
+    @Test
+    @DisplayName("GET /users/me/stats 返回贡献统计数据")
+    void getMyStats_success() throws Exception {
+        MyStatsResponse stats = new MyStatsResponse(5, 24.5, 350.0);
+        when(userService.getMyStats(1L)).thenReturn(stats);
+
+        mockMvc.perform(get("/api/v2/users/me/stats")
+                        .principal(userAuth()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.activityCount").value(5))
+                .andExpect(jsonPath("$.data.volunteerHours").value(24.5))
+                .andExpect(jsonPath("$.data.totalDonation").value(350.0));
+    }
+
+    @Test
+    @DisplayName("GET /users/me/stats 无参与记录时返回零值")
+    void getMyStats_noRecords() throws Exception {
+        MyStatsResponse stats = new MyStatsResponse(0, 0.0, 0.0);
+        when(userService.getMyStats(1L)).thenReturn(stats);
+
+        mockMvc.perform(get("/api/v2/users/me/stats")
+                        .principal(userAuth()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.activityCount").value(0))
+                .andExpect(jsonPath("$.data.volunteerHours").value(0.0))
+                .andExpect(jsonPath("$.data.totalDonation").value(0.0));
     }
 }

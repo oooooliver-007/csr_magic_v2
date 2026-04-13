@@ -1,5 +1,6 @@
 package com.csr.user.service;
 
+import com.csr.user.dto.MyStatsResponse;
 import com.csr.user.dto.UpdateMeRequest;
 import com.csr.user.dto.UpdateUserRequest;
 import com.csr.user.dto.UserDetailResponse;
@@ -24,4 +25,6 @@ public interface UserService {
     UserResponse updateMe(Long userId, UpdateMeRequest request);
 
     void changePassword(Long userId, String currentPassword, String newPassword);
+
+    MyStatsResponse getMyStats(Long userId);
 }

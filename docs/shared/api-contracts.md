@@ -45,7 +45,7 @@
 |------|------|------|------|------|
 | POST | `/api/v2/participations/signup` | 报名参与 | 是 | ✅ 已实现 |
 | POST | `/api/v2/participations/{id}/withdraw` | 退出活动 | 是 | ✅ 已实现 |
-| GET | `/api/v2/participations/my` | 我的参与记录 | 是 | 待实现 |
+| GET | `/api/v2/participations/my` | 我的参与记录 | 是 | ✅ 已实现 |
 | GET | `/api/v2/participations` | 参与列表（管理端，分页+筛选） | 是（Admin） | 待实现 |
 | PATCH | `/api/v2/participations/{id}/review` | 审核（通过/驳回） | 是（Admin） | 待实现 |
 
@@ -79,6 +79,7 @@
 | GET | `/api/v2/users/me` | 当前用户信息 | 是 |
 | PUT | `/api/v2/users/me` | 更新个人信息 | 是 |
 | PUT | `/api/v2/users/me/password` | 修改密码 | 是 |
+| GET | `/api/v2/users/me/stats` | 我的贡献统计 | 是 |
 
 ## AI 海报模块（poster）
 

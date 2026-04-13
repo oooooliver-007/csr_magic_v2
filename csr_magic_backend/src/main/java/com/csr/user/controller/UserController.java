@@ -2,6 +2,7 @@ package com.csr.user.controller;
 
 import com.csr.common.ApiResponse;
 import com.csr.user.dto.ChangePasswordRequest;
+import com.csr.user.dto.MyStatsResponse;
 import com.csr.user.dto.ResetPasswordRequest;
 import com.csr.user.dto.UpdateMeRequest;
 import com.csr.user.dto.UpdateUserRequest;
@@ -48,6 +49,12 @@ public class UserController {
         Long userId = (Long) authentication.getPrincipal();
         userService.changePassword(userId, request.currentPassword(), request.newPassword());
         return ApiResponse.success(null);
+    }
+
+    @GetMapping("/me/stats")
+    public ApiResponse<MyStatsResponse> getMyStats(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ApiResponse.success(userService.getMyStats(userId));
     }
 
     // ===== 管理端端点 =====

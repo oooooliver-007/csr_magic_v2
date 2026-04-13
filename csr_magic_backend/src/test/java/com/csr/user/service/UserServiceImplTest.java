@@ -4,6 +4,7 @@ import com.csr.auth.entity.User;
 import com.csr.auth.repository.UserRepository;
 import com.csr.common.BusinessException;
 import com.csr.participation.repository.UserActivityRepository;
+import com.csr.user.dto.MyStatsResponse;
 import com.csr.user.dto.UpdateMeRequest;
 import com.csr.user.dto.UpdateUserRequest;
 import com.csr.user.dto.UserDetailResponse;
@@ -339,5 +340,35 @@ class UserServiceImplTest {
 
         assertThrows(BusinessException.class,
                 () -> userService.changePassword(999L, "old", "new"));
+    }
+
+    // === getMyStats 测试 ===
+
+    @Test
+    @DisplayName("getMyStats：返回正确的贡献统计数据")
+    void getMyStats_success() {
+        when(userActivityRepository.countByUserId(1L)).thenReturn(5L);
+        when(userActivityRepository.sumVolunteerHoursByUserId(1L)).thenReturn(24.5);
+        when(userActivityRepository.sumDonationByUserId(1L)).thenReturn(350.0);
+
+        MyStatsResponse stats = userService.getMyStats(1L);
+
+        assertEquals(5L, stats.activityCount());
+        assertEquals(24.5, stats.volunteerHours());
+        assertEquals(350.0, stats.totalDonation());
+    }
+
+    @Test
+    @DisplayName("getMyStats：无参与记录时返回零值")
+    void getMyStats_noRecords() {
+        when(userActivityRepository.countByUserId(2L)).thenReturn(0L);
+        when(userActivityRepository.sumVolunteerHoursByUserId(2L)).thenReturn(0.0);
+        when(userActivityRepository.sumDonationByUserId(2L)).thenReturn(0.0);
+
+        MyStatsResponse stats = userService.getMyStats(2L);
+
+        assertEquals(0L, stats.activityCount());
+        assertEquals(0.0, stats.volunteerHours());
+        assertEquals(0.0, stats.totalDonation());
     }
 }

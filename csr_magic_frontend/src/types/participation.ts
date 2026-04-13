@@ -16,6 +16,17 @@ export interface SignupRequest {
   formData?: string;
 }
 
+export interface MyParticipation {
+  id: number;
+  activityId: number;
+  activityName: string;
+  templateType: import('./activity').TemplateType;
+  state: ParticipationState;
+  rejectReason: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
 export interface ActivityDetail {
   id: number;
   eventId: number;
