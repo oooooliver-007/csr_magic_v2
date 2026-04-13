@@ -44,14 +44,14 @@ depends_on:
 - **安全**：changePassword 必须验证当前密码，防止未授权修改
 
 ## 实现步骤清单（Implementation Checklist）
-1. [ ] 后端：UserService 增加 getMe/updateMe/changePassword 方法
-2. [ ] 后端：UserController 增加 GET/PUT /users/me、PUT /users/me/password 端点
-3. [ ] 前端：userApi.ts 增加 getMe/updateMe/changePassword 方法
-4. [ ] 前端：创建 ProfileInfoForm.tsx
-5. [ ] 前端：创建 PasswordChangeForm.tsx
-6. [ ] 前端：集成到 MyProfilePage.tsx
-7. [ ] 前端：表单验证（Zod schema）
-8. [ ] 对照 spec-profile-settings.md 验收标准自检
+1. [x] 后端：UserService 增加 getMe/updateMe/changePassword 方法
+2. [x] 后端：UserController 增加 GET/PUT /users/me、PUT /users/me/password 端点
+3. [x] 前端：userApi.ts 增加 getMe/updateMe/changePassword 方法
+4. [x] 前端：创建 ProfileInfoForm.tsx
+5. [x] 前端：创建 PasswordChangeForm.tsx
+6. [x] 前端：集成到 MyProfilePage.tsx
+7. [x] 前端：表单验证（Zod schema）
+8. [x] 对照 spec-profile-settings.md 验收标准自检
 
 ## 引用
 - 对应功能规格：spec-profile-settings.md

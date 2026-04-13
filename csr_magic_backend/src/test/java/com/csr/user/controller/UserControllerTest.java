@@ -21,6 +21,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -57,6 +60,112 @@ class UserControllerTest {
             1L, "testuser", "测试用户", "张三", "MALE", "北京", "USER",
             "2026-04-01T00:00:00Z", null, 3, List.of()
     );
+
+    private UsernamePasswordAuthenticationToken userAuth() {
+        return new UsernamePasswordAuthenticationToken(
+                1L, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+    }
+
+    // === /me 端点测试 ===
+
+    @Test
+    @DisplayName("GET /users/me 返回当前用户信息")
+    void getMe_success() throws Exception {
+        when(userService.getMe(1L)).thenReturn(SAMPLE_USER);
+
+        mockMvc.perform(get("/api/v2/users/me")
+                        .principal(userAuth()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.username").value("testuser"))
+                .andExpect(jsonPath("$.data.displayName").value("测试用户"));
+    }
+
+    @Test
+    @DisplayName("PUT /users/me 更新个人信息成功")
+    void updateMe_success() throws Exception {
+        UserResponse updated = new UserResponse(
+                1L, "testuser", "新昵称", "张三", "MALE", "北京", "USER",
+                "2026-04-01T00:00:00Z", "2026-04-10T00:00:00Z"
+        );
+        when(userService.updateMe(eq(1L), any())).thenReturn(updated);
+
+        String body = """
+                {"displayName":"新昵称"}
+                """;
+
+        mockMvc.perform(put("/api/v2/users/me")
+                        .principal(userAuth())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.displayName").value("新昵称"));
+    }
+
+    @Test
+    @DisplayName("PUT /users/me/password 修改密码成功")
+    void changePassword_success() throws Exception {
+        doNothing().when(userService).changePassword(eq(1L), anyString(), anyString());
+
+        String body = """
+                {"currentPassword":"oldpass","newPassword":"newpass123"}
+                """;
+
+        mockMvc.perform(put("/api/v2/users/me/password")
+                        .principal(userAuth())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200));
+    }
+
+    @Test
+    @DisplayName("PUT /users/me/password 当前密码错误返回 400")
+    void changePassword_wrongCurrent() throws Exception {
+        doThrow(new BusinessException(400, "当前密码不正确"))
+                .when(userService).changePassword(eq(1L), anyString(), anyString());
+
+        String body = """
+                {"currentPassword":"wrongpass","newPassword":"newpass123"}
+                """;
+
+        mockMvc.perform(put("/api/v2/users/me/password")
+                        .principal(userAuth())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400));
+    }
+
+    @Test
+    @DisplayName("PUT /users/me/password 新密码为空返回 400")
+    void changePassword_blankNewPassword() throws Exception {
+        String body = """
+                {"currentPassword":"oldpass","newPassword":""}
+                """;
+
+        mockMvc.perform(put("/api/v2/users/me/password")
+                        .principal(userAuth())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400));
+    }
+
+    @Test
+    @DisplayName("PUT /users/me/password 新密码过短返回 400")
+    void changePassword_tooShort() throws Exception {
+        String body = """
+                {"currentPassword":"oldpass","newPassword":"123"}
+                """;
+
+        mockMvc.perform(put("/api/v2/users/me/password")
+                        .principal(userAuth())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400));
+    }
 
     // === 列表查询 ===
 

@@ -1,7 +1,9 @@
 package com.csr.user.controller;
 
 import com.csr.common.ApiResponse;
+import com.csr.user.dto.ChangePasswordRequest;
 import com.csr.user.dto.ResetPasswordRequest;
+import com.csr.user.dto.UpdateMeRequest;
 import com.csr.user.dto.UpdateUserRequest;
 import com.csr.user.dto.UserDetailResponse;
 import com.csr.user.dto.UserResponse;
@@ -10,6 +12,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,6 +24,33 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
+
+    // ===== /me 端点（当前登录用户，员工端+管理端均可访问） =====
+
+    @GetMapping("/me")
+    public ApiResponse<UserResponse> getMe(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ApiResponse.success(userService.getMe(userId));
+    }
+
+    @PutMapping("/me")
+    public ApiResponse<UserResponse> updateMe(
+            Authentication authentication,
+            @Valid @RequestBody UpdateMeRequest request) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ApiResponse.success(userService.updateMe(userId, request));
+    }
+
+    @PutMapping("/me/password")
+    public ApiResponse<Void> changePassword(
+            Authentication authentication,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        Long userId = (Long) authentication.getPrincipal();
+        userService.changePassword(userId, request.currentPassword(), request.newPassword());
+        return ApiResponse.success(null);
+    }
+
+    // ===== 管理端端点 =====
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")

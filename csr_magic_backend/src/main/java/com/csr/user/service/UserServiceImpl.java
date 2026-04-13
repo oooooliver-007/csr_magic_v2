@@ -5,6 +5,7 @@ import com.csr.auth.repository.UserRepository;
 import com.csr.common.BusinessException;
 import com.csr.participation.entity.UserActivity;
 import com.csr.participation.repository.UserActivityRepository;
+import com.csr.user.dto.UpdateMeRequest;
 import com.csr.user.dto.UpdateUserRequest;
 import com.csr.user.dto.UserDetailResponse;
 import com.csr.user.dto.UserResponse;
@@ -112,5 +113,51 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         log.info("重置用户密码: userId={}", id);
+    }
+
+    @Override
+    public UserResponse getMe(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(404, "用户不存在"));
+        return UserResponse.from(user);
+    }
+
+    @Override
+    @Transactional
+    public UserResponse updateMe(Long userId, UpdateMeRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(404, "用户不存在"));
+
+        if (request.displayName() != null) {
+            user.setDisplayName(request.displayName());
+        }
+        if (request.realName() != null) {
+            user.setRealName(request.realName());
+        }
+        if (request.gender() != null) {
+            user.setGender(request.gender());
+        }
+        if (request.region() != null) {
+            user.setRegion(request.region());
+        }
+
+        User saved = userRepository.save(user);
+        log.info("用户更新个人信息: userId={}", userId);
+        return UserResponse.from(saved);
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(Long userId, String currentPassword, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(404, "用户不存在"));
+
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new BusinessException(400, "当前密码不正确");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        log.info("用户修改密码: userId={}", userId);
     }
 }

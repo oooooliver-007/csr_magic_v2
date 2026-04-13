@@ -7,7 +7,7 @@
 
 | 功能 | spec 文件 | design 文件 | 状态 | 依赖 |
 |------|-----------|-------------|------|------|
-| 个人设置 | spec-profile-settings.md | design-profile-settings.md | 待实现 | auth |
+| 个人设置 | spec-profile-settings.md | design-profile-settings.md | ✅ 已完成 | auth |
 | 我的参与记录 | spec-my-participations.md | design-my-participations.md | 待实现 | participation |
 
 ## 模块间依赖
@@ -15,7 +15,7 @@
 - **被依赖**：无
 
 ## 推荐实现顺序
-1. profile-settings（个人设置 — 仅依赖 auth）
+1. - [x] 个人设置（profile-settings）— 依赖：auth（已实现） ✅ 已完成
 2. my-participations（参与记录 — 依赖 participation 模块）
 
 ## 涉及的服务

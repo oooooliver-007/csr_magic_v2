@@ -34,6 +34,18 @@ export interface ResetPasswordRequest {
   newPassword: string;
 }
 
+export interface UpdateMeRequest {
+  displayName?: string;
+  realName?: string;
+  gender?: string;
+  region?: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface UserListParams {
   page?: number;
   size?: number;

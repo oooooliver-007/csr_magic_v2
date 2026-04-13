@@ -4,6 +4,7 @@ import com.csr.auth.entity.User;
 import com.csr.auth.repository.UserRepository;
 import com.csr.common.BusinessException;
 import com.csr.participation.repository.UserActivityRepository;
+import com.csr.user.dto.UpdateMeRequest;
 import com.csr.user.dto.UpdateUserRequest;
 import com.csr.user.dto.UserDetailResponse;
 import com.csr.user.dto.UserResponse;
@@ -234,5 +235,109 @@ class UserServiceImplTest {
 
         assertThrows(BusinessException.class,
                 () -> userService.resetPassword(999L, "newpass"));
+    }
+
+    // === getMe 测试 ===
+
+    @Test
+    @DisplayName("getMe：成功返回当前用户信息")
+    void getMe_success() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+        UserResponse response = userService.getMe(1L);
+
+        assertEquals(1L, response.id());
+        assertEquals("testuser", response.username());
+        assertEquals("测试用户", response.displayName());
+    }
+
+    @Test
+    @DisplayName("getMe：用户不存在抛出 BusinessException 404")
+    void getMe_notFound() {
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> userService.getMe(999L));
+        assertEquals(404, ex.getCode());
+    }
+
+    // === updateMe 测试 ===
+
+    @Test
+    @DisplayName("updateMe：成功更新昵称和真名")
+    void updateMe_success() {
+        UpdateMeRequest request = new UpdateMeRequest("新昵称", "李四", null, null);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+
+        UserResponse response = userService.updateMe(1L, request);
+
+        assertNotNull(response);
+        assertEquals("新昵称", testUser.getDisplayName());
+        assertEquals("李四", testUser.getRealName());
+        assertEquals("MALE", testUser.getGender()); // 未修改
+        verify(userRepository).save(testUser);
+    }
+
+    @Test
+    @DisplayName("updateMe：仅更新非null字段")
+    void updateMe_partialUpdate() {
+        UpdateMeRequest request = new UpdateMeRequest(null, null, "FEMALE", "上海");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+
+        userService.updateMe(1L, request);
+
+        assertEquals("测试用户", testUser.getDisplayName()); // 未修改
+        assertEquals("FEMALE", testUser.getGender());
+        assertEquals("上海", testUser.getRegion());
+    }
+
+    @Test
+    @DisplayName("updateMe：用户不存在抛出 BusinessException 404")
+    void updateMe_notFound() {
+        UpdateMeRequest request = new UpdateMeRequest("test", null, null, null);
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(BusinessException.class, () -> userService.updateMe(999L, request));
+    }
+
+    // === changePassword 测试 ===
+
+    @Test
+    @DisplayName("changePassword：当前密码正确时成功修改")
+    void changePassword_success() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(passwordEncoder.matches("oldpass", "encoded_password")).thenReturn(true);
+        when(passwordEncoder.encode("newpass123")).thenReturn("encoded_newpass");
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+
+        userService.changePassword(1L, "oldpass", "newpass123");
+
+        assertEquals("encoded_newpass", testUser.getPassword());
+        verify(passwordEncoder).matches("oldpass", "encoded_password");
+        verify(passwordEncoder).encode("newpass123");
+    }
+
+    @Test
+    @DisplayName("changePassword：当前密码错误时抛出 BusinessException 400")
+    void changePassword_wrongCurrentPassword() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(passwordEncoder.matches("wrongpass", "encoded_password")).thenReturn(false);
+
+        BusinessException ex = assertThrows(BusinessException.class,
+                () -> userService.changePassword(1L, "wrongpass", "newpass123"));
+        assertEquals(400, ex.getCode());
+        assertTrue(ex.getMessage().contains("当前密码不正确"));
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("changePassword：用户不存在抛出 BusinessException 404")
+    void changePassword_notFound() {
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(BusinessException.class,
+                () -> userService.changePassword(999L, "old", "new"));
     }
 }

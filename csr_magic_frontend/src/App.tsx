@@ -10,6 +10,7 @@ import ActivityManagementPage from './pages/admin/ActivityManagementPage';
 import UserManagementPage from './pages/admin/UserManagementPage';
 import ActivityListPage from './pages/ActivityListPage';
 import ActivityDetailPage from './pages/ActivityDetailPage';
+import MyProfilePage from './pages/MyProfilePage';
 import { useAuthStore } from './stores/authStore';
 
 function HomePage() {
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/activities" element={<ActivityListPage />} />
           <Route path="/activities/:id" element={<ActivityDetailPage />} />
+          <Route path="/my" element={<MyProfilePage />} />
         </Route>
 
         {/* 管理端路由 */}
