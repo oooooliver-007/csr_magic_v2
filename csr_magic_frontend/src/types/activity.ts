@@ -59,5 +59,6 @@ export interface ActivityListParams {
   size?: number;
   eventId?: number;
   status?: string;
+  templateType?: TemplateType;
   keyword?: string;
 }

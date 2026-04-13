@@ -49,17 +49,17 @@ depends_on:
 - **DTO**：ActivityResponse（含 eventName、participantCount）
 
 ## 实现步骤清单（Implementation Checklist）
-1. [ ] 后端：创建 Activity Entity + ActivityRepository
-2. [ ] 后端：创建 ActivityResponse DTO（含关联字段）
-3. [ ] 后端：创建 ActivityService — list 方法（多维筛选）
-4. [ ] 后端：创建 ActivityController — GET /activities
-5. [ ] 前端：创建 types/activity.ts
-6. [ ] 前端：创建 services/activityApi.ts — list 方法
-7. [ ] 前端：创建 ActivityCard.tsx 组件
-8. [ ] 前端：创建 ActivityFilters.tsx 组件（搜索+筛选）
-9. [ ] 前端：创建 ActivityListPage.tsx（整合卡片+筛选+分页）
-10. [ ] 前端：接入路由 /activities
-11. [ ] 前端：响应式适配（多列→单列，筛选折叠）
+1. [x] 后端：创建 Activity Entity + ActivityRepository
+2. [x] 后端：创建 ActivityResponse DTO（含关联字段）
+3. [x] 后端：创建 ActivityService — list 方法（多维筛选）
+4. [x] 后端：创建 ActivityController — GET /activities
+5. [x] 前端：创建 types/activity.ts
+6. [x] 前端：创建 services/activityApi.ts — list 方法
+7. [x] 前端：创建 ActivityCard.tsx 组件
+8. [x] 前端：创建 ActivityFilters.tsx 组件（搜索+筛选）
+9. [x] 前端：创建 ActivityListPage.tsx（整合卡片+筛选+分页）
+10. [x] 前端：接入路由 /activities
+11. [x] 前端：响应式适配（多列→单列，筛选折叠）
 12. [ ] 对照 spec-activity-list.md 验收标准自检
 
 ## UI 原型参考

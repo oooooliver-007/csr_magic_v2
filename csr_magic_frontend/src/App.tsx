@@ -4,8 +4,10 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import PrivateRoute from './components/PrivateRoute';
 import AdminLayout from './components/AdminLayout';
+import EmployeeLayout from './components/EmployeeLayout';
 import EventManagementPage from './pages/admin/EventManagementPage';
 import ActivityManagementPage from './pages/admin/ActivityManagementPage';
+import ActivityListPage from './pages/ActivityListPage';
 import { useAuthStore } from './stores/authStore';
 
 function HomePage() {
@@ -47,7 +49,11 @@ export default function App() {
 
       {/* 受保护路由 */}
       <Route element={<PrivateRoute />}>
-        <Route path="/" element={<HomePage />} />
+        {/* 员工端路由 */}
+        <Route element={<EmployeeLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/activities" element={<ActivityListPage />} />
+        </Route>
 
         {/* 管理端路由 */}
         <Route path="/admin" element={<AdminLayout />}>

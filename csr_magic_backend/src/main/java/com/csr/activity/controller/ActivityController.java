@@ -26,9 +26,10 @@ public class ActivityController {
     public ApiResponse<Page<ActivityResponse>> list(
             @RequestParam(required = false) Long eventId,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) String templateType,
             @RequestParam(required = false) String keyword,
             Pageable pageable) {
-        return ApiResponse.success(activityService.list(eventId, status, keyword, pageable));
+        return ApiResponse.success(activityService.list(eventId, status, templateType, keyword, pageable));
     }
 
     @GetMapping("/{id}")

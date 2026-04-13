@@ -60,7 +60,7 @@ class ActivityControllerTest {
     @DisplayName("GET /activities 返回分页列表")
     void list_success() throws Exception {
         Page<ActivityResponse> page = new PageImpl<>(List.of(SAMPLE_ACTIVITY));
-        when(activityService.list(isNull(), isNull(), isNull(), any(Pageable.class))).thenReturn(page);
+        when(activityService.list(isNull(), isNull(), isNull(), isNull(), any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/v2/activities")
                         .param("page", "0")
@@ -74,7 +74,7 @@ class ActivityControllerTest {
     @DisplayName("GET /activities?eventId=1&status=UPCOMING 返回筛选结果")
     void list_withFilters() throws Exception {
         Page<ActivityResponse> page = new PageImpl<>(List.of(SAMPLE_ACTIVITY));
-        when(activityService.list(eq(1L), eq("UPCOMING"), isNull(), any(Pageable.class))).thenReturn(page);
+        when(activityService.list(eq(1L), eq("UPCOMING"), isNull(), isNull(), any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/v2/activities")
                         .param("eventId", "1")
@@ -87,7 +87,7 @@ class ActivityControllerTest {
     @DisplayName("GET /activities?keyword=植树 返回搜索结果")
     void list_withKeyword() throws Exception {
         Page<ActivityResponse> page = new PageImpl<>(List.of(SAMPLE_ACTIVITY));
-        when(activityService.list(isNull(), isNull(), eq("植树"), any(Pageable.class))).thenReturn(page);
+        when(activityService.list(isNull(), isNull(), isNull(), eq("植树"), any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/v2/activities")
                         .param("keyword", "植树"))

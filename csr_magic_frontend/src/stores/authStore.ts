@@ -12,11 +12,23 @@ interface AuthState {
   loadFromStorage: () => void;
 }
 
+function loadInitialAuth(): Pick<AuthState, 'accessToken' | 'refreshToken' | 'user' | 'isAuthenticated'> {
+  try {
+    const accessToken = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+    const userStr = localStorage.getItem('user');
+    if (accessToken && userStr) {
+      const user = JSON.parse(userStr) as User;
+      return { accessToken, refreshToken, user, isAuthenticated: true };
+    }
+  } catch {
+    // ignore
+  }
+  return { accessToken: null, refreshToken: null, user: null, isAuthenticated: false };
+}
+
 export const useAuthStore = create<AuthState>((set) => ({
-  accessToken: null,
-  refreshToken: null,
-  user: null,
-  isAuthenticated: false,
+  ...loadInitialAuth(),
 
   setAuth: (accessToken, refreshToken, user) => {
     localStorage.setItem('accessToken', accessToken);

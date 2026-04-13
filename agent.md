@@ -140,3 +140,8 @@ d:\windsurf_workspaces4\
 | 2026-04-13 | activity/activity-crud | ActivityController GET 列表端点不加 @PreAuthorize（员工端也需访问），仅 POST/PUT/DELETE 加 ADMIN 权限 | 列表和详情需员工端可见，写操作限管理员 |
 | 2026-04-13 | activity/activity-crud | ActivityRepository 使用 @Query 组合筛选（eventId + status + keyword），避免多个单条件方法组合 | 一次查询支持多维筛选，简化 Service 层逻辑 |
 | 2026-04-13 | activity/activity-crud | ActivityResponse 包含 eventName 和 currentParticipants 字段，减少前端额外请求 | 列表页直接展示所属事件名和参与人数，无需 N+1 查询 |
+| 2026-04-13 | activity/activity-list | ActivityRepository.findByFilters 改为 nativeQuery + CAST(:param AS TEXT) 模式 | Hibernate 6 + PostgreSQL 无法推断 null 参数的枚举/字符串类型，JPQL 的 CAST(field AS string) 也不兼容 |
+| 2026-04-13 | activity/activity-list | authStore 初始化时同步从 localStorage 读取 token（loadInitialAuth 函数） | PrivateRoute 在首次渲染时检查 isAuthenticated，异步 loadFromStorage 来不及执行导致重定向到 /login |
+| 2026-04-13 | infra/e2e-testing | E2E 测试从 Playwright MCP 手动交互改为本地 Playwright CLI（npx playwright test） | 可重复、可 CI、无手动步骤。创建了 e2e-test Skill 标准化流程 |
+| 2026-04-13 | infra/e2e-testing | globalSetup 使用 API 方式（fetch 调用后端）获取 token，而非 UI 方式（page.fill + click） | react-hook-form 的 fill() 可能不触发 React onChange 事件，导致表单验证不通过 |
+| 2026-04-13 | infra/e2e-testing | Playwright 配置使用 channel: 'msedge' 复用系统浏览器 | 避免下载 Chromium（~180MB，国内 CDN 慢），Windows 自带 Edge |

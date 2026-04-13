@@ -48,6 +48,11 @@ coverage/
 htmlcov/
 .pytest_cache/
 
+# Playwright
+**/e2e/.auth/
+test-results/
+playwright-report/
+
 # Misc
 *.tmp
 *.temp

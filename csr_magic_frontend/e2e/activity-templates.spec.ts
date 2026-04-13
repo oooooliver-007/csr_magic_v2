@@ -4,14 +4,14 @@ import { test, expect } from '@playwright/test';
  * 活动模板 E2E 测试
  * 前置条件：
  * 1. 后端服务已启动（http://localhost:8080）
- * 2. 前端服务已启动（http://localhost:5173）
+ * 2. 前端服务已启动（http://localhost:3000）
  * 3. 数据库中已有至少一个事件
- * 4. 已登录管理员账号
+ * 4. globalSetup 已自动完成登录（需 ADMIN 角色）
  */
 
 test.describe('活动模板系统', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:5173/admin/activities');
+    await page.goto('/admin/activities');
     await page.waitForLoadState('networkidle');
   });
 

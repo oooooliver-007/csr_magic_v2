@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface ActivityService {
 
-    Page<ActivityResponse> list(Long eventId, String status, String keyword, Pageable pageable);
+    Page<ActivityResponse> list(Long eventId, String status, String templateType, String keyword, Pageable pageable);
 
     ActivityResponse getById(Long id);
 

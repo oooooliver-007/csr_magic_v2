@@ -74,13 +74,13 @@ class ActivityServiceImplTest {
     void list_noFilters() {
         Pageable pageable = PageRequest.of(0, 20);
         Page<Activity> page = new PageImpl<>(List.of(testActivity), pageable, 1);
-        when(activityRepository.findAll(pageable)).thenReturn(page);
+        when(activityRepository.findByFilters(isNull(), isNull(), isNull(), isNull(), eq(pageable))).thenReturn(page);
 
-        Page<ActivityResponse> result = activityService.list(null, null, null, pageable);
+        Page<ActivityResponse> result = activityService.list(null, null, null, null, pageable);
 
         assertEquals(1, result.getTotalElements());
         assertEquals("春季植树活动", result.getContent().get(0).name());
-        verify(activityRepository).findAll(pageable);
+        verify(activityRepository).findByFilters(isNull(), isNull(), isNull(), isNull(), eq(pageable));
     }
 
     @Test
@@ -88,12 +88,12 @@ class ActivityServiceImplTest {
     void list_byEventId() {
         Pageable pageable = PageRequest.of(0, 20);
         Page<Activity> page = new PageImpl<>(List.of(testActivity), pageable, 1);
-        when(activityRepository.findByEventId(1L, pageable)).thenReturn(page);
+        when(activityRepository.findByFilters(eq(1L), isNull(), isNull(), isNull(), eq(pageable))).thenReturn(page);
 
-        Page<ActivityResponse> result = activityService.list(1L, null, null, pageable);
+        Page<ActivityResponse> result = activityService.list(1L, null, null, null, pageable);
 
         assertEquals(1, result.getTotalElements());
-        verify(activityRepository).findByEventId(1L, pageable);
+        verify(activityRepository).findByFilters(eq(1L), isNull(), isNull(), isNull(), eq(pageable));
     }
 
     @Test
@@ -101,12 +101,12 @@ class ActivityServiceImplTest {
     void list_byStatusAndKeyword() {
         Pageable pageable = PageRequest.of(0, 20);
         Page<Activity> page = new PageImpl<>(List.of(testActivity), pageable, 1);
-        when(activityRepository.findByStatusAndNameContainingIgnoreCase("UPCOMING", "植树", pageable)).thenReturn(page);
+        when(activityRepository.findByFilters(isNull(), eq("UPCOMING"), isNull(), eq("植树"), eq(pageable))).thenReturn(page);
 
-        Page<ActivityResponse> result = activityService.list(null, "UPCOMING", "植树", pageable);
+        Page<ActivityResponse> result = activityService.list(null, "UPCOMING", null, "植树", pageable);
 
         assertEquals(1, result.getTotalElements());
-        verify(activityRepository).findByStatusAndNameContainingIgnoreCase("UPCOMING", "植树", pageable);
+        verify(activityRepository).findByFilters(isNull(), eq("UPCOMING"), isNull(), eq("植树"), eq(pageable));
     }
 
     // === 详情查询测试 ===

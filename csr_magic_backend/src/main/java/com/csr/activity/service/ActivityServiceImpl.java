@@ -35,29 +35,19 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     @Override
-    public Page<ActivityResponse> list(Long eventId, String status, String keyword, Pageable pageable) {
-        boolean hasEvent = eventId != null;
-        boolean hasStatus = status != null && !status.isBlank();
-        boolean hasKeyword = keyword != null && !keyword.isBlank();
-
-        Page<Activity> page;
-        if (hasEvent && hasStatus && hasKeyword) {
-            page = activityRepository.findByEventIdAndStatusAndNameContainingIgnoreCase(eventId, status, keyword, pageable);
-        } else if (hasEvent && hasStatus) {
-            page = activityRepository.findByEventIdAndStatus(eventId, status, pageable);
-        } else if (hasEvent && hasKeyword) {
-            page = activityRepository.findByEventIdAndNameContainingIgnoreCase(eventId, keyword, pageable);
-        } else if (hasStatus && hasKeyword) {
-            page = activityRepository.findByStatusAndNameContainingIgnoreCase(status, keyword, pageable);
-        } else if (hasEvent) {
-            page = activityRepository.findByEventId(eventId, pageable);
-        } else if (hasStatus) {
-            page = activityRepository.findByStatus(status, pageable);
-        } else if (hasKeyword) {
-            page = activityRepository.findByNameContainingIgnoreCase(keyword, pageable);
-        } else {
-            page = activityRepository.findAll(pageable);
+    public Page<ActivityResponse> list(Long eventId, String status, String templateType, String keyword, Pageable pageable) {
+        String effectiveStatus = (status != null && !status.isBlank()) ? status : null;
+        String effectiveKeyword = (keyword != null && !keyword.isBlank()) ? keyword : null;
+        String effectiveTemplateType = null;
+        if (templateType != null && !templateType.isBlank()) {
+            try {
+                TemplateType.valueOf(templateType);
+                effectiveTemplateType = templateType;
+            } catch (IllegalArgumentException e) {
+                log.warn("无效的模板类型筛选值: {}", templateType);
+            }
         }
+        Page<Activity> page = activityRepository.findByFilters(eventId, effectiveStatus, effectiveTemplateType, effectiveKeyword, pageable);
         return page.map(ActivityResponse::from);
     }
 
