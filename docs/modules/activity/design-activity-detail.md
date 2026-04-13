@@ -52,17 +52,17 @@ depends_on:
 - 报名/退出逻辑在 participation 模块中实现
 
 ## 实现步骤清单（Implementation Checklist）
-1. [ ] 后端：创建 ActivityDetailResponse DTO
-2. [ ] 后端：ActivityService — getById 方法（含参与状态）
-3. [ ] 后端：ActivityController — GET /activities/{id}
-4. [ ] 前端：创建 ActivityInfo.tsx 组件
-5. [ ] 前端：创建 SignupForm.tsx（动态表单，按 templateType 切换）
-6. [ ] 前端：创建 ParticipationStatus.tsx 组件
-7. [ ] 前端：创建 ActivityDetailPage.tsx（整合组件）
-8. [ ] 前端：activityApi.ts 增加 getById 方法
-9. [ ] 前端：接入路由 /activities/:id
-10. [ ] 前端：响应式适配（移动端底部固定操作栏）
-11. [ ] 对照 spec-activity-detail.md 验收标准自检
+1. [x] 后端：创建 ActivityDetailResponse DTO
+2. [x] 后端：ActivityService — getById 方法（含参与状态）
+3. [x] 后端：ActivityController — GET /activities/{id}
+4. [x] 前端：创建 ActivityInfo.tsx 组件
+5. [x] 前端：创建 SignupForm.tsx（动态表单，按 templateType 切换）
+6. [x] 前端：创建 ParticipationStatus.tsx 组件
+7. [x] 前端：创建 ActivityDetailPage.tsx（整合组件）
+8. [x] 前端：activityApi.ts 增加 getById 方法
+9. [x] 前端：接入路由 /activities/:id
+10. [x] 前端：响应式适配（移动端底部固定操作栏）
+11. [x] 对照 spec-activity-detail.md 验收标准自检
 
 ## UI 原型参考
 

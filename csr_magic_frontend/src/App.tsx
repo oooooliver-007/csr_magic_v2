@@ -8,6 +8,7 @@ import EmployeeLayout from './components/EmployeeLayout';
 import EventManagementPage from './pages/admin/EventManagementPage';
 import ActivityManagementPage from './pages/admin/ActivityManagementPage';
 import ActivityListPage from './pages/ActivityListPage';
+import ActivityDetailPage from './pages/ActivityDetailPage';
 import { useAuthStore } from './stores/authStore';
 
 function HomePage() {
@@ -53,6 +54,7 @@ export default function App() {
         <Route element={<EmployeeLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/activities" element={<ActivityListPage />} />
+          <Route path="/activities/:id" element={<ActivityDetailPage />} />
         </Route>
 
         {/* 管理端路由 */}

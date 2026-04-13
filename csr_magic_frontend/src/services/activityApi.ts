@@ -1,5 +1,6 @@
 import apiClient from './apiClient';
 import type { Activity, CreateActivityRequest, UpdateActivityRequest, ActivityListParams } from '../types/activity';
+import type { ActivityDetail } from '../types/participation';
 import type { ApiResponse, PageResponse } from '../types/common';
 
 const BASE = '/api/v2/activities';
@@ -9,7 +10,7 @@ export const activityApi = {
     apiClient.get<ApiResponse<PageResponse<Activity>>>(BASE, { params }),
 
   getById: (id: number) =>
-    apiClient.get<ApiResponse<Activity>>(`${BASE}/${id}`),
+    apiClient.get<ApiResponse<ActivityDetail>>(`${BASE}/${id}`),
 
   create: (data: CreateActivityRequest) =>
     apiClient.post<ApiResponse<Activity>>(BASE, data),

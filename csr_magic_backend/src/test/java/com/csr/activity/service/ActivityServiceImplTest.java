@@ -1,5 +1,6 @@
 package com.csr.activity.service;
 
+import com.csr.activity.dto.ActivityDetailResponse;
 import com.csr.activity.dto.ActivityResponse;
 import com.csr.activity.dto.CreateActivityRequest;
 import com.csr.activity.dto.UpdateActivityRequest;
@@ -7,10 +8,14 @@ import com.csr.activity.entity.Activity;
 import com.csr.activity.entity.TemplateType;
 import com.csr.activity.exception.ActivityNotFoundException;
 import com.csr.activity.repository.ActivityRepository;
+import com.csr.auth.entity.User;
 import com.csr.common.BusinessException;
 import com.csr.event.entity.Event;
 import com.csr.event.exception.EventNotFoundException;
 import com.csr.event.repository.EventRepository;
+import com.csr.participation.entity.ParticipationState;
+import com.csr.participation.entity.UserActivity;
+import com.csr.participation.repository.UserActivityRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,6 +45,9 @@ class ActivityServiceImplTest {
 
     @Mock
     private EventRepository eventRepository;
+
+    @Mock
+    private UserActivityRepository userActivityRepository;
 
     @InjectMocks
     private ActivityServiceImpl activityService;
@@ -420,5 +428,68 @@ class ActivityServiceImplTest {
         assertEquals(TemplateType.DONATION, testActivity.getTemplateType());
         assertNotNull(testActivity.getFormSchema());
         assertTrue(testActivity.getFormSchema().contains("amount"));
+    }
+
+    // === getDetail 测试 ===
+
+    @Test
+    @DisplayName("getDetail：存在活动且用户未参与时返回 participation 为 null")
+    void getDetail_noParticipation() {
+        when(activityRepository.findById(1L)).thenReturn(Optional.of(testActivity));
+        when(userActivityRepository.countByActivityId(1L)).thenReturn(5L);
+        when(userActivityRepository.findByUserIdAndActivityId(100L, 1L)).thenReturn(Optional.empty());
+
+        ActivityDetailResponse response = activityService.getDetail(1L, 100L);
+
+        assertEquals(1L, response.id());
+        assertEquals("春季植树活动", response.name());
+        assertEquals(5L, response.currentParticipants());
+        assertNull(response.currentUserParticipation());
+    }
+
+    @Test
+    @DisplayName("getDetail：存在活动且用户已参与时返回 participation")
+    void getDetail_withParticipation() {
+        User testUser = new User();
+        testUser.setId(100L);
+
+        UserActivity ua = new UserActivity();
+        ua.setId(1L);
+        ua.setUser(testUser);
+        ua.setActivity(testActivity);
+        ua.setState(ParticipationState.PENDING);
+        ReflectionTestUtils.setField(ua, "createdAt", Instant.parse("2026-04-10T00:00:00Z"));
+
+        when(activityRepository.findById(1L)).thenReturn(Optional.of(testActivity));
+        when(userActivityRepository.countByActivityId(1L)).thenReturn(10L);
+        when(userActivityRepository.findByUserIdAndActivityId(100L, 1L)).thenReturn(Optional.of(ua));
+
+        ActivityDetailResponse response = activityService.getDetail(1L, 100L);
+
+        assertEquals(1L, response.id());
+        assertEquals(10L, response.currentParticipants());
+        assertNotNull(response.currentUserParticipation());
+        assertEquals("PENDING", response.currentUserParticipation().state());
+        assertEquals(100L, response.currentUserParticipation().userId());
+    }
+
+    @Test
+    @DisplayName("getDetail：currentUserId 为 null 时不查询参与状态")
+    void getDetail_nullUser() {
+        when(activityRepository.findById(1L)).thenReturn(Optional.of(testActivity));
+        when(userActivityRepository.countByActivityId(1L)).thenReturn(0L);
+
+        ActivityDetailResponse response = activityService.getDetail(1L, null);
+
+        assertNull(response.currentUserParticipation());
+        verify(userActivityRepository, never()).findByUserIdAndActivityId(anyLong(), anyLong());
+    }
+
+    @Test
+    @DisplayName("getDetail：活动不存在时抛出 ActivityNotFoundException")
+    void getDetail_notFound() {
+        when(activityRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(ActivityNotFoundException.class, () -> activityService.getDetail(999L, 100L));
     }
 }

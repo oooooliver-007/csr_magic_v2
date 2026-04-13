@@ -1,5 +1,6 @@
 package com.csr.activity.controller;
 
+import com.csr.activity.dto.ActivityDetailResponse;
 import com.csr.activity.dto.ActivityResponse;
 import com.csr.activity.dto.CreateActivityRequest;
 import com.csr.activity.dto.UpdateActivityRequest;
@@ -10,6 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -33,8 +36,11 @@ public class ActivityController {
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<ActivityResponse> getById(@PathVariable Long id) {
-        return ApiResponse.success(activityService.getById(id));
+    public ApiResponse<ActivityDetailResponse> getById(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long currentUserId = (authentication != null && authentication.getPrincipal() instanceof Long)
+                ? (Long) authentication.getPrincipal() : null;
+        return ApiResponse.success(activityService.getDetail(id, currentUserId));
     }
 
     @PostMapping

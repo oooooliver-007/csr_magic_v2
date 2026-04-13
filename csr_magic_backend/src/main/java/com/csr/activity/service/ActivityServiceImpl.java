@@ -1,5 +1,6 @@
 package com.csr.activity.service;
 
+import com.csr.activity.dto.ActivityDetailResponse;
 import com.csr.activity.dto.ActivityResponse;
 import com.csr.activity.dto.CreateActivityRequest;
 import com.csr.activity.dto.UpdateActivityRequest;
@@ -11,6 +12,8 @@ import com.csr.common.BusinessException;
 import com.csr.event.entity.Event;
 import com.csr.event.exception.EventNotFoundException;
 import com.csr.event.repository.EventRepository;
+import com.csr.participation.dto.ParticipationResponse;
+import com.csr.participation.repository.UserActivityRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -28,10 +31,14 @@ public class ActivityServiceImpl implements ActivityService {
 
     private final ActivityRepository activityRepository;
     private final EventRepository eventRepository;
+    private final UserActivityRepository userActivityRepository;
 
-    public ActivityServiceImpl(ActivityRepository activityRepository, EventRepository eventRepository) {
+    public ActivityServiceImpl(ActivityRepository activityRepository,
+                               EventRepository eventRepository,
+                               UserActivityRepository userActivityRepository) {
         this.activityRepository = activityRepository;
         this.eventRepository = eventRepository;
+        this.userActivityRepository = userActivityRepository;
     }
 
     @Override
@@ -56,6 +63,23 @@ public class ActivityServiceImpl implements ActivityService {
         Activity activity = activityRepository.findById(id)
             .orElseThrow(() -> new ActivityNotFoundException(id));
         return ActivityResponse.from(activity);
+    }
+
+    @Override
+    public ActivityDetailResponse getDetail(Long id, Long currentUserId) {
+        Activity activity = activityRepository.findById(id)
+            .orElseThrow(() -> new ActivityNotFoundException(id));
+
+        long participantCount = userActivityRepository.countByActivityId(id);
+
+        ParticipationResponse participation = null;
+        if (currentUserId != null) {
+            participation = userActivityRepository.findByUserIdAndActivityId(currentUserId, id)
+                .map(ParticipationResponse::from)
+                .orElse(null);
+        }
+
+        return ActivityDetailResponse.from(activity, participantCount, participation);
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.csr.common.GlobalExceptionHandler;
 import com.csr.common.JwtAuthFilter;
 import com.csr.common.JwtUtil;
 import com.csr.auth.repository.TokenBlacklistRepository;
+import com.csr.activity.dto.ActivityDetailResponse;
 import com.csr.activity.dto.ActivityResponse;
 import com.csr.activity.exception.ActivityNotFoundException;
 import com.csr.activity.service.ActivityService;
@@ -54,6 +55,13 @@ class ActivityControllerTest {
         "2026-04-01T00:00:00Z", null
     );
 
+    private static final ActivityDetailResponse SAMPLE_DETAIL = new ActivityDetailResponse(
+        1L, 1L, "2026春季CSR月", "春季植树活动", "参与植树造林",
+        "VOLUNTEER", "2026-04-15T00:00:00Z", "2026-04-16T00:00:00Z",
+        50, null, "UPCOMING", null, 0L,
+        "2026-04-01T00:00:00Z", null, null
+    );
+
     // === 列表查询 ===
 
     @Test
@@ -98,21 +106,22 @@ class ActivityControllerTest {
     // === 详情查询 ===
 
     @Test
-    @DisplayName("GET /activities/{id} 返回活动详情")
+    @DisplayName("GET /activities/{id} 返回活动详情（含 currentUserParticipation）")
     void getById_success() throws Exception {
-        when(activityService.getById(1L)).thenReturn(SAMPLE_ACTIVITY);
+        when(activityService.getDetail(eq(1L), any())).thenReturn(SAMPLE_DETAIL);
 
         mockMvc.perform(get("/api/v2/activities/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(1))
                 .andExpect(jsonPath("$.data.name").value("春季植树活动"))
-                .andExpect(jsonPath("$.data.templateType").value("VOLUNTEER"));
+                .andExpect(jsonPath("$.data.templateType").value("VOLUNTEER"))
+                .andExpect(jsonPath("$.data.currentUserParticipation").doesNotExist());
     }
 
     @Test
     @DisplayName("GET /activities/{id} 不存在返回 404")
     void getById_notFound() throws Exception {
-        when(activityService.getById(999L)).thenThrow(new ActivityNotFoundException(999L));
+        when(activityService.getDetail(eq(999L), any())).thenThrow(new ActivityNotFoundException(999L));
 
         mockMvc.perform(get("/api/v2/activities/999"))
                 .andExpect(status().isNotFound())

@@ -178,13 +178,35 @@ export const useAuthStore = create((set) => ({
 }));
 ```
 
-### 6.2 react-hook-form 与 Playwright fill
+### 6.2 beforeAll 中的 API 请求
+
+在 `test.beforeAll` 中发起 API 请求（如获取测试数据 ID）时，**不要使用** Playwright 的
+`request` fixture，因为它会自动拼接 `baseURL`（即前端地址 `localhost:3000`），而非后端地址。
+
+**错误写法**（请求发到前端 Vite，返回 HTML）：
+```typescript
+test.beforeAll(async ({ request }) => {
+  const res = await request.get('/api/v2/activities?page=0&size=1');
+  // ❌ SyntaxError: Unexpected token '<', "<!doctype "... is not valid JSON
+});
+```
+
+**正确写法**（用原生 `fetch` 直接调后端）：
+```typescript
+test.beforeAll(async () => {
+  const res = await fetch('http://localhost:8080/api/v2/activities?page=0&size=1');
+  const body = await res.json();
+  // ✅ 正确获取 JSON 数据
+});
+```
+
+### 6.3 react-hook-form 与 Playwright fill
 
 `page.fill()` 可能不触发 react-hook-form 的 change 事件。如果遇到此问题：
 - 使用 `page.getByRole('textbox', { name }).pressSequentially('text')` 逐字输入
 - 或使用 `page.getByRole('textbox', { name }).fill('text')` 后再 `blur()`
 
-### 6.3 Chromium 下载加速
+### 6.4 Chromium 下载加速
 
 如果 `npx playwright install chromium` 下载慢，设置镜像：
 ```bash

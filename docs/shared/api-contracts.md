@@ -41,13 +41,13 @@
 
 ## 参与模块（participation）
 
-| 方法 | 路径 | 说明 | 认证 |
-|------|------|------|------|
-| POST | `/api/v2/participations/signup` | 报名参与 | 是 |
-| POST | `/api/v2/participations/{id}/withdraw` | 退出活动 | 是 |
-| GET | `/api/v2/participations/my` | 我的参与记录 | 是 |
-| GET | `/api/v2/participations` | 参与列表（管理端，分页+筛选） | 是（Admin） |
-| PATCH | `/api/v2/participations/{id}/review` | 审核（通过/驳回） | 是（Admin） |
+| 方法 | 路径 | 说明 | 认证 | 状态 |
+|------|------|------|------|------|
+| POST | `/api/v2/participations/signup` | 报名参与 | 是 | ✅ 已实现 |
+| POST | `/api/v2/participations/{id}/withdraw` | 退出活动 | 是 | ✅ 已实现 |
+| GET | `/api/v2/participations/my` | 我的参与记录 | 是 | 待实现 |
+| GET | `/api/v2/participations` | 参与列表（管理端，分页+筛选） | 是（Admin） | 待实现 |
+| PATCH | `/api/v2/participations/{id}/review` | 审核（通过/驳回） | 是（Admin） | 待实现 |
 
 ## 看板模块（dashboard）
 

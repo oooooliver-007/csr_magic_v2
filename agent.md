@@ -86,16 +86,16 @@ d:\windsurf_workspaces4\
 ## 前端路由
 
 **员工端**：
-| 路由 | 页面 |
-|------|------|
-| `/login` | 登录 |
-| `/register` | 注册 |
-| `/` | 首页（活动动态 + 个人统计） |
-| `/activities` | 活动列表 |
-| `/activities/:id` | 活动详情 + 报名 |
-| `/activities/:id/chat` | AI 对话报名 |
-| `/my` | 个人中心（参与记录 + 设置） |
-| `/poster` | AI 海报工作台 |
+| 路由　　　　　　　　　 | 页面　　　　　　　　　　　　|
+| ------------------------| -----------------------------|
+| `/login`　　　　　　　 | 登录　　　　　　　　　　　　|
+| `/register`　　　　　　| 注册　　　　　　　　　　　　|
+| `/`　　　　　　　　　　| 首页（活动动态 + 个人统计） |
+| `/activities`　　　　　| 活动列表　　　　　　　　　　|
+| `/activities/:id`　　　| 活动详情 + 报名　　　　　　 |
+| `/activities/:id/chat` | AI 对话报名　　　　　　　　 |
+| `/my`　　　　　　　　　| 个人中心（参与记录 + 设置） |
+| `/poster`　　　　　　　| AI 海报工作台　　　　　　　 |
 
 **管理端**：
 | 路由 | 页面 |
@@ -145,3 +145,6 @@ d:\windsurf_workspaces4\
 | 2026-04-13 | infra/e2e-testing | E2E 测试从 Playwright MCP 手动交互改为本地 Playwright CLI（npx playwright test） | 可重复、可 CI、无手动步骤。创建了 e2e-test Skill 标准化流程 |
 | 2026-04-13 | infra/e2e-testing | globalSetup 使用 API 方式（fetch 调用后端）获取 token，而非 UI 方式（page.fill + click） | react-hook-form 的 fill() 可能不触发 React onChange 事件，导致表单验证不通过 |
 | 2026-04-13 | infra/e2e-testing | Playwright 配置使用 channel: 'msedge' 复用系统浏览器 | 避免下载 Chromium（~180MB，国内 CDN 慢），Windows 自带 Edge |
+| 2026-04-13 | activity/activity-detail | ActivityController.getById 改为返回 ActivityDetailResponse（含 currentUserParticipation），从 SecurityContextHolder 获取当前用户 ID | 详情页需展示当前用户参与状态，无需额外 API 调用 |
+| 2026-04-13 | activity/activity-detail | 提前创建 participation 包（entity/repository/service/controller）实现 signup/withdraw | activity-detail 功能依赖报名/退出能力，最小化实现后续 participation 模块可扩展 |
+| 2026-04-13 | activity/activity-detail | user_activity 表添加 UNIQUE(user_id, activity_id) 索引 | 防止同一用户重复报名同一活动 |

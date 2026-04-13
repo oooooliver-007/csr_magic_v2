@@ -134,37 +134,53 @@ test.describe('未登录拦截', () => {
 });
 ```
 
-## 阶段 3：启动服务并运行测试
+## 阶段 3：自动启动服务并运行测试（全自动，无需人工操作）
 
-### 3.1 启动前后端服务
+> **核心原则**：AI 必须自行检测、启动、等待、运行，不要求用户手动操作。
+
+### 3.1 自动检测并启动服务
+
+按以下顺序执行，每一步都是 run_command 工具调用：
 
 ```
-Step 1: 检查端口占用
+Step 1: 检查端口占用（SafeToAutoRun=true）
   netstat -ano | findstr "LISTENING" | findstr ":8080 :3000"
+  解读：exit code 1 = 无匹配 = 服务未运行
 
-Step 2: 如果后端未运行 → 启动后端
+Step 2: 如果 8080 未监听 → 启动后端
+  命令: mvn spring-boot:run --no-transfer-progress
   cwd: csr_magic_backend/
-  mvn spring-boot:run --no-transfer-progress
-  （非阻塞，WaitMsBeforeAsync=20000）
-  确认日志出现 "Tomcat started on port 8080"
+  Blocking: false
+  WaitMsBeforeAsync: 25000  ← 后端首次启动需 15-25 秒
+  然后用 command_status 等待，确认日志包含 "Tomcat started on port 8080"
 
-Step 3: 如果前端未运行 → 启动前端
+Step 3: 如果 3000 未监听 → 启动前端
+  命令: npm run dev
   cwd: csr_magic_frontend/
-  npm run dev
-  （非阻塞，WaitMsBeforeAsync=5000）
-  确认日志出现 "ready in" + 正确端口号
+  Blocking: false
+  WaitMsBeforeAsync: 8000
+  然后用 command_status 等待，确认日志包含 "ready in"
 
-Step 4: 二次确认两个端口都 LISTENING
+Step 4: 二次确认（SafeToAutoRun=true）
+  netstat -ano | findstr "LISTENING" | findstr "8080"
+  netstat -ano | findstr "LISTENING" | findstr "3000"
+  注意：Vite 可能绑定 IPv6（[::1]:3000），所以分开检查 8080 和 3000
 ```
+
+**关键细节**：
+- 后端 `WaitMsBeforeAsync` 设为 25000（Spring Boot 冷启动慢）
+- 前端 `WaitMsBeforeAsync` 设为 8000（Vite 启动较快）
+- Windows 下 Vite 可能只绑定 `[::1]:3000`（IPv6），`findstr ":8080 :3000"` 同时检查可能漏掉，建议分开 findstr
+- 如果端口已被占用，跳过启动步骤直接进入测试
 
 ### 3.2 运行测试
 
 ```bash
-# 运行所有 E2E 测试
+# 运行所有 E2E 测试（Blocking=true，等待完成）
 npx playwright test
 
 # 运行指定测试文件
-npx playwright test e2e/activity-list.spec.ts
+npx playwright test e2e/activity-detail.spec.ts
 
 # 带 UI 模式调试（本地开发时有用）
 npx playwright test --ui
@@ -176,6 +192,7 @@ npx playwright show-report
 ### 3.3 结果判读
 
 - **全部通过** ✅：输出通过的测试数量，继续下一步
+- **部分 skipped**：通常因为数据库无测试数据（如 `beforeAll` 获取不到活动 ID），属预期行为
 - **部分失败** ❌：
   1. 检查失败测试的截图（`test-results/` 目录）
   2. 判断是 Bug 还是测试问题
@@ -205,6 +222,8 @@ npx playwright show-report
 | `Executable doesn't exist` | 未安装浏览器 | `npx playwright install chromium` |
 | PowerShell 下 mvn `-D` 报错 | PowerShell 解析 `-D` 为参数 | 引号包裹：`"-Dtest=..."` |
 | 测试中 `page.goto()` 后登录态丢失 | 全页面刷新重置 Zustand | 确保 authStore 有同步 loadInitialAuth |
+| `beforeAll` 中 `request.get('/api/...')` 返回 HTML | Playwright `request` 使用前端 `baseURL`（localhost:3000） | 在 `beforeAll` 中用原生 `fetch('http://localhost:8080/api/...')` 直接调后端 |
+| Vite 端口在 netstat 中找不到 | Vite 绑定 IPv6 `[::1]:3000` 而非 IPv4 `0.0.0.0:3000` | 分开检查：`findstr "3000"` 而非 `findstr ":8080 :3000"` |
 
 ## 与 implement-feature Skill 的关系
 
