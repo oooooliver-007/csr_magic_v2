@@ -24,8 +24,9 @@ public class Activity {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "template_type", nullable = false, length = 20)
-    private String templateType; // BASIC / DONATION / VOLUNTEER / CHECKIN / CUSTOM
+    private TemplateType templateType;
 
     private Instant startTime;
 
@@ -95,11 +96,11 @@ public class Activity {
         this.description = description;
     }
 
-    public String getTemplateType() {
+    public TemplateType getTemplateType() {
         return templateType;
     }
 
-    public void setTemplateType(String templateType) {
+    public void setTemplateType(TemplateType templateType) {
         this.templateType = templateType;
     }
 

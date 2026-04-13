@@ -1,5 +1,14 @@
 export type TemplateType = 'BASIC' | 'DONATION' | 'VOLUNTEER' | 'CHECKIN' | 'CUSTOM';
 export type ActivityStatus = 'UPCOMING' | 'ONGOING' | 'ENDED';
+export type FormFieldType = 'text' | 'number' | 'image' | 'boolean';
+
+export interface FormFieldSchema {
+  name: string;
+  type: FormFieldType;
+  required: boolean;
+  label: string;
+  max?: number;
+}
 
 export interface Activity {
   id: number;
@@ -29,6 +38,7 @@ export interface CreateActivityRequest {
   maxParticipants?: number;
   coverImage?: string;
   status?: ActivityStatus;
+  formSchema?: string;
 }
 
 export interface UpdateActivityRequest {
@@ -41,6 +51,7 @@ export interface UpdateActivityRequest {
   maxParticipants?: number;
   coverImage?: string;
   status?: ActivityStatus;
+  formSchema?: string;
 }
 
 export interface ActivityListParams {

@@ -26,7 +26,7 @@ public record ActivityResponse(
             entity.getEvent().getName(),
             entity.getName(),
             entity.getDescription(),
-            entity.getTemplateType(),
+            entity.getTemplateType().name(),
             entity.getStartTime() != null ? entity.getStartTime().toString() : null,
             entity.getEndTime() != null ? entity.getEndTime().toString() : null,
             entity.getMaxParticipants(),

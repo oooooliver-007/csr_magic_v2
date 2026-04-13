@@ -45,15 +45,15 @@ depends_on:
 - **CUSTOM 模板**：前端传入 formSchema，后端校验并存储
 
 ## 实现步骤清单（Implementation Checklist）
-1. [ ] 后端：创建 TemplateType 枚举
-2. [ ] 后端：ActivityService — 创建活动时根据 templateType 设置默认 formSchema
-3. [ ] 后端：CUSTOM 模板 formSchema 校验逻辑
-4. [ ] 前端：创建 constants/templateSchemas.ts（预设模板 schema 定义）
-5. [ ] 前端：创建 TemplateSelector.tsx（模板选择卡片）
-6. [ ] 前端：创建 DynamicForm.tsx（根据 schema 动态渲染表单）
-7. [ ] 前端：集成到 ActivityFormDrawer（管理端创建活动）
-8. [ ] 前端：集成到 SignupForm（员工端报名表单）
-9. [ ] 对照 spec-activity-templates.md 验收标准自检
+1. [x] 后端：创建 TemplateType 枚举
+2. [x] 后端：ActivityService — 创建活动时根据 templateType 设置默认 formSchema
+3. [x] 后端：CUSTOM 模板 formSchema 校验逻辑
+4. [x] 前端：创建 constants/templateSchemas.ts（预设模板 schema 定义）
+5. [x] 前端：创建 TemplateSelector.tsx（模板选择卡片）
+6. [x] 前端：创建 DynamicForm.tsx（根据 schema 动态渲染表单）
+7. [x] 前端：集成到 ActivityFormDrawer（管理端创建活动）
+8. [x] 前端：集成到 SignupForm（员工端报名表单）
+9. [x] 对照 spec-activity-templates.md 验收标准自检
 
 ## 引用
 - 对应功能规格：spec-activity-templates.md

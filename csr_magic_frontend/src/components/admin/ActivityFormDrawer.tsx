@@ -1,11 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X, Upload, Trash2 } from 'lucide-react';
 import { activityApi } from '../../services/activityApi';
-import type { Activity } from '../../types/activity';
+import type { Activity, TemplateType, FormFieldSchema } from '../../types/activity';
 import type { Event } from '../../types/event';
+import TemplateSelector from './TemplateSelector';
+import { getFormSchemaByType, TEMPLATE_TYPE_LABELS } from '../../constants/templateSchemas';
 
 const activitySchema = z.object({
   eventId: z.number({ required_error: '请选择所属事件' }).min(1, '请选择所属事件'),
@@ -58,6 +60,8 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
   });
 
   const coverImage = watch('coverImage');
+  const watchedTemplateType = watch('templateType');
+  const [customSchema, setCustomSchema] = useState<FormFieldSchema[]>([]);
 
   useEffect(() => {
     if (open) {
@@ -110,13 +114,16 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
       const payload = {
         eventId: data.eventId,
         name: data.name,
-        templateType: data.templateType as 'BASIC' | 'DONATION' | 'VOLUNTEER' | 'CHECKIN' | 'CUSTOM',
+        templateType: data.templateType as TemplateType,
         description: data.description || undefined,
         startTime: data.startTime ? new Date(data.startTime).toISOString() : undefined,
         endTime: data.endTime ? new Date(data.endTime).toISOString() : undefined,
         maxParticipants: data.maxParticipants && !isNaN(data.maxParticipants) ? data.maxParticipants : undefined,
         coverImage: data.coverImage || undefined,
         status: data.status as 'UPCOMING' | 'ONGOING' | 'ENDED' | undefined,
+        formSchema: data.templateType === 'CUSTOM' && customSchema.length > 0
+          ? JSON.stringify(customSchema)
+          : undefined,
       };
 
       if (isEdit) {
@@ -197,28 +204,40 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
               )}
             </div>
 
-            {/* 模板类型 */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-bold text-[#1A2E22]">
-                活动模板 <span className="text-red-500">*</span>
-              </label>
-              <select
-                {...register('templateType')}
-                className={`w-full px-4 py-2.5 rounded-xl border focus:outline-none bg-white text-sm ${
-                  errors.templateType ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-[#2EB87A]'
-                }`}
-              >
-                <option value="">请选择模板...</option>
-                <option value="BASIC">基础</option>
-                <option value="DONATION">捐赠</option>
-                <option value="VOLUNTEER">志愿者</option>
-                <option value="CHECKIN">签到</option>
-                <option value="CUSTOM">自定义</option>
-              </select>
-              {errors.templateType && (
-                <p className="text-xs text-red-500">{errors.templateType.message}</p>
-              )}
-            </div>
+            {/* 模板类型 — 卡片选择器 */}
+            <TemplateSelector
+              value={watchedTemplateType as TemplateType | undefined}
+              onChange={(type) => {
+                setValue('templateType', type, { shouldValidate: true });
+                setCustomSchema([]);
+              }}
+              error={errors.templateType?.message}
+            />
+
+            {/* 模板字段预览 */}
+            {watchedTemplateType && watchedTemplateType !== 'CUSTOM' && (
+              <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <p className="text-xs font-medium text-[#1A2E22]/60 mb-2">
+                  📋 {TEMPLATE_TYPE_LABELS[watchedTemplateType as TemplateType]}模板 — 员工报名时需填写：
+                </p>
+                <ul className="space-y-1">
+                  {getFormSchemaByType(watchedTemplateType as TemplateType).map((f) => (
+                    <li key={f.name} className="text-xs text-[#1A2E22]/50">
+                      • {f.label}（{f.required ? '必填' : '选填'}，{f.type === 'text' ? '文本' : f.type === 'number' ? '数字' : f.type === 'image' ? `图片${f.max ? `×${f.max}` : ''}` : '开关'}）
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* CUSTOM 模板 — 自定义字段配置提示 */}
+            {watchedTemplateType === 'CUSTOM' && (
+              <div className="p-3 bg-purple-50 rounded-xl border border-purple-100">
+                <p className="text-xs text-purple-600">
+                  ⚙️ 自定义模板的字段配置将在创建后通过 formSchema JSON 配置。
+                </p>
+              </div>
+            )}
 
             {/* 时间范围 */}
             <div className="grid grid-cols-2 gap-4">

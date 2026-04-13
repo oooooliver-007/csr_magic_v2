@@ -4,8 +4,10 @@ import com.csr.activity.dto.ActivityResponse;
 import com.csr.activity.dto.CreateActivityRequest;
 import com.csr.activity.dto.UpdateActivityRequest;
 import com.csr.activity.entity.Activity;
+import com.csr.activity.entity.TemplateType;
 import com.csr.activity.exception.ActivityNotFoundException;
 import com.csr.activity.repository.ActivityRepository;
+import com.csr.common.BusinessException;
 import com.csr.event.entity.Event;
 import com.csr.event.exception.EventNotFoundException;
 import com.csr.event.repository.EventRepository;
@@ -84,6 +86,7 @@ public class ActivityServiceImpl implements ActivityService {
         if (request.status() != null && !request.status().isBlank()) {
             activity.setStatus(request.status());
         }
+        activity.setFormSchema(resolveFormSchema(request.templateType(), request.formSchema()));
 
         Activity saved = activityRepository.save(activity);
         log.info("创建活动成功，ID: {}, 名称: {}, 所属事件: {}", saved.getId(), saved.getName(), event.getName());
@@ -109,6 +112,9 @@ public class ActivityServiceImpl implements ActivityService {
         }
         if (request.templateType() != null) {
             activity.setTemplateType(request.templateType());
+            activity.setFormSchema(resolveFormSchema(request.templateType(), request.formSchema()));
+        } else if (request.formSchema() != null && activity.getTemplateType() == TemplateType.CUSTOM) {
+            activity.setFormSchema(resolveFormSchema(TemplateType.CUSTOM, request.formSchema()));
         }
         if (request.startTime() != null) {
             activity.setStartTime(parseInstant(request.startTime()));
@@ -139,6 +145,51 @@ public class ActivityServiceImpl implements ActivityService {
         }
         activityRepository.deleteById(id);
         log.info("删除活动成功，ID: {}", id);
+    }
+
+    /**
+     * 根据模板类型解析 formSchema：预设模板使用硬编码 schema，CUSTOM 模板使用前端传入的 schema
+     */
+    private String resolveFormSchema(TemplateType templateType, String customSchema) {
+        return switch (templateType) {
+            case BASIC -> "[{\"name\":\"note\",\"type\":\"text\",\"required\":false,\"label\":\"文字说明\"}]";
+            case DONATION -> "[{\"name\":\"amount\",\"type\":\"number\",\"required\":true,\"label\":\"捐赠金额\"},{\"name\":\"message\",\"type\":\"text\",\"required\":false,\"label\":\"留言\"}]";
+            case VOLUNTEER -> "[{\"name\":\"hours\",\"type\":\"number\",\"required\":true,\"label\":\"服务时长(小时)\"},{\"name\":\"photos\",\"type\":\"image\",\"required\":false,\"max\":5,\"label\":\"活动照片\"}]";
+            case CHECKIN -> "[{\"name\":\"photo\",\"type\":\"image\",\"required\":false,\"max\":1,\"label\":\"签到照片\"}]";
+            case CUSTOM -> {
+                validateCustomFormSchema(customSchema);
+                yield customSchema;
+            }
+        };
+    }
+
+    /**
+     * 校验 CUSTOM 模板的 formSchema 格式
+     */
+    private void validateCustomFormSchema(String schema) {
+        if (schema == null || schema.isBlank()) {
+            throw new BusinessException(400, "自定义模板必须提供 formSchema");
+        }
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            com.fasterxml.jackson.databind.JsonNode root = mapper.readTree(schema);
+            if (!root.isArray() || root.isEmpty()) {
+                throw new BusinessException(400, "formSchema 必须是非空的 JSON 数组");
+            }
+            for (com.fasterxml.jackson.databind.JsonNode field : root) {
+                if (!field.has("name") || !field.has("type")) {
+                    throw new BusinessException(400, "formSchema 每个字段必须包含 name 和 type");
+                }
+                String type = field.get("type").asText();
+                if (!type.equals("text") && !type.equals("number") && !type.equals("image") && !type.equals("boolean")) {
+                    throw new BusinessException(400, "formSchema 字段类型只支持 text/number/image/boolean，不支持: " + type);
+                }
+            }
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BusinessException(400, "formSchema 格式错误，必须是有效的 JSON 数组");
+        }
     }
 
     private Instant parseInstant(String dateStr) {
