@@ -60,7 +60,7 @@ depends_on:
 9. [x] 前端：创建 ActivityListPage.tsx（整合卡片+筛选+分页）
 10. [x] 前端：接入路由 /activities
 11. [x] 前端：响应式适配（多列→单列，筛选折叠）
-12. [ ] 对照 spec-activity-list.md 验收标准自检
+12. [x] 对照 spec-activity-list.md 验收标准自检
 
 ## UI 原型参考
 
