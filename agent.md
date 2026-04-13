@@ -137,3 +137,6 @@ d:\windsurf_workspaces4\
 | 2026-04-12 | event/event-crud | GlobalExceptionHandler 改为动态 HTTP 状态码（BusinessException.code 直接映射 HTTP status），不再固定 400 | 支持 404 等非 400 业务异常正确返回对应 HTTP 状态码 |
 | 2026-04-12 | event/event-crud | EventController 使用 @PreAuthorize("hasRole('ADMIN')") 限制权限，不依赖 URL 模式匹配 | 灵活、声明式、可审计 |
 | 2026-04-12 | event/event-crud | 前端管理端采用 AdminLayout（固定侧边栏 + Outlet），路由嵌套在 /admin 下 | 统一管理端布局，后续模块复用 |
+| 2026-04-13 | activity/activity-crud | ActivityController GET 列表端点不加 @PreAuthorize（员工端也需访问），仅 POST/PUT/DELETE 加 ADMIN 权限 | 列表和详情需员工端可见，写操作限管理员 |
+| 2026-04-13 | activity/activity-crud | ActivityRepository 使用 @Query 组合筛选（eventId + status + keyword），避免多个单条件方法组合 | 一次查询支持多维筛选，简化 Service 层逻辑 |
+| 2026-04-13 | activity/activity-crud | ActivityResponse 包含 eventName 和 currentParticipants 字段，减少前端额外请求 | 列表页直接展示所属事件名和参与人数，无需 N+1 查询 |

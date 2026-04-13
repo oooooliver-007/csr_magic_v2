@@ -5,6 +5,7 @@ import RegisterPage from './pages/RegisterPage';
 import PrivateRoute from './components/PrivateRoute';
 import AdminLayout from './components/AdminLayout';
 import EventManagementPage from './pages/admin/EventManagementPage';
+import ActivityManagementPage from './pages/admin/ActivityManagementPage';
 import { useAuthStore } from './stores/authStore';
 
 function HomePage() {
@@ -52,6 +53,7 @@ export default function App() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<HomePage />} />
           <Route path="events" element={<EventManagementPage />} />
+          <Route path="activities" element={<ActivityManagementPage />} />
         </Route>
       </Route>
 

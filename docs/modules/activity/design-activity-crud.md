@@ -55,19 +55,19 @@ depends_on:
 - **权限**：创建/更新/删除需 ADMIN 角色
 
 ## 实现步骤清单（Implementation Checklist）
-1. [ ] 后端：创建 Activity Entity（如不存在）
-2. [ ] 后端：创建 DTO（CreateActivityRequest、UpdateActivityRequest）
-3. [ ] 后端：创建 ActivityService — CRUD 方法
-4. [ ] 后端：创建 ActivityController — 5 个端点
-5. [ ] 后端：Flyway 迁移脚本（activity 表）
-6. [ ] 前端：创建/更新 types/activity.ts
-7. [ ] 前端：activityApi.ts 增加 CRUD 方法
-8. [ ] 前端：创建 ActivityManagementPage.tsx
-9. [ ] 前端：创建 ActivityFormDrawer.tsx
-10. [ ] 前端：创建 ActivityViewDrawer.tsx
-11. [ ] 前端：接入路由 /admin/activities
-12. [ ] 前端：响应式适配
-13. [ ] 对照 spec-activity-crud.md 验收标准自检
+1. [x] 后端：创建 Activity Entity（如不存在）
+2. [x] 后端：创建 DTO（CreateActivityRequest、UpdateActivityRequest）
+3. [x] 后端：创建 ActivityService — CRUD 方法
+4. [x] 后端：创建 ActivityController — 5 个端点
+5. [x] 后端：Flyway 迁移脚本（activity 表）
+6. [x] 前端：创建/更新 types/activity.ts
+7. [x] 前端：activityApi.ts 增加 CRUD 方法
+8. [x] 前端：创建 ActivityManagementPage.tsx
+9. [x] 前端：创建 ActivityFormDrawer.tsx
+10. [x] 前端：创建 ActivityViewDrawer.tsx
+11. [x] 前端：接入路由 /admin/activities
+12. [x] 前端：响应式适配
+13. [x] 对照 spec-activity-crud.md 验收标准自检
 
 ## UI 原型参考
 
