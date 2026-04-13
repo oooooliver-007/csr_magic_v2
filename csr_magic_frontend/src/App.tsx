@@ -7,6 +7,7 @@ import AdminLayout from './components/AdminLayout';
 import EmployeeLayout from './components/EmployeeLayout';
 import EventManagementPage from './pages/admin/EventManagementPage';
 import ActivityManagementPage from './pages/admin/ActivityManagementPage';
+import UserManagementPage from './pages/admin/UserManagementPage';
 import ActivityListPage from './pages/ActivityListPage';
 import ActivityDetailPage from './pages/ActivityDetailPage';
 import { useAuthStore } from './stores/authStore';
@@ -62,6 +63,7 @@ export default function App() {
           <Route index element={<HomePage />} />
           <Route path="events" element={<EventManagementPage />} />
           <Route path="activities" element={<ActivityManagementPage />} />
+          <Route path="users" element={<UserManagementPage />} />
         </Route>
       </Route>
 

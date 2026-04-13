@@ -55,17 +55,17 @@ depends_on:
 - **权限**：所有端点需 ADMIN 角色
 
 ## 实现步骤清单（Implementation Checklist）
-1. [ ] 后端：创建 DTO（UserResponse、UserDetailResponse、UpdateUserRequest）
-2. [ ] 后端：创建 UserService（list/getById/update/delete/resetPassword）
-3. [ ] 后端：创建 UserController（5 个端点）
-4. [ ] 前端：创建 services/userApi.ts
-5. [ ] 前端：创建 UserManagementPage.tsx
-6. [ ] 前端：创建 UserTable.tsx
-7. [ ] 前端：创建 UserDetailDrawer.tsx
-8. [ ] 前端：创建 ResetPasswordDialog.tsx
-9. [ ] 前端：接入路由 /admin/users
-10. [ ] 前端：响应式适配（表格→卡片）
-11. [ ] 对照 spec-user-crud.md 验收标准自检
+1. [x] 后端：创建 DTO（UserResponse、UserDetailResponse、UpdateUserRequest、ResetPasswordRequest）
+2. [x] 后端：创建 UserService（list/getById/update/delete/resetPassword）
+3. [x] 后端：创建 UserController（5 个端点）
+4. [x] 前端：创建 services/userApi.ts
+5. [x] 前端：创建 UserManagementPage.tsx
+6. [x] 前端：创建 UserTable.tsx
+7. [x] 前端：创建 UserDetailPanel.tsx（SidePanel 风格，遵循 UI 原型）
+8. [x] 前端：创建 ResetPasswordDialog.tsx
+9. [x] 前端：接入路由 /admin/users
+10. [x] 前端：响应式适配（表格→卡片）
+11. [x] 对照 spec-user-crud.md 验收标准自检
 
 ## UI 原型参考
 

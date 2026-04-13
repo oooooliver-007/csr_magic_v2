@@ -75,6 +75,7 @@
 | GET | `/api/v2/users/{id}` | 用户详情 | 是（Admin） |
 | PUT | `/api/v2/users/{id}` | 更新用户 | 是（Admin） |
 | DELETE | `/api/v2/users/{id}` | 删除用户 | 是（Admin） |
+| PUT | `/api/v2/users/{id}/reset-password` | 重置密码 | 是（Admin） |
 | GET | `/api/v2/users/me` | 当前用户信息 | 是 |
 | PUT | `/api/v2/users/me` | 更新个人信息 | 是 |
 | PUT | `/api/v2/users/me/password` | 修改密码 | 是 |

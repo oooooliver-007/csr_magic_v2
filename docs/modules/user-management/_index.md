@@ -7,7 +7,7 @@
 
 | 功能 | spec 文件 | design 文件 | 状态 | 依赖 |
 |------|-----------|-------------|------|------|
-| 用户 CRUD | spec-user-crud.md | design-user-crud.md | 待实现 | auth |
+| 用户 CRUD | spec-user-crud.md | design-user-crud.md | 已实现 | auth |
 
 ## 模块间依赖
 - **依赖**：auth（Admin 角色校验）
