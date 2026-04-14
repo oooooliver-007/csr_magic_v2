@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.access.AccessDeniedException;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -30,6 +31,12 @@ public class GlobalExceptionHandler {
     public ApiResponse<Void> handleBusiness(BusinessException ex, HttpServletResponse response) {
         response.setStatus(ex.getCode());
         return ApiResponse.error(ex.getCode(), ex.getMessage());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ApiResponse<Void> handleAccessDenied(AccessDeniedException ex) {
+        return ApiResponse.error(403, "权限不足");
     }
 
     @ExceptionHandler(Exception.class)

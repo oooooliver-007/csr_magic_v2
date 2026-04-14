@@ -7,7 +7,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
+
+    /** 看板：按活动模板类型统计数量 */
+    @Query(value = """
+        SELECT a.template_type, COUNT(*) AS cnt
+        FROM csr_v2.activity a
+        GROUP BY a.template_type
+        ORDER BY cnt DESC
+        """, nativeQuery = true)
+    List<Object[]> countByTemplateType();
 
     @Query(value = "SELECT * FROM activity a WHERE "
          + "(:eventId IS NULL OR a.event_id = CAST(:eventId AS BIGINT)) AND "

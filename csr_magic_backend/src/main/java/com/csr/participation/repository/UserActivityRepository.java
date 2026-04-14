@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -87,4 +88,43 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Long
           AND a.template_type = 'DONATION'
         """, nativeQuery = true)
     double sumDonationByUserId(@Param("userId") Long userId);
+
+    /** 看板：统计本月新增参与人次 */
+    long countByCreatedAtBetween(Instant start, Instant end);
+
+    /** 看板：累计捐赠总额（所有用户） */
+    @Query(value = """
+        SELECT COALESCE(SUM(
+            CASE WHEN ua.form_data IS NOT NULL AND ua.form_data::text != 'null'
+                 THEN COALESCE((ua.form_data->>'amount')::numeric, 0)
+                 ELSE 0
+            END
+        ), 0)
+        FROM csr_v2.user_activity ua
+        JOIN csr_v2.activity a ON ua.activity_id = a.id
+        WHERE ua.state = 'APPROVED'
+          AND a.template_type = 'DONATION'
+        """, nativeQuery = true)
+    double sumAllDonations();
+
+    /** 看板：近 N 个月每月参与人次（按 yyyy-MM 分组） */
+    @Query(value = """
+        SELECT TO_CHAR(ua.created_at, 'YYYY-MM') AS month, COUNT(*) AS cnt
+        FROM csr_v2.user_activity ua
+        WHERE ua.created_at >= :since
+        GROUP BY TO_CHAR(ua.created_at, 'YYYY-MM')
+        ORDER BY month
+        """, nativeQuery = true)
+    List<Object[]> countMonthlyParticipations(@Param("since") Instant since);
+
+    /** 看板：最活跃员工 Top N（按参与次数降序） */
+    @Query(value = """
+        SELECT u.id, u.display_name, COUNT(ua.id) AS cnt
+        FROM csr_v2.user_activity ua
+        JOIN csr_v2.users u ON ua.user_id = u.id
+        GROUP BY u.id, u.display_name
+        ORDER BY cnt DESC
+        LIMIT :limit
+        """, nativeQuery = true)
+    List<Object[]> findTopParticipants(@Param("limit") int limit);
 }

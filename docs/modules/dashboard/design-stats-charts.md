@@ -53,19 +53,19 @@ depends_on:
 - **权限**：所有端点需 ADMIN 角色
 
 ## 实现步骤清单（Implementation Checklist）
-1. [ ] 后端：创建 DashboardService（stats/trends/distribution/topParticipants）
-2. [ ] 后端：编写聚合查询 SQL（@Query 注解）
-3. [ ] 后端：创建 DashboardController（4 个端点）
-4. [ ] 后端：创建响应 DTO
-5. [ ] 前端：创建 services/dashboardApi.ts
-6. [ ] 前端：创建 StatCards.tsx
-7. [ ] 前端：创建 TrendChart.tsx（Recharts 折线图）
-8. [ ] 前端：创建 DistributionChart.tsx（Recharts 饼图）
-9. [ ] 前端：创建 TopParticipantsList.tsx
-10. [ ] 前端：创建 DashboardPage.tsx（整合所有组件 + 骨架屏）
-11. [ ] 前端：接入路由 /admin
-12. [ ] 前端：响应式适配
-13. [ ] 对照 spec-stats-charts.md 验收标准自检
+1. [x] 后端：创建 DashboardService（stats/trends/distribution/topParticipants）
+2. [x] 后端：编写聚合查询 SQL（@Query 注解）
+3. [x] 后端：创建 DashboardController（4 个端点）
+4. [x] 后端：创建响应 DTO
+5. [x] 前端：创建 services/dashboardApi.ts
+6. [x] 前端：创建 StatCards.tsx
+7. [x] 前端：创建 TrendChart.tsx（Recharts 折线图）
+8. [x] 前端：创建 DistributionChart.tsx（Recharts 饼图）
+9. [x] 前端：创建 TopParticipantsList.tsx
+10. [x] 前端：创建 DashboardPage.tsx（整合所有组件 + 骨架屏）
+11. [x] 前端：接入路由 /admin
+12. [x] 前端：响应式适配
+13. [x] 对照 spec-stats-charts.md 验收标准自检
 
 ## UI 原型参考
 

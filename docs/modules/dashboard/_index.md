@@ -7,7 +7,7 @@
 
 | 功能 | spec 文件 | design 文件 | 状态 | 依赖 |
 |------|-----------|-------------|------|------|
-| 统计看板 | spec-stats-charts.md | design-stats-charts.md | 待实现 | activity, participation |
+| 统计看板 | spec-stats-charts.md | design-stats-charts.md | ✅ 已实现 | activity, participation |
 
 ## 模块间依赖
 - **依赖**：auth（Admin 角色校验）、activity（活动数据）、participation（参与数据）

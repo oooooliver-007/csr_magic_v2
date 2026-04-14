@@ -9,6 +9,7 @@ import EventManagementPage from './pages/admin/EventManagementPage';
 import ActivityManagementPage from './pages/admin/ActivityManagementPage';
 import UserManagementPage from './pages/admin/UserManagementPage';
 import ParticipationPage from './pages/admin/ParticipationPage';
+import DashboardPage from './pages/admin/DashboardPage';
 import ActivityListPage from './pages/ActivityListPage';
 import ActivityDetailPage from './pages/ActivityDetailPage';
 import MyProfilePage from './pages/MyProfilePage';
@@ -63,7 +64,7 @@ export default function App() {
 
         {/* 管理端路由 */}
         <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<HomePage />} />
+          <Route index element={<DashboardPage />} />
           <Route path="events" element={<EventManagementPage />} />
           <Route path="activities" element={<ActivityManagementPage />} />
           <Route path="participations" element={<ParticipationPage />} />
