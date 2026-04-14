@@ -1,3 +1,16 @@
+const { mockRefreshPost, mockAxiosCreate } = vi.hoisted(() => ({
+  mockRefreshPost: vi.fn(),
+  mockAxiosCreate: vi.fn(() => ({
+    post: mockRefreshPost,
+  })),
+}));
+
+vi.mock('axios', () => ({
+  default: {
+    create: mockAxiosCreate,
+  },
+}));
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { authApi } from './authApi';
 import apiClient from './apiClient';
@@ -12,6 +25,7 @@ vi.mock('./apiClient', () => ({
 describe('authApi', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockRefreshPost.mockResolvedValue({ data: { code: 200, data: { message: '登出成功' } } });
   });
 
   it('login 调用 apiClient.post 并传递正确参数', async () => {
@@ -47,7 +61,11 @@ describe('authApi', () => {
   it('logout 使用独立实例发送 Token', async () => {
     // logout 使用 refreshClient（独立 axios 实例），不经过 apiClient
     // 此测试验证 authApi.logout 接受 token 参数并返回 Promise
-    const result = authApi.logout('test-token');
-    expect(result).toBeInstanceOf(Promise);
+    const result = await authApi.logout('test-token');
+
+    expect(mockRefreshPost).toHaveBeenCalledWith('/api/v2/auth/logout', null, {
+      headers: { Authorization: 'Bearer test-token' },
+    });
+    expect(result).toEqual({ data: { code: 200, data: { message: '登出成功' } } });
   });
 });

@@ -159,3 +159,6 @@ d:\windsurf_workspaces4\
 | 2026-04-14 | participation/signup | 管理端参与列表扩展 createdFrom/createdTo 时间范围筛选，并在前后端统一为 ISO 8601 UTC 字符串/Instant | 满足 spec 的时间范围筛选验收项，并保持接口参数语义一致 |
 | 2026-04-14 | participation/signup | signup 成功后也发送站内通知，通知类型为 SIGNUP_SUCCESS | 与 spec“报名成功后自动发送站内通知”保持一致，减少员工状态不确定性 |
 | 2026-04-14 | participation/signup | withdraw 在保留 PENDING 限制的基础上，额外禁止已结束活动退出 | 对齐现有单元测试和业务保护，避免活动结束后再变更参与数据 |
+| 2026-04-14 | notification/notification-system | NotificationService 重构为接口 + NotificationServiceImpl，实现当前用户通知分页查询、未读统计、单条/批量已读与 createNotification 能力 | 对齐项目分层规范，并保持 participation 模块继续通过接口发送通知 |
+| 2026-04-14 | notification/notification-system | 前端通知跳转采用“通知类型 → 页面路由”映射，并让 MyProfilePage 支持 `?tab=participations` | 无需为通知单独存储跳转 URL，复用现有页面结构满足“点击通知跳转对应页面”需求 |
+| 2026-04-14 | notification/notification-system | 员工端 Header 使用 NotificationBell + NotificationDropdown，未读数按 30 秒轮询，完整通知页独立为 `/notifications` | 满足铃铛角标、最近 5 条下拉、全部通知列表与全部已读的验收要求 |

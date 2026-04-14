@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { Bell, Menu, Leaf, X } from 'lucide-react';
+import { Menu, Leaf, X } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
+import NotificationBell from './NotificationBell';
 
 const navLinks = [
   { to: '/', label: '首页' },
@@ -62,10 +63,7 @@ export default function EmployeeLayout() {
 
             {/* 右侧：通知 + 头像 */}
             <div className="flex items-center gap-4">
-              <button className="relative p-2 text-[#1A2E22]/60 hover:text-[#1A2E22] transition-colors">
-                <Bell className="w-6 h-6" />
-                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
-              </button>
+              <NotificationBell />
               <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#2EB87A] to-[#FFB347] p-[2px]">
                 <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-sm font-bold text-[#2EB87A]">
                   {user?.displayName?.charAt(0) ?? user?.username?.charAt(0) ?? 'U'}

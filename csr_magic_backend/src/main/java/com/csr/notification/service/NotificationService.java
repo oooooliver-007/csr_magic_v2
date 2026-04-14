@@ -1,40 +1,21 @@
 package com.csr.notification.service;
 
 import com.csr.auth.entity.User;
-import com.csr.notification.entity.Notification;
-import com.csr.notification.repository.NotificationRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.csr.notification.dto.NotificationResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-/**
- * 通知服务（最小化实现 — 供 participation 审核集成使用）
- * 完整的通知模块将在 notification 功能中扩展
- */
-@Service
-@Transactional(readOnly = true)
-public class NotificationService {
+public interface NotificationService {
 
-    private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
+    Page<NotificationResponse> getMyNotifications(Long userId, Pageable pageable);
 
-    private final NotificationRepository notificationRepository;
+    long getUnreadCount(Long userId);
 
-    public NotificationService(NotificationRepository notificationRepository) {
-        this.notificationRepository = notificationRepository;
-    }
+    void markAsRead(Long userId, Long notificationId);
 
-    /**
-     * 发送站内通知
-     */
-    @Transactional
-    public void send(User targetUser, String type, String title, String content) {
-        Notification notification = new Notification();
-        notification.setUser(targetUser);
-        notification.setType(type);
-        notification.setTitle(title);
-        notification.setContent(content);
-        notificationRepository.save(notification);
-        log.info("发送通知给用户 {}：[{}] {}", targetUser.getId(), type, title);
-    }
+    void markAllAsRead(Long userId);
+
+    void createNotification(Long userId, String type, String title, String content);
+
+    void send(User targetUser, String type, String title, String content);
 }

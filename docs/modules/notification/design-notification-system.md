@@ -54,19 +54,19 @@ depends_on:
   - ParticipationService.review（REJECT）→ 创建 REVIEW_REJECTED 通知
 
 ## 实现步骤清单（Implementation Checklist）
-1. [ ] 后端：创建 Notification Entity + NotificationRepository
-2. [ ] 后端：创建 NotificationResponse DTO
-3. [ ] 后端：创建 NotificationService（CRUD + createNotification）
-4. [ ] 后端：创建 NotificationController（4 个端点）
-5. [ ] 后端：Flyway 迁移脚本（notification 表）
-6. [ ] 后端：集成到 ParticipationService（报名/审核时触发通知）
-7. [ ] 前端：创建 services/notificationApi.ts
-8. [ ] 前端：创建 NotificationBell.tsx（铃铛+角标）
-9. [ ] 前端：创建 NotificationDropdown.tsx（下拉列表）
-10. [ ] 前端：创建 NotificationListPage.tsx（全部通知）
-11. [ ] 前端：集成铃铛组件到 Header
-12. [ ] 前端：实现未读数轮询
-13. [ ] 对照 spec-notification-system.md 验收标准自检
+1. [x] 后端：创建 Notification Entity + NotificationRepository
+2. [x] 后端：创建 NotificationResponse DTO
+3. [x] 后端：创建 NotificationService（CRUD + createNotification）
+4. [x] 后端：创建 NotificationController（4 个端点）
+5. [x] 后端：Flyway 迁移脚本（notification 表）
+6. [x] 后端：集成到 ParticipationService（报名/审核时触发通知）
+7. [x] 前端：创建 services/notificationApi.ts
+8. [x] 前端：创建 NotificationBell.tsx（铃铛+角标）
+9. [x] 前端：创建 NotificationDropdown.tsx（下拉列表）
+10. [x] 前端：创建 NotificationListPage.tsx（全部通知）
+11. [x] 前端：集成铃铛组件到 Header
+12. [x] 前端：实现未读数轮询
+13. [x] 对照 spec-notification-system.md 验收标准自检
 
 ## 引用
 - 对应功能规格：spec-notification-system.md

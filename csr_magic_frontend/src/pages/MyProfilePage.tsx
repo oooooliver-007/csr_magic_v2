@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { User as UserIcon, Loader2 } from 'lucide-react';
 import { userApi } from '../services/userApi';
 import { participationApi } from '../services/participationApi';
@@ -20,12 +21,20 @@ const tabs: { key: TabKey; label: string }[] = [
 ];
 
 export default function MyProfilePage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState<TabKey>('settings');
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const authUser = useAuthStore((s) => s.user);
   const setAuth = useAuthStore((s) => s.setAuth);
+
+  useEffect(() => {
+    if (initialTab === 'participations' || initialTab === 'posters' || initialTab === 'settings') {
+      setActiveTab(initialTab as TabKey);
+    }
+  }, [initialTab]);
 
   const fetchMe = async () => {
     setLoading(true);
@@ -159,7 +168,10 @@ export default function MyProfilePage() {
           {tabs.map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => {
+                setActiveTab(tab.key);
+                setSearchParams(tab.key === 'settings' ? {} : { tab: tab.key });
+              }}
               className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === tab.key
                   ? 'border-[#2EB87A] text-[#2EB87A]'

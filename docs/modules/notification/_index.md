@@ -7,7 +7,7 @@
 
 | 功能 | spec 文件 | design 文件 | 状态 | 依赖 |
 |------|-----------|-------------|------|------|
-| 站内通知 | spec-notification-system.md | design-notification-system.md | 待实现 | auth |
+| 站内通知 | spec-notification-system.md | design-notification-system.md | 已实现 | auth |
 
 ## 模块间依赖
 - **依赖**：auth（认证）
