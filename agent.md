@@ -156,3 +156,6 @@ d:\windsurf_workspaces4\
 | 2026-04-13 | participation/signup | 审核时自动发送站内通知（NotificationService.send） | 最小化实现 notification 基础设施（Entity+Repository+Service+V6迁移），完整通知模块后续扩展 |
 | 2026-04-13 | participation/signup | ParticipationPage 桌面端用 Fragment 包裹行组（主行+展开详情行），移动端用卡片+展开 | 响应式适配：md: 断点切换表格/卡片布局 |
 | 2026-04-13 | participation/signup | ReviewRequest 使用 record + 内部 Action 枚举（APPROVE/REJECT） | 类型安全，驳回时强制 rejectReason 非空校验 |
+| 2026-04-14 | participation/signup | 管理端参与列表扩展 createdFrom/createdTo 时间范围筛选，并在前后端统一为 ISO 8601 UTC 字符串/Instant | 满足 spec 的时间范围筛选验收项，并保持接口参数语义一致 |
+| 2026-04-14 | participation/signup | signup 成功后也发送站内通知，通知类型为 SIGNUP_SUCCESS | 与 spec“报名成功后自动发送站内通知”保持一致，减少员工状态不确定性 |
+| 2026-04-14 | participation/signup | withdraw 在保留 PENDING 限制的基础上，额外禁止已结束活动退出 | 对齐现有单元测试和业务保护，避免活动结束后再变更参与数据 |

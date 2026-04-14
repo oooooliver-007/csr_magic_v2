@@ -8,6 +8,7 @@ import com.csr.auth.entity.User;
 import com.csr.auth.repository.UserRepository;
 import com.csr.common.BusinessException;
 import com.csr.event.entity.Event;
+import com.csr.notification.service.NotificationService;
 import com.csr.participation.dto.ParticipationResponse;
 import com.csr.participation.dto.SignupRequest;
 import com.csr.participation.entity.UserActivity;
@@ -40,6 +41,9 @@ class ParticipationServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private ParticipationServiceImpl participationService;
@@ -91,6 +95,12 @@ class ParticipationServiceImplTest {
         assertEquals(1L, response.id());
         assertEquals("PENDING", response.state());
         verify(userActivityRepository).save(any(UserActivity.class));
+        verify(notificationService).send(
+            eq(testUser),
+            eq("SIGNUP_SUCCESS"),
+            eq("报名提交成功"),
+            contains("测试活动")
+        );
     }
 
     @Test

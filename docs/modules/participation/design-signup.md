@@ -29,7 +29,7 @@ depends_on:
 | POST | `/api/v2/participations/signup` | 报名 | `{ activityId, formData }` | `ParticipationResponse` |
 | POST | `/api/v2/participations/{id}/withdraw` | 退出 | - | - |
 | GET | `/api/v2/participations/my` | 我的参与记录 | query: page, size | `PageResponse<ParticipationResponse>` |
-| GET | `/api/v2/participations` | 参与列表（管理端） | query: page, size, eventId, activityId, userId, state | `PageResponse<ParticipationResponse>` |
+| GET | `/api/v2/participations` | 参与列表（管理端） | query: page, size, eventId, activityId, userId, state, keyword, createdFrom, createdTo | `PageResponse<ParticipationResponse>` |
 | PATCH | `/api/v2/participations/{id}/review` | 审核 | `{ action: "APPROVE"|"REJECT", rejectReason? }` | `ParticipationResponse` |
 
 ## 数据模型
@@ -46,16 +46,17 @@ depends_on:
   - `ReviewDialog.tsx`（审核弹窗：通过/驳回+原因）
 - **API Service**：`services/participationApi.ts`
 - **路由**：管理端 `/admin/participations`
+- **当前实现补充**：管理端支持事件、活动、员工、状态、关键词、时间范围筛选；列表展示参与内容摘要、审核人；展开详情支持附件图片预览
 
 ## 后端实现
 - **包路径**：`com.csr.participation`
 - **Controller**：ParticipationController — 5 个端点
 - **Service**：ParticipationService
   - signup：校验活动状态、名额、重复报名 → 创建记录 → 发送通知
-  - withdraw：校验状态为 PENDING → 删除记录
+  - withdraw：校验状态为 PENDING 且活动未结束 → 删除记录
   - review：更新状态 → 发送通知（通过/驳回）
 - **Repository**：UserActivityRepository
-- **通知集成**：审核通过/驳回时调用 NotificationService 发送站内通知
+- **通知集成**：报名成功、审核通过、审核驳回时调用 NotificationService 发送站内通知
 
 ## 实现步骤清单（Implementation Checklist）
 1. [x] 后端：创建 UserActivity Entity + UserActivityRepository
@@ -70,7 +71,7 @@ depends_on:
 10. [x] 前端：集成 SignupForm 到 ActivityDetailPage
 11. [x] 前端：接入路由 /admin/participations
 12. [x] 前端：响应式适配（管理端表格→卡片+展开详情）
-13. [ ] 对照 spec-signup.md 验收标准自检
+13. [x] 对照 spec-signup.md 验收标准自检
 
 ## UI 原型参考
 

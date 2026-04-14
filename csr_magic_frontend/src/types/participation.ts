@@ -37,6 +37,8 @@ export interface ParticipationListParams {
   userId?: number;
   state?: ParticipationState;
   keyword?: string;
+  createdFrom?: string;
+  createdTo?: string;
 }
 
 export interface MyParticipation {

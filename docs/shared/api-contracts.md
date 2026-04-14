@@ -49,6 +49,11 @@
 | GET | `/api/v2/participations` | 参与列表（管理端，分页+筛选） | 是（Admin） | ✅ 已实现 |
 | PATCH | `/api/v2/participations/{id}/review` | 审核（通过/驳回） | 是（Admin） | ✅ 已实现 |
 
+- GET /api/v2/participations 查询参数：page、size、eventId、activityId、userId、state、keyword、createdFrom、createdTo
+- GET /api/v2/participations 中 createdFrom / createdTo 使用 ISO 8601 UTC 时间字符串
+- PATCH /api/v2/participations/{id}/review 请求体：{ action: "APPROVE" | "REJECT", rejectReason?: string }
+- PATCH /api/v2/participations/{id}/review 中当 action = "REJECT" 时，rejectReason 必填
+
 ## 看板模块（dashboard）
 
 | 方法 | 路径 | 说明 | 认证 |

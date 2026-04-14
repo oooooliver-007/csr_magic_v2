@@ -39,6 +39,8 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Long
          + "AND (CAST(:keyword AS TEXT) IS NULL OR LOWER(u.display_name) LIKE LOWER(CONCAT('%', CAST(:keyword AS TEXT), '%')) "
          + "     OR LOWER(u.username) LIKE LOWER(CONCAT('%', CAST(:keyword AS TEXT), '%')) "
          + "     OR LOWER(a.name) LIKE LOWER(CONCAT('%', CAST(:keyword AS TEXT), '%'))) "
+         + "AND (CAST(:createdFrom AS TIMESTAMPTZ) IS NULL OR ua.created_at >= CAST(:createdFrom AS TIMESTAMPTZ)) "
+         + "AND (CAST(:createdTo AS TIMESTAMPTZ) IS NULL OR ua.created_at <= CAST(:createdTo AS TIMESTAMPTZ)) "
          + "ORDER BY ua.created_at DESC",
          countQuery = "SELECT count(*) FROM user_activity ua "
          + "JOIN users u ON ua.user_id = u.id "
@@ -49,7 +51,9 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Long
          + "AND (CAST(:state AS TEXT) IS NULL OR ua.state = CAST(:state AS TEXT)) "
          + "AND (CAST(:keyword AS TEXT) IS NULL OR LOWER(u.display_name) LIKE LOWER(CONCAT('%', CAST(:keyword AS TEXT), '%')) "
          + "     OR LOWER(u.username) LIKE LOWER(CONCAT('%', CAST(:keyword AS TEXT), '%')) "
-         + "     OR LOWER(a.name) LIKE LOWER(CONCAT('%', CAST(:keyword AS TEXT), '%')))",
+         + "     OR LOWER(a.name) LIKE LOWER(CONCAT('%', CAST(:keyword AS TEXT), '%'))) "
+         + "AND (CAST(:createdFrom AS TIMESTAMPTZ) IS NULL OR ua.created_at >= CAST(:createdFrom AS TIMESTAMPTZ)) "
+         + "AND (CAST(:createdTo AS TIMESTAMPTZ) IS NULL OR ua.created_at <= CAST(:createdTo AS TIMESTAMPTZ))",
          nativeQuery = true)
     Page<UserActivity> findByFilters(
         @Param("eventId") Long eventId,
@@ -57,6 +61,8 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Long
         @Param("userId") Long userId,
         @Param("state") String state,
         @Param("keyword") String keyword,
+        @Param("createdFrom") Instant createdFrom,
+        @Param("createdTo") Instant createdTo,
         Pageable pageable
     );
 

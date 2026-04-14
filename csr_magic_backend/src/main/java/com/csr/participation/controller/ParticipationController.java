@@ -10,11 +10,14 @@ import com.csr.participation.service.ParticipationService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.Instant;
 
 @RestController
 @RequestMapping("/api/v2/participations")
@@ -57,9 +60,11 @@ public class ParticipationController {
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false) ParticipationState state,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant createdFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant createdTo,
             Pageable pageable) {
         return ApiResponse.success(
-            participationService.adminList(eventId, activityId, userId, state, keyword, pageable));
+            participationService.adminList(eventId, activityId, userId, state, keyword, createdFrom, createdTo, pageable));
     }
 
     /**

@@ -6,6 +6,7 @@ vi.mock('./apiClient', () => ({
   default: {
     get: vi.fn(),
     post: vi.fn(),
+    patch: vi.fn(),
     put: vi.fn(),
     delete: vi.fn(),
   },
@@ -57,5 +58,41 @@ describe('participationApi', () => {
     expect(apiClient.get).toHaveBeenCalledWith('/api/v2/participations/my', {
       params: {},
     });
+  });
+
+  it('list 调用 GET /api/v2/participations 并传递筛选参数', async () => {
+    const mockResponse = { data: { code: 200, data: { content: [], totalElements: 0, totalPages: 0 } } };
+    vi.mocked(apiClient.get).mockResolvedValue(mockResponse);
+
+    const params = {
+      page: 1,
+      size: 20,
+      eventId: 2,
+      activityId: 3,
+      userId: 4,
+      state: 'PENDING' as const,
+      keyword: '张三',
+      createdFrom: '2026-01-01T00:00:00Z',
+      createdTo: '2026-01-31T23:59:59.999Z',
+    };
+
+    const result = await participationApi.list(params);
+
+    expect(apiClient.get).toHaveBeenCalledWith('/api/v2/participations', {
+      params,
+    });
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('review 调用 PATCH /api/v2/participations/:id/review', async () => {
+    const mockResponse = { data: { code: 200, data: { id: 8, state: 'APPROVED' } } };
+    vi.mocked(apiClient.patch).mockResolvedValue(mockResponse);
+
+    const result = await participationApi.review(8, { action: 'APPROVE' });
+
+    expect(apiClient.patch).toHaveBeenCalledWith('/api/v2/participations/8/review', {
+      action: 'APPROVE',
+    });
+    expect(result).toEqual(mockResponse);
   });
 });

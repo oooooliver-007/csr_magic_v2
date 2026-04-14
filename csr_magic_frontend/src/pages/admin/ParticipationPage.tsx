@@ -2,9 +2,13 @@ import { useState, useEffect, useCallback, Fragment } from 'react';
 import { Search, Check, X, ChevronDown, ChevronUp, Download, Loader2 } from 'lucide-react';
 import { participationApi } from '../../services/participationApi';
 import { activityApi } from '../../services/activityApi';
+import { eventApi } from '../../services/eventApi';
+import { userApi } from '../../services/userApi';
 import type { Participation, ParticipationState, ReviewAction } from '../../types/participation';
 import type { PageResponse } from '../../types/common';
 import type { Activity } from '../../types/activity';
+import type { Event } from '../../types/event';
+import type { UserInfo } from '../../types/user';
 
 /** 状态徽章配色 */
 const STATE_BADGE: Record<string, { label: string; cls: string }> = {
@@ -17,8 +21,12 @@ const STATE_BADGE: Record<string, { label: string; cls: string }> = {
 export default function ParticipationPage() {
   /* ─── 筛选状态 ─── */
   const [keyword, setKeyword] = useState('');
+  const [eventFilter, setEventFilter] = useState<number | ''>('');
   const [statusFilter, setStatusFilter] = useState<ParticipationState | ''>('');
   const [activityFilter, setActivityFilter] = useState<number | ''>('');
+  const [userFilter, setUserFilter] = useState<number | ''>('');
+  const [createdFrom, setCreatedFrom] = useState('');
+  const [createdTo, setCreatedTo] = useState('');
 
   /* ─── 数据状态 ─── */
   const [records, setRecords] = useState<Participation[]>([]);
@@ -28,7 +36,9 @@ export default function ParticipationPage() {
   const [error, setError] = useState<string | null>(null);
 
   /* ─── 筛选下拉数据 ─── */
+  const [events, setEvents] = useState<Event[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [users, setUsers] = useState<UserInfo[]>([]);
 
   /* ─── 交互状态 ─── */
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
@@ -37,6 +47,12 @@ export default function ParticipationPage() {
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [pendingRejectId, setPendingRejectId] = useState<number | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const showToast = useCallback((message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    window.setTimeout(() => setToast(null), 3000);
+  }, []);
 
   /* ─── 获取参与列表 ─── */
   const fetchRecords = useCallback(async () => {
@@ -47,8 +63,12 @@ export default function ParticipationPage() {
         page,
         size: 20,
         keyword: keyword || undefined,
+        eventId: eventFilter || undefined,
         state: statusFilter || undefined,
         activityId: activityFilter || undefined,
+        userId: userFilter || undefined,
+        createdFrom: createdFrom ? `${createdFrom}T00:00:00Z` : undefined,
+        createdTo: createdTo ? `${createdTo}T23:59:59.999Z` : undefined,
       });
       const data = res.data.data;
       setRecords(data.content);
@@ -56,10 +76,11 @@ export default function ParticipationPage() {
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? '获取参与列表失败';
       setError(msg);
+      showToast(msg, 'error');
     } finally {
       setLoading(false);
     }
-  }, [page, keyword, statusFilter, activityFilter]);
+  }, [page, keyword, eventFilter, statusFilter, activityFilter, userFilter, createdFrom, createdTo, showToast]);
 
   useEffect(() => {
     fetchRecords();
@@ -69,8 +90,14 @@ export default function ParticipationPage() {
   useEffect(() => {
     const loadFilters = async () => {
       try {
-        const actRes = await activityApi.list({ size: 200 });
+        const [eventRes, actRes, userRes] = await Promise.all([
+          eventApi.list({ size: 200 }),
+          activityApi.list({ size: 200 }),
+          userApi.list({ size: 200 }),
+        ]);
+        setEvents(eventRes.data.data.content);
         setActivities(actRes.data.data.content);
+        setUsers(userRes.data.data.content);
       } catch {
         // 筛选下拉加载失败不阻断页面
       }
@@ -89,9 +116,10 @@ export default function ParticipationPage() {
         next.delete(id);
         return next;
       });
+      showToast(action === 'APPROVE' ? '审核已通过' : '驳回成功');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? '操作失败';
-      alert(msg);
+      showToast(msg, 'error');
     } finally {
       setActionLoading(false);
       setShowRejectDialog(false);
@@ -118,9 +146,10 @@ export default function ParticipationPage() {
       }
       setSelectedRows(new Set());
       await fetchRecords();
+      showToast('批量通过成功');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? '批量操作失败';
-      alert(msg);
+      showToast(msg, 'error');
     } finally {
       setActionLoading(false);
     }
@@ -138,8 +167,11 @@ export default function ParticipationPage() {
   const toggleSelectRow = (id: number) => {
     setSelectedRows((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };
@@ -152,9 +184,13 @@ export default function ParticipationPage() {
 
   /* ─── 分页可审核数（用于批量按钮统计） ─── */
   const reviewableSelected = [...selectedRows].filter((id) => {
-    const r = records.find((rec) => rec.id === id);
-    return r && (r.state === 'PENDING' || r.state === 'RE_SUBMITTED');
+    const record = records.find((rec) => rec.id === id);
+    return record && (record.state === 'PENDING' || record.state === 'RE_SUBMITTED');
   });
+
+  const filteredActivities = eventFilter
+    ? activities.filter((activity) => activity.eventId === eventFilter)
+    : activities;
 
   return (
     <div className="space-y-6">
@@ -169,7 +205,7 @@ export default function ParticipationPage() {
             <button
               onClick={handleBatchApprove}
               disabled={actionLoading}
-              className="flex-1 sm:flex-none bg-white border border-gray-200 text-[#1A2E22] px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              className="flex-1 sm:flex-none bg-white border border-gray-200 text-[#1A2E22] px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               <Check className="w-4 h-4 text-green-600" />
               批量通过 ({reviewableSelected.length})
@@ -183,21 +219,42 @@ export default function ParticipationPage() {
       </div>
 
       {/* 筛选栏 */}
-      <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col sm:flex-row gap-4">
+      <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
             placeholder="搜索员工姓名或活动名称..."
             value={keyword}
-            onChange={(e) => { setKeyword(e.target.value); setPage(0); }}
+            onChange={(e) => {
+              setKeyword(e.target.value);
+              setPage(0);
+            }}
             className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 focus:border-[#2EB87A] focus:outline-none text-sm"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col md:flex-row gap-2">
+          <select
+            value={eventFilter}
+            onChange={(e) => {
+              const nextEventId = e.target.value ? Number(e.target.value) : '';
+              setEventFilter(nextEventId);
+              setActivityFilter('');
+              setPage(0);
+            }}
+            className="px-4 py-2 rounded-xl border border-gray-200 focus:border-[#2EB87A] focus:outline-none text-sm bg-white min-w-[140px]"
+          >
+            <option value="">全部事件</option>
+            {events.map((event) => (
+              <option key={event.id} value={event.id}>{event.name}</option>
+            ))}
+          </select>
           <select
             value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value as ParticipationState | ''); setPage(0); }}
+            onChange={(e) => {
+              setStatusFilter(e.target.value as ParticipationState | '');
+              setPage(0);
+            }}
             className="px-4 py-2 rounded-xl border border-gray-200 focus:border-[#2EB87A] focus:outline-none text-sm bg-white min-w-[120px]"
           >
             <option value="">全部状态</option>
@@ -208,14 +265,50 @@ export default function ParticipationPage() {
           </select>
           <select
             value={activityFilter}
-            onChange={(e) => { setActivityFilter(e.target.value ? Number(e.target.value) : ''); setPage(0); }}
+            onChange={(e) => {
+              setActivityFilter(e.target.value ? Number(e.target.value) : '');
+              setPage(0);
+            }}
             className="px-4 py-2 rounded-xl border border-gray-200 focus:border-[#2EB87A] focus:outline-none text-sm bg-white min-w-[140px]"
           >
             <option value="">全部活动</option>
-            {activities.map((a) => (
-              <option key={a.id} value={a.id}>{a.name}</option>
+            {filteredActivities.map((activity) => (
+              <option key={activity.id} value={activity.id}>{activity.name}</option>
             ))}
           </select>
+          <select
+            value={userFilter}
+            onChange={(e) => {
+              setUserFilter(e.target.value ? Number(e.target.value) : '');
+              setPage(0);
+            }}
+            className="px-4 py-2 rounded-xl border border-gray-200 focus:border-[#2EB87A] focus:outline-none text-sm bg-white min-w-[140px]"
+          >
+            <option value="">全部员工</option>
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>{user.displayName || user.username}</option>
+            ))}
+          </select>
+          <div className="flex gap-2">
+            <input
+              type="date"
+              value={createdFrom}
+              onChange={(e) => {
+                setCreatedFrom(e.target.value);
+                setPage(0);
+              }}
+              className="px-4 py-2 rounded-xl border border-gray-200 focus:border-[#2EB87A] focus:outline-none text-sm bg-white"
+            />
+            <input
+              type="date"
+              value={createdTo}
+              onChange={(e) => {
+                setCreatedTo(e.target.value);
+                setPage(0);
+              }}
+              className="px-4 py-2 rounded-xl border border-gray-200 focus:border-[#2EB87A] focus:outline-none text-sm bg-white"
+            />
+          </div>
         </div>
       </div>
 
@@ -259,48 +352,52 @@ export default function ParticipationPage() {
                     <th className="p-4">员工</th>
                     <th className="p-4">活动</th>
                     <th className="p-4">报名时间</th>
+                    <th className="p-4">参与内容摘要</th>
                     <th className="p-4">状态</th>
+                    <th className="p-4">审核人</th>
                     <th className="p-4 text-right">操作</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {records.map((rec) => (
-                    <Fragment key={rec.id}>
+                  {records.map((record) => (
+                    <Fragment key={record.id}>
                       <tr className="hover:bg-gray-50/50 transition-colors group">
                         <td className="p-4 text-center">
                           <input
                             type="checkbox"
                             className="rounded border-gray-300 text-[#2EB87A] focus:ring-[#2EB87A]"
-                            checked={selectedRows.has(rec.id)}
-                            onChange={() => toggleSelectRow(rec.id)}
+                            checked={selectedRows.has(record.id)}
+                            onChange={() => toggleSelectRow(record.id)}
                           />
                         </td>
                         <td className="p-4">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-[#2EB87A]/10 flex items-center justify-center text-[#2EB87A] font-bold text-xs">
-                              {getInitials(rec.userDisplayName)}
+                              {getInitials(record.userDisplayName)}
                             </div>
                             <div>
-                              <p className="font-medium text-[#1A2E22]">{rec.userDisplayName || rec.userName}</p>
-                              <p className="text-xs text-[#1A2E22]/50">{rec.userName}</p>
+                              <p className="font-medium text-[#1A2E22]">{record.userDisplayName || record.userName}</p>
+                              <p className="text-xs text-[#1A2E22]/50">{record.userName}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="p-4 text-[#1A2E22]/80">{rec.activityName}</td>
-                        <td className="p-4 text-[#1A2E22]/80">
-                          {new Date(rec.createdAt).toLocaleDateString('zh-CN')}
+                        <td className="p-4 text-[#1A2E22]/80">{record.activityName}</td>
+                        <td className="p-4 text-[#1A2E22]/80">{new Date(record.createdAt).toLocaleDateString('zh-CN')}</td>
+                        <td className="p-4 text-[#1A2E22]/70 max-w-[220px]">
+                          <p className="truncate" title={formatFormSummary(record.formData)}>{formatFormSummary(record.formData)}</p>
                         </td>
                         <td className="p-4">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${STATE_BADGE[rec.state]?.cls ?? 'bg-gray-100 text-gray-600'}`}>
-                            {STATE_BADGE[rec.state]?.label ?? '未知'}
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${STATE_BADGE[record.state]?.cls ?? 'bg-gray-100 text-gray-600'}`}>
+                            {STATE_BADGE[record.state]?.label ?? '未知'}
                           </span>
                         </td>
+                        <td className="p-4 text-[#1A2E22]/70">{record.reviewedByName ?? '-'}</td>
                         <td className="p-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            {(rec.state === 'PENDING' || rec.state === 'RE_SUBMITTED') && (
+                            {(record.state === 'PENDING' || record.state === 'RE_SUBMITTED') && (
                               <>
                                 <button
-                                  onClick={() => handleReview(rec.id, 'APPROVE')}
+                                  onClick={() => handleReview(record.id, 'APPROVE')}
                                   disabled={actionLoading}
                                   className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
                                   title="通过"
@@ -308,7 +405,7 @@ export default function ParticipationPage() {
                                   <Check className="w-4 h-4" />
                                 </button>
                                 <button
-                                  onClick={() => openRejectDialog(rec.id)}
+                                  onClick={() => openRejectDialog(record.id)}
                                   disabled={actionLoading}
                                   className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                                   title="驳回"
@@ -318,18 +415,18 @@ export default function ParticipationPage() {
                               </>
                             )}
                             <button
-                              onClick={() => setExpandedRow(expandedRow === rec.id ? null : rec.id)}
+                              onClick={() => setExpandedRow(expandedRow === record.id ? null : record.id)}
                               className="p-1.5 text-gray-400 hover:text-[#1A2E22] hover:bg-gray-100 rounded-lg transition-colors"
                             >
-                              {expandedRow === rec.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                              {expandedRow === record.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                             </button>
                           </div>
                         </td>
                       </tr>
-                      {expandedRow === rec.id && (
+                      {expandedRow === record.id && (
                         <tr className="bg-gray-50/30">
-                          <td colSpan={6} className="p-0">
-                            <ExpandedDetail record={rec} />
+                          <td colSpan={8} className="p-0">
+                            <ExpandedDetail record={record} />
                           </td>
                         </tr>
                       )}
@@ -345,23 +442,23 @@ export default function ParticipationPage() {
                 <p>共 {pageData.totalElements} 条记录</p>
                 <div className="flex gap-1">
                   <button
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    onClick={() => setPage((prevPage) => Math.max(0, prevPage - 1))}
                     disabled={page === 0}
                     className="px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
                   >
                     上一页
                   </button>
-                  {Array.from({ length: Math.min(pageData.totalPages, 5) }, (_, i) => i).map((i) => (
+                  {Array.from({ length: Math.min(pageData.totalPages, 5) }, (_, index) => index).map((index) => (
                     <button
-                      key={i}
-                      onClick={() => setPage(i)}
-                      className={`px-3 py-1 rounded-lg ${page === i ? 'bg-[#2EB87A] text-white' : 'border border-gray-200 hover:bg-gray-50'}`}
+                      key={index}
+                      onClick={() => setPage(index)}
+                      className={`px-3 py-1 rounded-lg ${page === index ? 'bg-[#2EB87A] text-white' : 'border border-gray-200 hover:bg-gray-50'}`}
                     >
-                      {i + 1}
+                      {index + 1}
                     </button>
                   ))}
                   <button
-                    onClick={() => setPage((p) => Math.min((pageData.totalPages || 1) - 1, p + 1))}
+                    onClick={() => setPage((prevPage) => Math.min((pageData.totalPages || 1) - 1, prevPage + 1))}
                     disabled={page >= (pageData.totalPages || 1) - 1}
                     className="px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50"
                   >
@@ -374,21 +471,21 @@ export default function ParticipationPage() {
 
           {/* ═══ 移动端：卡片列表 ═══ */}
           <div className="md:hidden space-y-3">
-            {records.map((rec) => {
-              const badge = STATE_BADGE[rec.state] ?? { label: '未知', cls: 'bg-gray-100 text-gray-600' };
-              const canReview = rec.state === 'PENDING' || rec.state === 'RE_SUBMITTED';
-              const isExpanded = expandedRow === rec.id;
+            {records.map((record) => {
+              const badge = STATE_BADGE[record.state] ?? { label: '未知', cls: 'bg-gray-100 text-gray-600' };
+              const canReview = record.state === 'PENDING' || record.state === 'RE_SUBMITTED';
+              const isExpanded = expandedRow === record.id;
 
               return (
-                <div key={rec.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+                <div key={record.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-[#2EB87A]/10 flex items-center justify-center text-[#2EB87A] font-bold text-sm">
-                        {getInitials(rec.userDisplayName)}
+                        {getInitials(record.userDisplayName)}
                       </div>
                       <div>
-                        <p className="font-medium text-[#1A2E22]">{rec.userDisplayName || rec.userName}</p>
-                        <p className="text-xs text-[#1A2E22]/50">{rec.userName}</p>
+                        <p className="font-medium text-[#1A2E22]">{record.userDisplayName || record.userName}</p>
+                        <p className="text-xs text-[#1A2E22]/50">{record.userName}</p>
                       </div>
                     </div>
                     <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${badge.cls}`}>
@@ -397,24 +494,26 @@ export default function ParticipationPage() {
                   </div>
 
                   <div className="text-sm text-[#1A2E22]/80">
-                    <p><span className="text-[#1A2E22]/50">活动：</span>{rec.activityName}</p>
-                    <p><span className="text-[#1A2E22]/50">报名时间：</span>{new Date(rec.createdAt).toLocaleDateString('zh-CN')}</p>
+                    <p><span className="text-[#1A2E22]/50">活动：</span>{record.activityName}</p>
+                    <p><span className="text-[#1A2E22]/50">报名时间：</span>{new Date(record.createdAt).toLocaleDateString('zh-CN')}</p>
+                    <p><span className="text-[#1A2E22]/50">内容摘要：</span>{formatFormSummary(record.formData)}</p>
+                    <p><span className="text-[#1A2E22]/50">审核人：</span>{record.reviewedByName ?? '-'}</p>
                   </div>
 
                   <button
-                    onClick={() => setExpandedRow(isExpanded ? null : rec.id)}
+                    onClick={() => setExpandedRow(isExpanded ? null : record.id)}
                     className="text-xs text-[#2EB87A] font-medium flex items-center gap-1"
                   >
                     {isExpanded ? '收起详情' : '查看详情'}
                     {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                   </button>
 
-                  {isExpanded && <ExpandedDetail record={rec} />}
+                  {isExpanded && <ExpandedDetail record={record} />}
 
                   {canReview && (
                     <div className="flex gap-2 pt-2 border-t border-gray-100">
                       <button
-                        onClick={() => handleReview(rec.id, 'APPROVE')}
+                        onClick={() => handleReview(record.id, 'APPROVE')}
                         disabled={actionLoading}
                         className="flex-1 py-2 rounded-xl bg-green-50 text-green-700 text-sm font-medium hover:bg-green-100 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                       >
@@ -422,7 +521,7 @@ export default function ParticipationPage() {
                         通过
                       </button>
                       <button
-                        onClick={() => openRejectDialog(rec.id)}
+                        onClick={() => openRejectDialog(record.id)}
                         disabled={actionLoading}
                         className="flex-1 py-2 rounded-xl bg-red-50 text-red-600 text-sm font-medium hover:bg-red-100 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                       >
@@ -439,7 +538,7 @@ export default function ParticipationPage() {
             {pageData && pageData.totalPages > 1 && (
               <div className="flex items-center justify-center gap-3 pt-2">
                 <button
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  onClick={() => setPage((prevPage) => Math.max(0, prevPage - 1))}
                   disabled={page === 0}
                   className="px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 disabled:opacity-40"
                 >
@@ -447,7 +546,7 @@ export default function ParticipationPage() {
                 </button>
                 <span className="text-sm text-[#1A2E22]/60">{page + 1} / {pageData.totalPages}</span>
                 <button
-                  onClick={() => setPage((p) => Math.min(pageData.totalPages - 1, p + 1))}
+                  onClick={() => setPage((prevPage) => Math.min(pageData.totalPages - 1, prevPage + 1))}
                   disabled={page >= pageData.totalPages - 1}
                   className="px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 disabled:opacity-40"
                 >
@@ -474,7 +573,11 @@ export default function ParticipationPage() {
             />
             <div className="flex gap-3 justify-end">
               <button
-                onClick={() => { setShowRejectDialog(false); setPendingRejectId(null); setRejectReason(''); }}
+                onClick={() => {
+                  setShowRejectDialog(false);
+                  setPendingRejectId(null);
+                  setRejectReason('');
+                }}
                 className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium hover:bg-gray-50 transition-colors"
               >
                 取消
@@ -490,6 +593,12 @@ export default function ParticipationPage() {
           </div>
         </div>
       )}
+
+      {toast && (
+        <div className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white ${toast.type === 'success' ? 'bg-[#2EB87A]' : 'bg-red-500'}`}>
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }
@@ -497,6 +606,7 @@ export default function ParticipationPage() {
 /** 展开详情子组件 */
 function ExpandedDetail({ record }: { record: Participation }) {
   const parsed = parseFormDataSafe(record.formData);
+  const attachments = extractImageValues(parsed);
 
   return (
     <div className="p-4 md:pl-16 border-l-2 border-[#2EB87A] m-2 rounded-r-xl bg-white shadow-sm">
@@ -505,14 +615,16 @@ function ExpandedDetail({ record }: { record: Participation }) {
           <h4 className="text-xs font-bold text-[#1A2E22]/50 uppercase tracking-wider mb-1">报名信息</h4>
           {parsed && Object.keys(parsed).length > 0 ? (
             <div className="space-y-1">
-              {Object.entries(parsed).filter(([, v]) => v !== null && v !== undefined && v !== '').map(([k, v]) => (
-                <div key={k} className="flex justify-between text-sm">
-                  <span className="text-[#1A2E22]/60">{k}</span>
-                  <span className="font-medium text-[#1A2E22]">
-                    {Array.isArray(v) ? `${v.length} 项` : String(v)}
-                  </span>
-                </div>
-              ))}
+              {Object.entries(parsed)
+                .filter(([, value]) => value !== null && value !== undefined && value !== '' && !isImageValue(value))
+                .map(([key, value]) => (
+                  <div key={key} className="flex justify-between text-sm">
+                    <span className="text-[#1A2E22]/60">{key}</span>
+                    <span className="font-medium text-[#1A2E22]">
+                      {Array.isArray(value) ? `${value.length} 项` : String(value)}
+                    </span>
+                  </div>
+                ))}
             </div>
           ) : (
             <p className="text-sm text-gray-400 italic">无额外报名信息</p>
@@ -535,6 +647,21 @@ function ExpandedDetail({ record }: { record: Participation }) {
           )}
         </div>
       </div>
+      {attachments.length > 0 && (
+        <div className="mt-4 space-y-2">
+          <h4 className="text-xs font-bold text-[#1A2E22]/50 uppercase tracking-wider">附件图片</h4>
+          <div className="flex flex-wrap gap-3">
+            {attachments.map((image, index) => (
+              <img
+                key={`${record.id}-${index}`}
+                src={image}
+                alt={`附件图片 ${index + 1}`}
+                className="w-24 h-24 rounded-xl object-cover border border-gray-200"
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -546,4 +673,48 @@ function parseFormDataSafe(formData: string | null): Record<string, unknown> | n
   } catch {
     return null;
   }
+}
+
+function formatFormSummary(formData: string | null): string {
+  const parsed = parseFormDataSafe(formData);
+  if (!parsed) return '-';
+
+  const parts = Object.entries(parsed)
+    .filter(([, value]) => value !== null && value !== undefined && value !== '' && !isImageValue(value))
+    .slice(0, 2)
+    .map(([key, value]) => `${key}: ${Array.isArray(value) ? `${value.length} 项` : String(value)}`);
+
+  const imageCount = extractImageValues(parsed).length;
+  if (imageCount > 0) {
+    parts.push(`图片: ${imageCount} 张`);
+  }
+
+  return parts.length > 0 ? parts.join('；') : '-';
+}
+
+function isImageValue(value: unknown): value is string[] | string {
+  if (typeof value === 'string') {
+    return value.startsWith('data:image/') || value.startsWith('http');
+  }
+
+  return Array.isArray(value)
+    && value.every((item) => typeof item === 'string' && (item.startsWith('data:image/') || item.startsWith('http')));
+}
+
+function extractImageValues(parsed: Record<string, unknown> | null): string[] {
+  if (!parsed) return [];
+
+  return Object.values(parsed).flatMap((value) => {
+    if (typeof value === 'string' && (value.startsWith('data:image/') || value.startsWith('http'))) {
+      return [value];
+    }
+
+    if (Array.isArray(value)) {
+      return value.filter(
+        (item): item is string => typeof item === 'string' && (item.startsWith('data:image/') || item.startsWith('http'))
+      );
+    }
+
+    return [];
+  });
 }

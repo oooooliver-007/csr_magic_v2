@@ -19,8 +19,14 @@ export default function ActivityDetailPage() {
   const [activity, setActivity] = useState<ActivityDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [withdrawing, setWithdrawing] = useState(false);
   const [showResubmitForm, setShowResubmitForm] = useState(false);
+
+  const showToast = useCallback((type: 'success' | 'error', message: string) => {
+    setToast({ type, message });
+    window.setTimeout(() => setToast(null), 3000);
+  }, []);
 
   const fetchActivity = useCallback(async () => {
     if (!id) return;
@@ -48,6 +54,7 @@ export default function ActivityDetailPage() {
         formData: JSON.stringify(formData),
       });
       await fetchActivity();
+      showToast('success', '报名提交成功，请等待审核');
     } catch (err: unknown) {
       const message = extractErrorMessage(err);
       throw new Error(message);
@@ -56,13 +63,17 @@ export default function ActivityDetailPage() {
 
   const handleWithdraw = async () => {
     if (!activity?.currentUserParticipation) return;
+    const confirmed = window.confirm('确认退出该活动吗？仅待审核状态可退出。');
+    if (!confirmed) return;
     try {
       setWithdrawing(true);
       await participationApi.withdraw(activity.currentUserParticipation.id);
       await fetchActivity();
+      showToast('success', '退出活动成功');
     } catch (err: unknown) {
       const message = extractErrorMessage(err);
       setError(message);
+      showToast('error', message);
     } finally {
       setWithdrawing(false);
     }
@@ -127,6 +138,12 @@ export default function ActivityDetailPage() {
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
           {error}
+        </div>
+      )}
+
+      {toast && (
+        <div className={`mb-4 p-3 rounded-xl text-sm font-medium ${toast.type === 'success' ? 'bg-[#2EB87A]/10 text-[#2EB87A]' : 'bg-red-50 text-red-600 border border-red-200'}`}>
+          {toast.message}
         </div>
       )}
 

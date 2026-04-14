@@ -22,6 +22,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+
 @Service
 @Transactional(readOnly = true)
 public class ParticipationServiceImpl implements ParticipationService {
@@ -77,6 +79,12 @@ public class ParticipationServiceImpl implements ParticipationService {
         participation.setFormData(request.formData());
 
         UserActivity saved = userActivityRepository.save(participation);
+        notificationService.send(
+            user,
+            "SIGNUP_SUCCESS",
+            "报名提交成功",
+            "您已成功提交活动「" + activity.getName() + "」的报名申请，请等待审核"
+        );
         log.info("用户 {} 报名活动 {} 成功，参与记录 ID: {}", userId, request.activityId(), saved.getId());
         return ParticipationResponse.from(saved);
     }
@@ -89,6 +97,10 @@ public class ParticipationServiceImpl implements ParticipationService {
 
         if (!participation.getUser().getId().equals(userId)) {
             throw new BusinessException(403, "无权操作此参与记录");
+        }
+
+        if ("ENDED".equals(participation.getActivity().getStatus())) {
+            throw new BusinessException(400, "活动已结束，无法退出");
         }
 
         // 仅 PENDING 状态可退出（spec 要求）
@@ -108,9 +120,10 @@ public class ParticipationServiceImpl implements ParticipationService {
 
     @Override
     public Page<ParticipationResponse> adminList(Long eventId, Long activityId, Long userId,
-                                                  ParticipationState state, String keyword, Pageable pageable) {
+                                                  ParticipationState state, String keyword,
+                                                  Instant createdFrom, Instant createdTo, Pageable pageable) {
         String stateStr = state != null ? state.name() : null;
-        return userActivityRepository.findByFilters(eventId, activityId, userId, stateStr, keyword, pageable)
+        return userActivityRepository.findByFilters(eventId, activityId, userId, stateStr, keyword, createdFrom, createdTo, pageable)
                 .map(ParticipationResponse::from);
     }
 
@@ -131,6 +144,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 
         if (request.action() == ReviewRequest.Action.APPROVE) {
             participation.setState(ParticipationState.APPROVED);
+            participation.setRejectReason(null);
         } else {
             if (request.rejectReason() == null || request.rejectReason().isBlank()) {
                 throw new BusinessException(400, "驳回时必须填写原因");
@@ -140,7 +154,7 @@ public class ParticipationServiceImpl implements ParticipationService {
         }
 
         participation.setReviewedBy(admin);
-        participation.setReviewedAt(java.time.Instant.now());
+        participation.setReviewedAt(Instant.now());
 
         UserActivity saved = userActivityRepository.save(participation);
         log.info("管理员 {} 审核参与记录 {}，操作: {}", adminUserId, participationId, request.action());
