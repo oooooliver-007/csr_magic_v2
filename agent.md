@@ -151,3 +151,8 @@ d:\windsurf_workspaces4\
 | 2026-04-13 | user-profile/my-participations | 贡献统计通过 native query 聚合：志愿时长=VOLUNTEER 活动时长，捐赠=DONATION 表单 amount 字段 | 数据库无显式统计列，基于现有 template_type + form_data 推算 |
 | 2026-04-13 | user-profile/my-participations | MyProfilePage 改为 Tab 页面（个人设置/参与记录/我的海报），Tab 切换不刷新页面 | 个人中心整合所有子功能，遵循 spec 交互要求 |
 | 2026-04-13 | user-profile/my-participations | CSV 导出在前端生成（BOM + UTF-8），无需后端端点 | MVP 简化方案，数据量小（单用户记录），避免额外 API |
+| 2026-04-13 | participation/signup | 管理端 adminList 使用 JPQL JOIN FETCH + 多维筛选（eventId/activityId/userId/state/keyword） | 一次查询加载 user+activity+reviewedBy，避免 N+1；countQuery 不含 FETCH |
+| 2026-04-13 | participation/signup | withdraw 限制仅 PENDING 状态可退出（spec 要求） | 已审核记录不可撤回，保护数据完整性 |
+| 2026-04-13 | participation/signup | 审核时自动发送站内通知（NotificationService.send） | 最小化实现 notification 基础设施（Entity+Repository+Service+V6迁移），完整通知模块后续扩展 |
+| 2026-04-13 | participation/signup | ParticipationPage 桌面端用 Fragment 包裹行组（主行+展开详情行），移动端用卡片+展开 | 响应式适配：md: 断点切换表格/卡片布局 |
+| 2026-04-13 | participation/signup | ReviewRequest 使用 record + 内部 Action 枚举（APPROVE/REJECT） | 类型安全，驳回时强制 rejectReason 非空校验 |

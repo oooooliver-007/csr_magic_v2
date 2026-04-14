@@ -58,18 +58,18 @@ depends_on:
 - **通知集成**：审核通过/驳回时调用 NotificationService 发送站内通知
 
 ## 实现步骤清单（Implementation Checklist）
-1. [ ] 后端：创建 UserActivity Entity + UserActivityRepository
-2. [ ] 后端：创建 DTO（SignupRequest、ReviewRequest、ParticipationResponse）
-3. [ ] 后端：创建 ParticipationService（signup/withdraw/review/list）
-4. [ ] 后端：创建 ParticipationController（5 个端点）
-5. [ ] 后端：Flyway 迁移脚本（user_activity 表）
-6. [ ] 后端：集成通知发送（审核通过/驳回时）
-7. [ ] 前端：创建 services/participationApi.ts
-8. [ ] 前端：创建 ParticipationPage.tsx（管理端）
-9. [ ] 前端：创建 ParticipationTable + Detail + ReviewDialog 组件
-10. [ ] 前端：集成 SignupForm 到 ActivityDetailPage
-11. [ ] 前端：接入路由 /admin/participations
-12. [ ] 前端：响应式适配（管理端表格→卡片+展开详情）
+1. [x] 后端：创建 UserActivity Entity + UserActivityRepository
+2. [x] 后端：创建 DTO（SignupRequest、ReviewRequest、ParticipationResponse）
+3. [x] 后端：创建 ParticipationService（signup/withdraw/review/list）
+4. [x] 后端：创建 ParticipationController（5 个端点）
+5. [x] 后端：Flyway 迁移脚本（user_activity 表）
+6. [x] 后端：集成通知发送（审核通过/驳回时）
+7. [x] 前端：创建 services/participationApi.ts
+8. [x] 前端：创建 ParticipationPage.tsx（管理端）
+9. [x] 前端：创建 ParticipationTable + Detail + ReviewDialog 组件
+10. [x] 前端：集成 SignupForm 到 ActivityDetailPage
+11. [x] 前端：接入路由 /admin/participations
+12. [x] 前端：响应式适配（管理端表格→卡片+展开详情）
 13. [ ] 对照 spec-signup.md 验收标准自检
 
 ## UI 原型参考

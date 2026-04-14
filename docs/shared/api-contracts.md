@@ -46,8 +46,8 @@
 | POST | `/api/v2/participations/signup` | 报名参与 | 是 | ✅ 已实现 |
 | POST | `/api/v2/participations/{id}/withdraw` | 退出活动 | 是 | ✅ 已实现 |
 | GET | `/api/v2/participations/my` | 我的参与记录 | 是 | ✅ 已实现 |
-| GET | `/api/v2/participations` | 参与列表（管理端，分页+筛选） | 是（Admin） | 待实现 |
-| PATCH | `/api/v2/participations/{id}/review` | 审核（通过/驳回） | 是（Admin） | 待实现 |
+| GET | `/api/v2/participations` | 参与列表（管理端，分页+筛选） | 是（Admin） | ✅ 已实现 |
+| PATCH | `/api/v2/participations/{id}/review` | 审核（通过/驳回） | 是（Admin） | ✅ 已实现 |
 
 ## 看板模块（dashboard）
 

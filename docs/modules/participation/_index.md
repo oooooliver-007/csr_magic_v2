@@ -7,7 +7,7 @@
 
 | 功能 | spec 文件 | design 文件 | 状态 | 依赖 |
 |------|-----------|-------------|------|------|
-| 报名/退出 | spec-signup.md | design-signup.md | 待实现 | activity-detail |
+| 报名/退出 | spec-signup.md | design-signup.md | ✅ 已实现 | activity-detail |
 
 ## 模块间依赖
 - **依赖**：auth（认证）、activity（报名需要活动存在）

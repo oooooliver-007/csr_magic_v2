@@ -8,6 +8,7 @@ import EmployeeLayout from './components/EmployeeLayout';
 import EventManagementPage from './pages/admin/EventManagementPage';
 import ActivityManagementPage from './pages/admin/ActivityManagementPage';
 import UserManagementPage from './pages/admin/UserManagementPage';
+import ParticipationPage from './pages/admin/ParticipationPage';
 import ActivityListPage from './pages/ActivityListPage';
 import ActivityDetailPage from './pages/ActivityDetailPage';
 import MyProfilePage from './pages/MyProfilePage';
@@ -65,6 +66,7 @@ export default function App() {
           <Route index element={<HomePage />} />
           <Route path="events" element={<EventManagementPage />} />
           <Route path="activities" element={<ActivityManagementPage />} />
+          <Route path="participations" element={<ParticipationPage />} />
           <Route path="users" element={<UserManagementPage />} />
         </Route>
       </Route>

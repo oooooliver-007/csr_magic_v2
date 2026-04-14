@@ -24,6 +24,41 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Long
 
     Page<UserActivity> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
 
+    /**
+     * 管理端筛选查询（支持 eventId / activityId / userId / state 筛选 + keyword 搜索）
+     * 使用 nativeQuery + CAST 模式（Hibernate 6 + PostgreSQL null 参数类型推断问题）
+     */
+    @Query(value = "SELECT ua.* FROM user_activity ua "
+         + "JOIN users u ON ua.user_id = u.id "
+         + "JOIN activity a ON ua.activity_id = a.id "
+         + "WHERE (:eventId IS NULL OR a.event_id = CAST(:eventId AS BIGINT)) "
+         + "AND (:activityId IS NULL OR a.id = CAST(:activityId AS BIGINT)) "
+         + "AND (:userId IS NULL OR u.id = CAST(:userId AS BIGINT)) "
+         + "AND (CAST(:state AS TEXT) IS NULL OR ua.state = CAST(:state AS TEXT)) "
+         + "AND (CAST(:keyword AS TEXT) IS NULL OR LOWER(u.display_name) LIKE LOWER(CONCAT('%', CAST(:keyword AS TEXT), '%')) "
+         + "     OR LOWER(u.username) LIKE LOWER(CONCAT('%', CAST(:keyword AS TEXT), '%')) "
+         + "     OR LOWER(a.name) LIKE LOWER(CONCAT('%', CAST(:keyword AS TEXT), '%'))) "
+         + "ORDER BY ua.created_at DESC",
+         countQuery = "SELECT count(*) FROM user_activity ua "
+         + "JOIN users u ON ua.user_id = u.id "
+         + "JOIN activity a ON ua.activity_id = a.id "
+         + "WHERE (:eventId IS NULL OR a.event_id = CAST(:eventId AS BIGINT)) "
+         + "AND (:activityId IS NULL OR a.id = CAST(:activityId AS BIGINT)) "
+         + "AND (:userId IS NULL OR u.id = CAST(:userId AS BIGINT)) "
+         + "AND (CAST(:state AS TEXT) IS NULL OR ua.state = CAST(:state AS TEXT)) "
+         + "AND (CAST(:keyword AS TEXT) IS NULL OR LOWER(u.display_name) LIKE LOWER(CONCAT('%', CAST(:keyword AS TEXT), '%')) "
+         + "     OR LOWER(u.username) LIKE LOWER(CONCAT('%', CAST(:keyword AS TEXT), '%')) "
+         + "     OR LOWER(a.name) LIKE LOWER(CONCAT('%', CAST(:keyword AS TEXT), '%')))",
+         nativeQuery = true)
+    Page<UserActivity> findByFilters(
+        @Param("eventId") Long eventId,
+        @Param("activityId") Long activityId,
+        @Param("userId") Long userId,
+        @Param("state") String state,
+        @Param("keyword") String keyword,
+        Pageable pageable
+    );
+
     @Query(value = """
         SELECT COALESCE(SUM(
             EXTRACT(EPOCH FROM (a.end_time - a.start_time)) / 3600.0
