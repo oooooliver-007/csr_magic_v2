@@ -7,16 +7,16 @@
 
 | 功能 | spec 文件 | design 文件 | 状态 | 依赖 |
 |------|-----------|-------------|------|------|
-| 登录/注册 | spec-login-register.md | design-login-register.md | 待实现 | 无 |
-| JWT 认证 | spec-jwt-auth.md | design-jwt-auth.md | 待实现 | 无 |
+| 登录/注册 | spec-login-register.md | design-login-register.md | ✅ 已实现 | 无 |
+| JWT 认证 | spec-jwt-auth.md | design-jwt-auth.md | ✅ 已实现 | 无 |
 
 ## 模块间依赖
 - **被依赖**：所有其他模块都依赖 auth 的 JWT 认证
 - **无外部依赖**：auth 是最底层模块
 
 ## 推荐实现顺序
-1. login-register（登录/注册 — 无依赖，最先实现）
-2. jwt-auth（JWT 认证 — 与登录/注册并行或紧随其后）
+1. login-register（登录/注册 — 无依赖） ✅ 已完成
+2. jwt-auth（JWT 认证 — 与登录/注册并行或紧随其后） ✅ 已完成
 
 ## 涉及的服务
 - **前端**：`csr_magic_frontend/src/pages/LoginPage.tsx`、`RegisterPage.tsx`

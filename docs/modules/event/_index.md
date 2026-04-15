@@ -7,14 +7,14 @@
 
 | 功能 | spec 文件 | design 文件 | 状态 | 依赖 |
 |------|-----------|-------------|------|------|
-| 事件 CRUD | spec-event-crud.md | design-event-crud.md | 待实现 | auth |
+| 事件 CRUD | spec-event-crud.md | design-event-crud.md | ✅ 已实现 | auth |
 
 ## 模块间依赖
 - **依赖**：auth（JWT 认证 + Admin 角色校验）
 - **被依赖**：activity 模块（活动必须关联事件）
 
 ## 推荐实现顺序
-1. event-crud（仅一个功能，直接实现）
+1. event-crud（仅一个功能，直接实现）✅ 已完成
 
 ## 涉及的服务
 - **前端**：`csr_magic_frontend/src/pages/admin/EventManagementPage.tsx`
