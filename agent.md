@@ -162,3 +162,5 @@ d:\windsurf_workspaces4\
 | 2026-04-14 | notification/notification-system | NotificationService 重构为接口 + NotificationServiceImpl，实现当前用户通知分页查询、未读统计、单条/批量已读与 createNotification 能力 | 对齐项目分层规范，并保持 participation 模块继续通过接口发送通知 |
 | 2026-04-14 | notification/notification-system | 前端通知跳转采用“通知类型 → 页面路由”映射，并让 MyProfilePage 支持 `?tab=participations` | 无需为通知单独存储跳转 URL，复用现有页面结构满足“点击通知跳转对应页面”需求 |
 | 2026-04-14 | notification/notification-system | 员工端 Header 使用 NotificationBell + NotificationDropdown，未读数按 30 秒轮询，完整通知页独立为 `/notifications` | 满足铃铛角标、最近 5 条下拉、全部通知列表与全部已读的验收要求 |
+| 2026-04-15 | employee/home-page | 员工首页直接复用 `userApi.getMyStats`、`activityApi.list`、`participationApi.getMyParticipations` 组合页面数据，不新增首页聚合接口 | 当前已有接口已覆盖统计、推荐活动与最近参与需求，避免为首页引入额外后端耦合 |
+| 2026-04-15 | employee/home-page | 首页“我的海报”CTA 临时跳转到 `/my?tab=posters`，不跳转未实现的 `/poster` 页面 | ai-poster 模块尚未完成，先提供可用入口并保持用户路径一致 |

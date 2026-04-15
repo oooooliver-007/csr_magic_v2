@@ -12,33 +12,10 @@ import ParticipationPage from './pages/admin/ParticipationPage';
 import DashboardPage from './pages/admin/DashboardPage';
 import ActivityListPage from './pages/ActivityListPage';
 import ActivityDetailPage from './pages/ActivityDetailPage';
+import HomePage from './pages/HomePage';
 import MyProfilePage from './pages/MyProfilePage';
 import NotificationListPage from './pages/NotificationListPage';
 import { useAuthStore } from './stores/authStore';
-
-function HomePage() {
-  const user = useAuthStore((s) => s.user);
-  const logout = useAuthStore((s) => s.logout);
-
-  return (
-    <div className="min-h-screen bg-[#F7FAF8] flex items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-2xl shadow-sm max-w-md w-full text-center">
-        <h1 className="text-2xl font-bold text-[#1A2E22] mb-4">
-          欢迎回来，{user?.displayName}
-        </h1>
-        <p className="text-[#1A2E22]/60 mb-6">
-          角色：{user?.role === 'ADMIN' ? '管理员' : '员工'}
-        </p>
-        <button
-          onClick={logout}
-          className="px-6 py-2.5 bg-red-500 text-white rounded-xl font-medium hover:bg-red-600 transition-colors"
-        >
-          退出登录
-        </button>
-      </div>
-    </div>
-  );
-}
 
 export default function App() {
   const loadFromStorage = useAuthStore((s) => s.loadFromStorage);
