@@ -65,6 +65,15 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
 
   useEffect(() => {
     if (open) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
+
+  useEffect(() => {
+    if (open) {
       if (activity) {
         reset({
           eventId: activity.eventId,
@@ -150,7 +159,7 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
       />
 
       {/* 抽屉 */}
-      <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300">
+      <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-2xl z-50 flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
         {/* 头部 */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <h2 className="text-xl font-bold">{isEdit ? '编辑活动' : '新建活动'}</h2>
@@ -163,8 +172,8 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
         </div>
 
         {/* 表单 */}
-        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col">
-          <div className="flex-1 overflow-y-auto p-6 space-y-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 overflow-y-auto p-6 space-y-5 min-h-0">
             {/* 所属事件 */}
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-[#1A2E22]">
