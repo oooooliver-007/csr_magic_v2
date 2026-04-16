@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { X, Download } from 'lucide-react';
+import { X, Download, Share2 } from 'lucide-react';
 import type { PosterRecord } from '../types/poster';
 
 interface PosterLightboxProps {
@@ -31,6 +31,29 @@ export default function PosterLightbox({ poster, onClose }: PosterLightboxProps)
     link.download = `csr-poster-${poster.id}.png`;
     link.target = '_blank';
     link.click();
+  };
+
+  const handleShare = async () => {
+    if (!poster.posterUrl) return;
+    const shareData = {
+      title: `CSR 海报 - ${poster.activityName ?? ''}`,
+      text: `来看看我的 CSR 活动海报吧！`,
+      url: poster.posterUrl,
+    };
+    if (navigator.share && navigator.canShare?.(shareData)) {
+      try {
+        await navigator.share(shareData);
+      } catch {
+        // 用户取消分享，忽略
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(poster.posterUrl);
+        alert('海报链接已复制到剪贴板');
+      } catch {
+        alert('复制失败，请手动复制链接');
+      }
+    }
   };
 
   const formattedDate = new Date(poster.createdAt).toLocaleDateString('zh-CN', {
@@ -80,13 +103,22 @@ export default function PosterLightbox({ poster, onClose }: PosterLightboxProps)
               </p>
               <p className="text-xs text-[#1A2E22]/50 mt-0.5">{formattedDate}</p>
             </div>
-            <button
-              onClick={handleDownload}
-              className="flex items-center gap-2 px-4 py-2 bg-[#2EB87A] text-white rounded-xl text-sm font-medium hover:bg-[#2EB87A]/90 transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              下载
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleShare}
+                className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-[#1A2E22] rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                <Share2 className="w-4 h-4" />
+                分享
+              </button>
+              <button
+                onClick={handleDownload}
+                className="flex items-center gap-2 px-4 py-2 bg-[#2EB87A] text-white rounded-xl text-sm font-medium hover:bg-[#2EB87A]/90 transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                下载
+              </button>
+            </div>
           </div>
         </div>
       </div>
