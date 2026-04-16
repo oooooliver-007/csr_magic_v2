@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, ArrowLeft, Download, Share2, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import { posterApi } from '../services/posterApi';
+import PosterGallery from '../components/PosterGallery';
 import { participationApi } from '../services/participationApi';
 import type { MyParticipation } from '../types/participation';
 import type { PosterStyle, PosterStatus } from '../types/poster';
@@ -23,6 +24,9 @@ export default function AIPosterStudioPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // 画廊刷新
+  const [galleryRefreshKey, setGalleryRefreshKey] = useState(0);
 
   // 轮询相关
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -83,6 +87,7 @@ export default function AIPosterStudioPage() {
             setIsGenerating(false);
             setGeneratedImageUrl(data.posterUrl);
             setErrorMessage(null);
+            setGalleryRefreshKey((k) => k + 1);
           } else if (status === 'FAILED') {
             stopPolling();
             setIsGenerating(false);
@@ -290,6 +295,11 @@ export default function AIPosterStudioPage() {
             </div>
           )}
         </div>
+      </div>
+      {/* 我的海报画廊 */}
+      <div className="mt-12">
+        <h2 className="text-xl font-bold text-[#1A2E22] mb-6">我的海报</h2>
+        <PosterGallery refreshKey={galleryRefreshKey} />
       </div>
     </div>
   );

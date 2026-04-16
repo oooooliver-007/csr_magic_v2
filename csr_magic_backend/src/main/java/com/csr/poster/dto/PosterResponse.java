@@ -5,6 +5,7 @@ import com.csr.poster.entity.AiPoster;
 public record PosterResponse(
     Long id,
     Long activityId,
+    String activityName,
     String taskId,
     String style,
     String userPrompt,
@@ -15,9 +16,14 @@ public record PosterResponse(
     String updatedAt
 ) {
     public static PosterResponse from(AiPoster entity) {
+        return from(entity, null);
+    }
+
+    public static PosterResponse from(AiPoster entity, String activityName) {
         return new PosterResponse(
             entity.getId(),
             entity.getActivityId(),
+            activityName,
             entity.getTaskId(),
             entity.getStyle(),
             entity.getUserPrompt(),

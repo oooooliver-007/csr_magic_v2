@@ -168,3 +168,5 @@ d:\windsurf_workspaces4\
 | 2026-04-15 | ai-poster/poster-studio | 后端 PosterService 通过 RestTemplate 同步调用 AI 服务 /poster/generate，@Async 异步执行 | Spring Boot 内置 @Async 即可满足当前需求，无需引入消息队列 |
 | 2026-04-15 | ai-poster/poster-studio | 前端轮询 3 秒间隔 + 2 分钟超时，401/403 自动停止 | 平衡用户体验与服务器负载；超时后提示用户重试 |
 | 2026-04-15 | ai-poster/poster-studio | 海报图片存储为 AI 服务本地 /static/posters/，后端记录完整 URL | MVP 本地存储，生产环境可迁移到 OSS/S3 |
+| 2026-04-16 | ai-poster/poster-gallery | PosterResponse 增加 activityName 字段，Service 层关联 ActivityRepository 查询 | 画廊卡片需展示活动名，避免前端额外请求 |
+| 2026-04-16 | ai-poster/poster-gallery | PosterGallery 作为可复用组件，同时用于 AIPosterStudioPage 和 MyProfilePage | 复用一套画廊逻辑，通过 refreshKey prop 触发刷新 |

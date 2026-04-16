@@ -46,13 +46,14 @@ depends_on:
 - Lightbox 全屏展示
 
 ## 实现步骤清单（Implementation Checklist）
-1. [ ] 前端：创建 PosterCard.tsx
-2. [ ] 前端：创建 PosterLightbox.tsx（动画 + 下载）
-3. [ ] 前端：创建 PosterGallery.tsx（整合卡片+Lightbox+分页+空状态）
-4. [ ] 前端：集成到 AIPosterStudioPage.tsx 下方
-5. [ ] 前端：集成到 MyProfilePage.tsx 的"我的海报" Tab
-6. [ ] 前端：响应式适配
+1. [x] 前端：创建 PosterCard.tsx
+2. [x] 前端：创建 PosterLightbox.tsx（动画 + 下载）
+3. [x] 前端：创建 PosterGallery.tsx（整合卡片+Lightbox+分页+空状态）
+4. [x] 前端：集成到 AIPosterStudioPage.tsx 下方
+5. [x] 前端：集成到 MyProfilePage.tsx 的“我的海报” Tab
+6. [x] 前端：响应式适配
 7. [ ] 对照 spec-poster-gallery.md 验收标准自检
+8. [x] 后端 PosterResponse 添加 activityName 字段
 
 ## 引用
 - 对应功能规格：spec-poster-gallery.md

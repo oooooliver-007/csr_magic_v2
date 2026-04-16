@@ -8,7 +8,7 @@
 | 功能 | spec 文件 | design 文件 | 状态 | 依赖 |
 |------|-----------|-------------|------|------|
 | 海报工作台 | spec-poster-studio.md | design-poster-studio.md | ✅ 已实现 | participation |
-| 海报画廊 | spec-poster-gallery.md | design-poster-gallery.md | 待实现 | poster-studio |
+| 海报画廊 | spec-poster-gallery.md | design-poster-gallery.md | ✅ 已实现 | poster-studio |
 
 ## 模块间依赖
 - **依赖**：auth（认证）、participation（需要有参与记录才能生成海报）

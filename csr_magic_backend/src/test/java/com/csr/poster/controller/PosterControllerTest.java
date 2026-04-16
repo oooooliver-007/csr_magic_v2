@@ -116,7 +116,7 @@ class PosterControllerTest {
     void getMyPosters_success() throws Exception {
         SecurityContextHolder.getContext().setAuthentication(userAuthentication());
         PosterResponse poster = new PosterResponse(
-            10L, 1L, "task123", "cartoon", null, "COMPLETED",
+            10L, 1L, "春季植树", "task123", "cartoon", null, "COMPLETED",
             "http://img.png", null, "2026-04-15T10:00:00Z", null
         );
         Page<PosterResponse> page = new PageImpl<>(List.of(poster));
@@ -126,6 +126,7 @@ class PosterControllerTest {
                 .param("page", "0").param("size", "10"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.content[0].taskId").value("task123"))
-            .andExpect(jsonPath("$.data.content[0].style").value("cartoon"));
+            .andExpect(jsonPath("$.data.content[0].style").value("cartoon"))
+            .andExpect(jsonPath("$.data.content[0].activityName").value("春季植树"));
     }
 }

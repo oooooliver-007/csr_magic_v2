@@ -28,6 +28,7 @@ export interface PosterStatusResponse {
 export interface PosterRecord {
   id: number;
   activityId: number;
+  activityName: string | null;
   taskId: string;
   style: string;
   userPrompt: string | null;

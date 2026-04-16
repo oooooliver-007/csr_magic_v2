@@ -104,7 +104,12 @@ public class PosterServiceImpl implements PosterService {
     @Override
     public Page<PosterResponse> getMyPosters(Long userId, Pageable pageable) {
         return aiPosterRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
-                .map(PosterResponse::from);
+                .map(poster -> {
+                    String activityName = activityRepository.findById(poster.getActivityId())
+                            .map(Activity::getName)
+                            .orElse(null);
+                    return PosterResponse.from(poster, activityName);
+                });
     }
 
     @Async

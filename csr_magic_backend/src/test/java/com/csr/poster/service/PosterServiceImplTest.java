@@ -140,16 +140,33 @@ class PosterServiceImplTest {
     }
 
     @Test
-    @DisplayName("我的海报列表：返回分页结果")
+    @DisplayName("我的海报列表：返回分页结果且包含 activityName")
     void getMyPosters_success() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<AiPoster> page = new PageImpl<>(List.of(testPoster), pageable, 1);
         when(aiPosterRepository.findByUserIdOrderByCreatedAtDesc(1L, pageable)).thenReturn(page);
+        when(activityRepository.findById(1L)).thenReturn(Optional.of(testActivity));
 
         Page<PosterResponse> result = posterService.getMyPosters(1L, pageable);
 
         assertEquals(1, result.getTotalElements());
-        assertEquals("abc123", result.getContent().get(0).taskId());
-        assertEquals("cartoon", result.getContent().get(0).style());
+        PosterResponse poster = result.getContent().get(0);
+        assertEquals("abc123", poster.taskId());
+        assertEquals("cartoon", poster.style());
+        assertEquals("春季植树活动", poster.activityName());
+    }
+
+    @Test
+    @DisplayName("我的海报列表：活动被删除时 activityName 为 null")
+    void getMyPosters_activityDeleted() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<AiPoster> page = new PageImpl<>(List.of(testPoster), pageable, 1);
+        when(aiPosterRepository.findByUserIdOrderByCreatedAtDesc(1L, pageable)).thenReturn(page);
+        when(activityRepository.findById(1L)).thenReturn(Optional.empty());
+
+        Page<PosterResponse> result = posterService.getMyPosters(1L, pageable);
+
+        assertEquals(1, result.getTotalElements());
+        assertNull(result.getContent().get(0).activityName());
     }
 }
