@@ -50,6 +50,7 @@ export default function App() {
           <Route path="activities" element={<ActivityManagementPage />} />
           <Route path="participations" element={<ParticipationPage />} />
           <Route path="users" element={<UserManagementPage />} />
+          <Route path="notifications" element={<NotificationListPage />} />
         </Route>
       </Route>
 
