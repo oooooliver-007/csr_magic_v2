@@ -76,6 +76,7 @@ public class PosterServiceImpl implements PosterService {
     }
 
     @Override
+    @Transactional
     public PosterStatusResponse getStatus(String taskId, Long userId) {
         AiPoster poster = aiPosterRepository.findByTaskId(taskId)
                 .orElseThrow(() -> new BusinessException(404, "任务不存在"));
