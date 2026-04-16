@@ -83,21 +83,21 @@ depends_on:
 5. 前端轮询发现 COMPLETED → 展示海报
 
 ## 实现步骤清单（Implementation Checklist）
-1. [ ] AI 服务：创建 prompt_builder.py（根据活动类型+风格构建 prompt）
-2. [ ] AI 服务：创建 image_gen.py（通义万相 API 调用封装）
-3. [ ] AI 服务：创建 image_compose.py（Pillow 合成海报）
-4. [ ] AI 服务：创建 storage.py（本地文件存储）
-5. [ ] AI 服务：创建 poster_agent.py（生成主流程编排）
-6. [ ] AI 服务：创建 poster.py API 路由
-7. [ ] 后端：创建 AiPoster Entity + AiPosterRepository
-8. [ ] 后端：创建 PosterService（generate/getStatus/getMyPosters）
-9. [ ] 后端：创建 PosterController（3 个端点）
-10. [ ] 后端：Flyway 迁移脚本（ai_poster 表）
-11. [ ] 前端：创建 services/posterApi.ts
-12. [ ] 前端：创建各组件（ActivitySelector/StyleSelector/PromptInput/GenerateButton/PosterResult）
-13. [ ] 前端：创建 AIPosterStudioPage.tsx（整合组件 + 轮询逻辑）
-14. [ ] 前端：接入路由 /poster
-15. [ ] 对照 spec-poster-studio.md 验收标准自检
+1. [x] AI 服务：创建 prompt_builder.py（根据活动类型+风格构建 prompt）
+2. [x] AI 服务：创建 image_gen.py（通义万相 API 调用封装）
+3. [x] AI 服务：创建 image_compose.py（Pillow 合成海报）
+4. [x] AI 服务：创建 storage.py（本地文件存储）
+5. [x] AI 服务：创建 poster_agent.py（生成主流程编排）
+6. [x] AI 服务：创建 poster.py API 路由
+7. [x] 后端：创建 AiPoster Entity + AiPosterRepository
+8. [x] 后端：创建 PosterService（generate/getStatus/getMyPosters）
+9. [x] 后端：创建 PosterController（3 个端点）
+10. [x] 后端：Flyway 迁移脚本（ai_poster 表）
+11. [x] 前端：创建 services/posterApi.ts
+12. [x] 前端：创建各组件（ActivitySelector/StyleSelector/PromptInput/GenerateButton/PosterResult）
+13. [x] 前端：创建 AIPosterStudioPage.tsx（整合组件 + 轮询逻辑）
+14. [x] 前端：接入路由 /poster
+15. [x] 对照 spec-poster-studio.md 验收标准自检
 
 ## UI 原型参考
 

@@ -15,6 +15,7 @@ import ActivityDetailPage from './pages/ActivityDetailPage';
 import HomePage from './pages/HomePage';
 import MyProfilePage from './pages/MyProfilePage';
 import NotificationListPage from './pages/NotificationListPage';
+import AIPosterStudioPage from './pages/AIPosterStudioPage';
 import { useAuthStore } from './stores/authStore';
 
 export default function App() {
@@ -39,6 +40,7 @@ export default function App() {
           <Route path="/activities/:id" element={<ActivityDetailPage />} />
           <Route path="/notifications" element={<NotificationListPage />} />
           <Route path="/my" element={<MyProfilePage />} />
+          <Route path="/poster" element={<AIPosterStudioPage />} />
         </Route>
 
         {/* 管理端路由 */}

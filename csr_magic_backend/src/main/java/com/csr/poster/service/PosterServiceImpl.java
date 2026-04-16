@@ -1,0 +1,181 @@
+package com.csr.poster.service;
+
+import com.csr.activity.entity.Activity;
+import com.csr.activity.repository.ActivityRepository;
+import com.csr.common.BusinessException;
+import com.csr.poster.dto.GeneratePosterRequest;
+import com.csr.poster.dto.GenerateTaskResponse;
+import com.csr.poster.dto.PosterResponse;
+import com.csr.poster.dto.PosterStatusResponse;
+import com.csr.poster.entity.AiPoster;
+import com.csr.poster.repository.AiPosterRepository;
+import com.csr.auth.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Map;
+import java.util.UUID;
+
+@Service
+@Transactional(readOnly = true)
+public class PosterServiceImpl implements PosterService {
+
+    private static final Logger log = LoggerFactory.getLogger(PosterServiceImpl.class);
+
+    private final AiPosterRepository aiPosterRepository;
+    private final ActivityRepository activityRepository;
+    private final UserRepository userRepository;
+    private final RestTemplate restTemplate;
+
+    @Value("${ai-service.base-url:http://localhost:8000}")
+    private String aiServiceBaseUrl;
+
+    public PosterServiceImpl(
+            AiPosterRepository aiPosterRepository,
+            ActivityRepository activityRepository,
+            UserRepository userRepository) {
+        this.aiPosterRepository = aiPosterRepository;
+        this.activityRepository = activityRepository;
+        this.userRepository = userRepository;
+        this.restTemplate = new RestTemplate();
+    }
+
+    @Override
+    @Transactional
+    public GenerateTaskResponse generate(GeneratePosterRequest request, Long userId) {
+        Activity activity = activityRepository.findById(request.activityId())
+                .orElseThrow(() -> new BusinessException(404, "活动不存在"));
+
+        String taskId = UUID.randomUUID().toString().replace("-", "");
+
+        AiPoster poster = new AiPoster();
+        poster.setUserId(userId);
+        poster.setActivityId(request.activityId());
+        poster.setTaskId(taskId);
+        poster.setStyle(request.style());
+        poster.setUserPrompt(request.userPrompt());
+        poster.setStatus("PENDING");
+
+        aiPosterRepository.save(poster);
+        log.info("创建海报生成任务: taskId={}, userId={}, activityId={}", taskId, userId, request.activityId());
+
+        // 异步调用 AI 服务
+        callAiServiceAsync(taskId, activity, request, userId);
+
+        return new GenerateTaskResponse(taskId);
+    }
+
+    @Override
+    public PosterStatusResponse getStatus(String taskId, Long userId) {
+        AiPoster poster = aiPosterRepository.findByTaskId(taskId)
+                .orElseThrow(() -> new BusinessException(404, "任务不存在"));
+
+        if (!poster.getUserId().equals(userId)) {
+            throw new BusinessException(403, "无权查看此任务");
+        }
+
+        // 如果状态为 PENDING 或 GENERATING，尝试从 AI 服务获取最新状态
+        if ("PENDING".equals(poster.getStatus()) || "GENERATING".equals(poster.getStatus())) {
+            try {
+                syncStatusFromAiService(poster);
+            } catch (Exception e) {
+                log.warn("从 AI 服务同步状态失败: taskId={}, error={}", taskId, e.getMessage());
+            }
+        }
+
+        return new PosterStatusResponse(
+                poster.getTaskId(),
+                poster.getStatus(),
+                poster.getPosterUrl(),
+                poster.getErrorMessage()
+        );
+    }
+
+    @Override
+    public Page<PosterResponse> getMyPosters(Long userId, Pageable pageable) {
+        return aiPosterRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
+                .map(PosterResponse::from);
+    }
+
+    @Async
+    protected void callAiServiceAsync(String taskId, Activity activity,
+                                       GeneratePosterRequest request, Long userId) {
+        try {
+            String userName = userRepository.findById(userId)
+                    .map(u -> u.getDisplayName() != null ? u.getDisplayName() : u.getUsername())
+                    .orElse(null);
+
+            Map<String, Object> body = Map.of(
+                    "task_id", taskId,
+                    "activity_name", activity.getName(),
+                    "activity_type", activity.getTemplateType().name(),
+                    "style", request.style(),
+                    "user_prompt", request.userPrompt() != null ? request.userPrompt() : "",
+                    "user_name", userName != null ? userName : ""
+            );
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+            restTemplate.postForEntity(aiServiceBaseUrl + "/poster/generate", entity, String.class);
+            log.info("已发送海报生成请求至 AI 服务: taskId={}", taskId);
+
+        } catch (Exception e) {
+            log.error("调用 AI 服务失败: taskId={}, error={}", taskId, e.getMessage());
+            updatePosterStatus(taskId, "FAILED", null, "AI 服务调用失败: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public void syncStatusFromAiService(AiPoster poster) {
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = restTemplate.getForObject(
+                    aiServiceBaseUrl + "/poster/" + poster.getTaskId(), Map.class);
+
+            if (response != null && response.get("data") != null) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> data = (Map<String, Object>) response.get("data");
+                String status = (String) data.get("status");
+                String posterUrl = (String) data.get("poster_url");
+                String errorMessage = (String) data.get("error_message");
+
+                if (posterUrl != null && !posterUrl.isEmpty()) {
+                    // 转换为完整 URL
+                    posterUrl = aiServiceBaseUrl + posterUrl;
+                }
+
+                if (!poster.getStatus().equals(status)) {
+                    poster.setStatus(status);
+                    poster.setPosterUrl(posterUrl);
+                    poster.setErrorMessage(errorMessage);
+                    aiPosterRepository.save(poster);
+                    log.info("同步海报状态: taskId={}, status={}", poster.getTaskId(), status);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("同步 AI 服务状态失败: {}", e.getMessage());
+        }
+    }
+
+    @Transactional
+    public void updatePosterStatus(String taskId, String status, String posterUrl, String errorMessage) {
+        aiPosterRepository.findByTaskId(taskId).ifPresent(poster -> {
+            poster.setStatus(status);
+            poster.setPosterUrl(posterUrl);
+            poster.setErrorMessage(errorMessage);
+            aiPosterRepository.save(poster);
+        });
+    }
+}

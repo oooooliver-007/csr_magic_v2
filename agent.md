@@ -164,3 +164,7 @@ d:\windsurf_workspaces4\
 | 2026-04-14 | notification/notification-system | 员工端 Header 使用 NotificationBell + NotificationDropdown，未读数按 30 秒轮询，完整通知页独立为 `/notifications` | 满足铃铛角标、最近 5 条下拉、全部通知列表与全部已读的验收要求 |
 | 2026-04-15 | employee/home-page | 员工首页直接复用 `userApi.getMyStats`、`activityApi.list`、`participationApi.getMyParticipations` 组合页面数据，不新增首页聚合接口 | 当前已有接口已覆盖统计、推荐活动与最近参与需求，避免为首页引入额外后端耦合 |
 | 2026-04-15 | employee/home-page | 首页“我的海报”CTA 临时跳转到 `/my?tab=posters`，不跳转未实现的 `/poster` 页面 | ai-poster 模块尚未完成，先提供可用入口并保持用户路径一致 |
+| 2026-04-15 | ai-poster/poster-studio | AI 服务采用 DashScope SDK 同步调用 + asyncio.create_task 异步包装，不依赖 Celery | MVP 阶段任务量小，内存 _task_store 足够；生产环境可迁移到 Redis + worker |
+| 2026-04-15 | ai-poster/poster-studio | 后端 PosterService 通过 RestTemplate 同步调用 AI 服务 /poster/generate，@Async 异步执行 | Spring Boot 内置 @Async 即可满足当前需求，无需引入消息队列 |
+| 2026-04-15 | ai-poster/poster-studio | 前端轮询 3 秒间隔 + 2 分钟超时，401/403 自动停止 | 平衡用户体验与服务器负载；超时后提示用户重试 |
+| 2026-04-15 | ai-poster/poster-studio | 海报图片存储为 AI 服务本地 /static/posters/，后端记录完整 URL | MVP 本地存储，生产环境可迁移到 OSS/S3 |

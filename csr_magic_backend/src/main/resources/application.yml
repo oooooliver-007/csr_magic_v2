@@ -30,6 +30,10 @@ jwt:
   access-token-expiration: ${JWT_ACCESS_EXPIRATION:3600000}
   refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
 
+# AI 服务配置
+ai-service:
+  base-url: ${AI_SERVICE_URL:http://localhost:8000}
+
 # 日志配置
 logging:
   level:
