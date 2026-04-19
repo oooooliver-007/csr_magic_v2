@@ -278,6 +278,11 @@ function RegistrationCard({
             formSchemaJson={activity.formSchema}
             onSubmit={onSignup}
             disabled={isFull}
+            initialValues={
+              showResubmitForm && participation?.formData
+                ? parseFormData(participation.formData)
+                : undefined
+            }
           />
         </div>
       )}
@@ -361,4 +366,16 @@ function extractErrorMessage(err: unknown): string {
     return axiosErr.response?.data?.message ?? '操作失败';
   }
   return '操作失败';
+}
+
+function parseFormData(formData: string): Record<string, unknown> | undefined {
+  try {
+    const parsed = JSON.parse(formData);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>;
+    }
+  } catch {
+    // fall through
+  }
+  return undefined;
 }

@@ -8,6 +8,7 @@ interface SignupFormProps {
   formSchemaJson: string | null;
   onSubmit: (formData: Record<string, unknown>) => Promise<void>;
   disabled?: boolean;
+  initialValues?: Record<string, unknown>;
 }
 
 /**
@@ -20,8 +21,9 @@ export default function SignupForm({
   formSchemaJson,
   onSubmit,
   disabled = false,
+  initialValues,
 }: SignupFormProps) {
-  const [values, setValues] = useState<Record<string, unknown>>({});
+  const [values, setValues] = useState<Record<string, unknown>>(initialValues ?? {});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
