@@ -8,6 +8,7 @@ import com.csr.auth.repository.UserRepository;
 import com.csr.common.BusinessException;
 import com.csr.participation.dto.MyParticipationResponse;
 import com.csr.participation.dto.ParticipationResponse;
+import com.csr.participation.dto.ResubmitRequest;
 import com.csr.participation.dto.ReviewRequest;
 import com.csr.participation.dto.SignupRequest;
 import com.csr.participation.entity.ParticipationState;
@@ -86,6 +87,41 @@ public class ParticipationServiceImpl implements ParticipationService {
             "您已成功提交活动「" + activity.getName() + "」的报名申请，请等待审核"
         );
         log.info("用户 {} 报名活动 {} 成功，参与记录 ID: {}", userId, request.activityId(), saved.getId());
+        return ParticipationResponse.from(saved);
+    }
+
+    @Override
+    @Transactional
+    public ParticipationResponse resubmit(Long participationId, Long userId, ResubmitRequest request) {
+        UserActivity participation = userActivityRepository.findById(participationId)
+            .orElseThrow(() -> new ParticipationNotFoundException(participationId));
+
+        if (!participation.getUser().getId().equals(userId)) {
+            throw new BusinessException(403, "无权操作此参与记录");
+        }
+
+        if (participation.getState() != ParticipationState.REJECTED) {
+            throw new BusinessException(400, "仅已驳回状态可重新提交");
+        }
+
+        if ("ENDED".equals(participation.getActivity().getStatus())) {
+            throw new BusinessException(400, "活动已结束，无法重新提交");
+        }
+
+        participation.setState(ParticipationState.RE_SUBMITTED);
+        participation.setFormData(request.formData());
+        participation.setRejectReason(null);
+        participation.setReviewedBy(null);
+        participation.setReviewedAt(null);
+
+        UserActivity saved = userActivityRepository.save(participation);
+        notificationService.send(
+            participation.getUser(),
+            "SIGNUP_SUCCESS",
+            "报名重新提交成功",
+            "您已重新提交活动「" + participation.getActivity().getName() + "」的报名申请，请等待审核"
+        );
+        log.info("用户 {} 重新提交参与记录 {}", userId, participationId);
         return ParticipationResponse.from(saved);
     }
 

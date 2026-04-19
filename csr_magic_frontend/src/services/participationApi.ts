@@ -17,6 +17,10 @@ export const participationApi = {
   withdraw: (id: number) =>
     apiClient.post<ApiResponse<void>>(`${BASE}/${id}/withdraw`),
 
+  /** 驳回后重新提交 */
+  resubmit: (id: number, formData: string) =>
+    apiClient.post<ApiResponse<Participation>>(`${BASE}/${id}/resubmit`, { formData }),
+
   getMyParticipations: (params: { page?: number; size?: number } = {}) =>
     apiClient.get<ApiResponse<PageResponse<MyParticipation>>>(`${BASE}/my`, { params }),
 

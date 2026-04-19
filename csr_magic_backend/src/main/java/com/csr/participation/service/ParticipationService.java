@@ -2,6 +2,7 @@ package com.csr.participation.service;
 
 import com.csr.participation.dto.MyParticipationResponse;
 import com.csr.participation.dto.ParticipationResponse;
+import com.csr.participation.dto.ResubmitRequest;
 import com.csr.participation.dto.ReviewRequest;
 import com.csr.participation.dto.SignupRequest;
 import com.csr.participation.entity.ParticipationState;
@@ -12,6 +13,11 @@ import java.time.Instant;
 public interface ParticipationService {
 
     ParticipationResponse signup(Long userId, SignupRequest request);
+
+    /**
+     * 驳回后重新提交：员工修改被驳回的报名记录并重新提交审核
+     */
+    ParticipationResponse resubmit(Long participationId, Long userId, ResubmitRequest request);
 
     void withdraw(Long participationId, Long userId);
 

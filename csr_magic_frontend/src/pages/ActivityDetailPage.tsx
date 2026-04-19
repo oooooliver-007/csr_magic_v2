@@ -49,12 +49,20 @@ export default function ActivityDetailPage() {
   const handleSignup = async (formData: Record<string, unknown>) => {
     if (!activity) return;
     try {
-      await participationApi.signup({
-        activityId: activity.id,
-        formData: JSON.stringify(formData),
-      });
-      await fetchActivity();
-      showToast('success', '报名提交成功，请等待审核');
+      const participation = activity.currentUserParticipation;
+      if (showResubmitForm && participation && participation.state === 'REJECTED') {
+        await participationApi.resubmit(participation.id, JSON.stringify(formData));
+        setShowResubmitForm(false);
+        await fetchActivity();
+        showToast('success', '重新提交成功，请等待审核');
+      } else {
+        await participationApi.signup({
+          activityId: activity.id,
+          formData: JSON.stringify(formData),
+        });
+        await fetchActivity();
+        showToast('success', '报名提交成功，请等待审核');
+      }
     } catch (err: unknown) {
       const message = extractErrorMessage(err);
       throw new Error(message);

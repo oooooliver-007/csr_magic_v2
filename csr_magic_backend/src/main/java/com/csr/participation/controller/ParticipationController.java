@@ -3,6 +3,7 @@ package com.csr.participation.controller;
 import com.csr.common.ApiResponse;
 import com.csr.participation.dto.MyParticipationResponse;
 import com.csr.participation.dto.ParticipationResponse;
+import com.csr.participation.dto.ResubmitRequest;
 import com.csr.participation.dto.ReviewRequest;
 import com.csr.participation.dto.SignupRequest;
 import com.csr.participation.entity.ParticipationState;
@@ -34,6 +35,14 @@ public class ParticipationController {
     public ApiResponse<ParticipationResponse> signup(@Valid @RequestBody SignupRequest request) {
         Long userId = getCurrentUserId();
         return ApiResponse.success(participationService.signup(userId, request));
+    }
+
+    @PostMapping("/{id}/resubmit")
+    public ApiResponse<ParticipationResponse> resubmit(
+            @PathVariable Long id,
+            @RequestBody ResubmitRequest request) {
+        Long userId = getCurrentUserId();
+        return ApiResponse.success(participationService.resubmit(id, userId, request));
     }
 
     @PostMapping("/{id}/withdraw")

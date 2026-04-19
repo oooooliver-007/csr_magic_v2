@@ -26,7 +26,7 @@
 | AI 对话报名（Qwen Agent）　　　　　| 🔲 Phase 3 | 　　　　　　　　　　　　　　　　　　　　　　　　　|
 | AI 海报生成（Wan 2.7 Image Pro）　　 | ✅ 已实现　 | Phase 3 完成，含海报工作台 + 历史画廊 + Lightbox 预览　|
 | 批量审核 / 数据导出　　　　　　　　　| 🔲 Phase 4 | 　　　　　　　　　　　　　　　　　　　　　　　　　|
-| 驳回后重新提交　　　　　　　　　 | 🔲 Phase 4 | 当前仅支持驳回，重提待实现　　　　　　　　　　　　　　|
+| 驳回后重新提交　　　　　　　　　 | ✅ 已实现　 | `POST /participations/{id}/resubmit`，状态 REJECTED → RE_SUBMITTED　　　　|
 
 ---
 

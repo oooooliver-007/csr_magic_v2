@@ -10,7 +10,9 @@ import com.csr.common.BusinessException;
 import com.csr.event.entity.Event;
 import com.csr.notification.service.NotificationService;
 import com.csr.participation.dto.ParticipationResponse;
+import com.csr.participation.dto.ResubmitRequest;
 import com.csr.participation.dto.SignupRequest;
+import com.csr.participation.entity.ParticipationState;
 import com.csr.participation.entity.UserActivity;
 import com.csr.participation.exception.ParticipationNotFoundException;
 import com.csr.participation.repository.UserActivityRepository;
@@ -197,6 +199,106 @@ class ParticipationServiceImplTest {
         BusinessException ex = assertThrows(BusinessException.class,
             () -> participationService.withdraw(1L, 100L));
         assertEquals(403, ex.getCode());
+    }
+
+    // === 重新提交测试 ===
+
+    @Test
+    @DisplayName("重新提交：成功更新参与记录为 RE_SUBMITTED")
+    void resubmit_success() {
+        UserActivity ua = new UserActivity();
+        ua.setId(1L);
+        ua.setUser(testUser);
+        ua.setActivity(testActivity);
+        ua.setState(ParticipationState.REJECTED);
+        ua.setRejectReason("材料不完整");
+        ua.setFormData("{\"amount\":50}");
+        ReflectionTestUtils.setField(ua, "createdAt", Instant.now());
+
+        when(userActivityRepository.findById(1L)).thenReturn(Optional.of(ua));
+        when(userActivityRepository.save(any(UserActivity.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ResubmitRequest request = new ResubmitRequest("{\"amount\":200}");
+        ParticipationResponse response = participationService.resubmit(1L, 100L, request);
+
+        assertEquals("RE_SUBMITTED", response.state());
+        assertEquals("{\"amount\":200}", response.formData());
+        assertNull(response.rejectReason());
+        assertNull(response.reviewedById());
+        verify(userActivityRepository).save(ua);
+        verify(notificationService).send(
+            eq(testUser),
+            eq("SIGNUP_SUCCESS"),
+            eq("报名重新提交成功"),
+            contains("测试活动")
+        );
+    }
+
+    @Test
+    @DisplayName("重新提交：参与记录不存在时抛出 ParticipationNotFoundException")
+    void resubmit_notFound() {
+        when(userActivityRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(ParticipationNotFoundException.class,
+            () -> participationService.resubmit(999L, 100L, new ResubmitRequest(null)));
+    }
+
+    @Test
+    @DisplayName("重新提交：非本人记录时抛出 403")
+    void resubmit_unauthorized() {
+        User otherUser = new User();
+        otherUser.setId(200L);
+
+        UserActivity ua = new UserActivity();
+        ua.setId(1L);
+        ua.setUser(otherUser);
+        ua.setActivity(testActivity);
+        ua.setState(ParticipationState.REJECTED);
+        ReflectionTestUtils.setField(ua, "createdAt", Instant.now());
+
+        when(userActivityRepository.findById(1L)).thenReturn(Optional.of(ua));
+
+        BusinessException ex = assertThrows(BusinessException.class,
+            () -> participationService.resubmit(1L, 100L, new ResubmitRequest(null)));
+        assertEquals(403, ex.getCode());
+    }
+
+    @Test
+    @DisplayName("重新提交：非驳回状态时抛出 400")
+    void resubmit_wrongState() {
+        UserActivity ua = new UserActivity();
+        ua.setId(1L);
+        ua.setUser(testUser);
+        ua.setActivity(testActivity);
+        ua.setState(ParticipationState.PENDING);
+        ReflectionTestUtils.setField(ua, "createdAt", Instant.now());
+
+        when(userActivityRepository.findById(1L)).thenReturn(Optional.of(ua));
+
+        BusinessException ex = assertThrows(BusinessException.class,
+            () -> participationService.resubmit(1L, 100L, new ResubmitRequest(null)));
+        assertEquals(400, ex.getCode());
+        assertTrue(ex.getMessage().contains("已驳回"));
+    }
+
+    @Test
+    @DisplayName("重新提交：活动已结束时抛出 400")
+    void resubmit_activityEnded() {
+        testActivity.setStatus("ENDED");
+
+        UserActivity ua = new UserActivity();
+        ua.setId(1L);
+        ua.setUser(testUser);
+        ua.setActivity(testActivity);
+        ua.setState(ParticipationState.REJECTED);
+        ReflectionTestUtils.setField(ua, "createdAt", Instant.now());
+
+        when(userActivityRepository.findById(1L)).thenReturn(Optional.of(ua));
+
+        BusinessException ex = assertThrows(BusinessException.class,
+            () -> participationService.resubmit(1L, 100L, new ResubmitRequest(null)));
+        assertEquals(400, ex.getCode());
+        assertTrue(ex.getMessage().contains("已结束"));
     }
 
     @Test
