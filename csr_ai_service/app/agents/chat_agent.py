@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import json
+import re
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -19,6 +20,7 @@ from models import ChatMessage, ChatResponse, ChatSessionStatus, ChatTemplateTyp
 from app.utils.field_parser import (
     detect_confirm_intent,
     detect_modify_intent,
+    parse_modify_instruction,
     parse_number,
     parse_text_field,
 )
@@ -49,8 +51,8 @@ _WELCOME_TEMPLATES: dict[str, str] = _load_welcome_map()
 
 @dataclass(frozen=True)
 class FieldDef:
-    """字段定义"""
-    key: str
+    """字段定义。`name` 与前端 FormFieldSchema / 后端 Activity.formSchema 的字段键一致。"""
+    name: str
     label: str
     type: str           # number / text
     required: bool
@@ -63,7 +65,7 @@ class FieldDef:
 _TEMPLATE_FIELDS: dict[ChatTemplateType, list[FieldDef]] = {
     ChatTemplateType.BASIC: [
         FieldDef(
-            key="note",
+            name="note",
             label="留言",
             type="text",
             required=False,
@@ -73,7 +75,7 @@ _TEMPLATE_FIELDS: dict[ChatTemplateType, list[FieldDef]] = {
     ],
     ChatTemplateType.DONATION: [
         FieldDef(
-            key="amount",
+            name="amount",
             label="捐赠金额",
             type="number",
             required=True,
@@ -82,7 +84,7 @@ _TEMPLATE_FIELDS: dict[ChatTemplateType, list[FieldDef]] = {
             invalid_hint="金额需要是一个数字（例如 200），请再试一次。",
         ),
         FieldDef(
-            key="note",
+            name="note",
             label="留言",
             type="text",
             required=False,
@@ -92,7 +94,7 @@ _TEMPLATE_FIELDS: dict[ChatTemplateType, list[FieldDef]] = {
     ],
     ChatTemplateType.VOLUNTEER: [
         FieldDef(
-            key="hours",
+            name="hours",
             label="服务时长",
             type="number",
             required=True,
@@ -101,7 +103,7 @@ _TEMPLATE_FIELDS: dict[ChatTemplateType, list[FieldDef]] = {
             invalid_hint="服务时长需要是一个数字（例如 3），请再试一次。",
         ),
         FieldDef(
-            key="note",
+            name="note",
             label="备注",
             type="text",
             required=False,
@@ -136,16 +138,18 @@ def _resolve_fields(
     for item in schema:
         if not isinstance(item, dict):
             continue
-        key = item.get("key")
-        label = item.get("label") or key
-        if not key:
+        # 权威字段键为 `name`（与前端 FormFieldSchema / 后端 Activity.formSchema 对齐）。
+        # 为兼容历史数据，`key` 作为 fallback；新代码不应生成 `key`。
+        field_name = item.get("name") or item.get("key")
+        label = item.get("label") or field_name
+        if not field_name:
             continue
         ftype = item.get("type", "text")
         required = bool(item.get("required", False))
         unit = item.get("unit")
         fields.append(
             FieldDef(
-                key=str(key),
+                name=str(field_name),
                 label=str(label),
                 type=str(ftype),
                 required=required,
@@ -193,8 +197,19 @@ class ChatSession:
 _sessions: dict[str, ChatSession] = {}
 
 
+class SessionConflictError(Exception):
+    """会话 ID 冲突（sessionId 已存在）。由 API 层转为 HTTP 409。"""
+
+
 def get_session(session_id: str) -> Optional[ChatSession]:
     return _sessions.get(session_id)
+
+
+def _put_session_if_absent(session: ChatSession) -> None:
+    """putIfAbsent 语义：sessionId 已存在则抛 SessionConflictError。"""
+    if session.session_id in _sessions:
+        raise SessionConflictError(session.session_id)
+    _sessions[session.session_id] = session
 
 
 def _save_session(session: ChatSession) -> None:
@@ -243,7 +258,7 @@ def start_session(
         welcome = welcome + "\n\n" + _build_summary(session)
 
     session.messages.append(ChatMessage(role="assistant", content=welcome))
-    _save_session(session)
+    _put_session_if_absent(session)
     logger.info(
         "创建对话会话: sessionId=%s, activityId=%d, template=%s, fields=%d",
         session_id,
@@ -311,7 +326,7 @@ def _handle_collecting(session: ChatSession, content: str) -> str:
         value = parse_number(content)
         if value is None or value <= 0:
             return field_def.invalid_hint + _polite_guidance_suffix(field_def)
-        session.collected[field_def.key] = value
+        session.collected[field_def.name] = value
     else:  # text
         value_text = parse_text_field(content)
         if value_text is None:
@@ -319,7 +334,7 @@ def _handle_collecting(session: ChatSession, content: str) -> str:
                 return field_def.invalid_hint
             # 可选字段允许跳过
         else:
-            session.collected[field_def.key] = value_text
+            session.collected[field_def.name] = value_text
 
     session.current_index += 1
     return _ask_next_or_summary(session)
@@ -350,36 +365,97 @@ def _handle_confirming(session: ChatSession, content: str) -> str:
     )
 
 
-def _handle_modify(session: ChatSession, content: str) -> str:
-    """解析「修改 xxx 为 yyy」式指令，并回到字段收集。"""
-    # 找到与 content 最匹配的字段
-    target_field: Optional[FieldDef] = None
+_MODIFY_KEYWORD_STRIP = re.compile(
+    r"(修改|改成|改为|换成|换为|调整为|调整成|修改为|修改成|改到|换到|"
+    r"改|修|换|调整|把|将|为|成|到|的|那个|这个|一下|重新|重填|再|想|想想)"
+)
+
+
+def _resolve_target_field(session: ChatSession, hint: str) -> Optional[FieldDef]:
+    """根据自然语言提示匹配字段。
+
+    匹配顺序（越具体越优先）：
+    1) label 完整出现在 hint 中（如 hint=“捐赠金额” 命中 label “捐赠金额”）。
+    2) name（字段键）出现在 hint 中。
+    3) 剥离修改类关键词后，hint 片段作为 label 子串匹配（如 hint=“修改金额” → 剩“金额”，
+       命中 label “捐赠金额”）。
+    未命中返回 None，由上层提示“你想修改哪一项？”。
+    """
+    if not hint:
+        return None
+    hint_norm = hint.strip()
     for f in session.fields_def:
-        if f.label in content or f.key in content:
-            target_field = f
-            break
+        if f.label and f.label in hint_norm:
+            return f
+    for f in session.fields_def:
+        if f.name and f.name in hint_norm:
+            return f
+    stripped = _MODIFY_KEYWORD_STRIP.sub("", hint_norm).strip()
+    if not stripped:
+        return None
+    for f in session.fields_def:
+        if f.label and stripped in f.label:
+            return f
+    return None
 
-    if target_field is None:
-        # 默认回到第一个必填字段
-        for f in session.fields_def:
-            if f.required:
-                target_field = f
-                break
-    if target_field is None and session.fields_def:
-        target_field = session.fields_def[0]
 
-    if target_field is None:
+def _apply_new_value(
+    session: ChatSession,
+    target_field: FieldDef,
+    value_raw: str,
+) -> Optional[str]:
+    """将 value_raw 按字段类型写入 collected；成功返回 None，失败返回兜底提示。"""
+    if target_field.type == "number":
+        value = parse_number(value_raw)
+        if value is None or value <= 0:
+            session.status = ChatSessionStatus.COLLECTING
+            session.current_index = session.fields_def.index(target_field)
+            return target_field.invalid_hint
+        session.collected[target_field.name] = value
+        return None
+
+    text = parse_text_field(value_raw)
+    if text is None:
+        if target_field.required:
+            session.status = ChatSessionStatus.COLLECTING
+            session.current_index = session.fields_def.index(target_field)
+            return target_field.invalid_hint
+        session.collected.pop(target_field.name, None)
+        return None
+    session.collected[target_field.name] = text
+    return None
+
+
+def _handle_modify(session: ChatSession, content: str) -> str:
+    """解析“把 X 改成 Y / 修改 X 为 Y”式指令，并在字段命中时原地更新摘要。
+
+    - 可从指令中解析出 (field_hint, value_raw) 时：按类型回填并回到 CONFIRMING，给出最新摘要。
+    - 若仅指出字段名（无新值）：回到 COLLECTING 并重新询问该字段。
+    - 若既没有字段名也没有新值：主动询问“你想修改哪一项？”。
+    """
+    if not session.fields_def:
         return _build_summary(session)
 
-    # 尝试直接从 content 抽取新值
-    if target_field.type == "number":
-        value = parse_number(content)
-        if value is not None and value > 0:
-            session.collected[target_field.key] = value
-            session.status = ChatSessionStatus.CONFIRMING
-            return "已更新 " + target_field.label + "。\n\n" + _build_summary(session)
+    field_hint, value_raw = parse_modify_instruction(content)
+    target_field = _resolve_target_field(session, field_hint or content)
 
-    # 否则回到收集状态，重新询问该字段
+    # 无法识别字段：主动询问
+    if target_field is None:
+        options = "、".join(f"「{f.label}」" for f in session.fields_def)
+        return (
+            "你想修改哪一项呢？可选的字段有：" + options + "。"
+            "\n也可以用「把 X 改成 Y」的方式告诉我，例如「把捐赠金额改成 300」。"
+        )
+
+    # 命中字段 + 新值：原地更新
+    if value_raw:
+        hint = _apply_new_value(session, target_field, value_raw)
+        if hint is None:
+            session.status = ChatSessionStatus.CONFIRMING
+            return f"已更新「{target_field.label}」。\n\n" + _build_summary(session)
+        return hint + f" 当前正在修改「{target_field.label}」。"
+
+    # 命中字段但没给新值：重新询问
     session.status = ChatSessionStatus.COLLECTING
     session.current_index = session.fields_def.index(target_field)
     return f"好的，请重新告诉我「{target_field.label}」的新值。"
@@ -389,8 +465,8 @@ def _build_summary(session: ChatSession) -> str:
     """构造确认摘要文案。"""
     lines = ["我将为你完成以下报名，请确认：", f"• 活动：《{session.activity_name}》"]
     for f in session.fields_def:
-        if f.key in session.collected:
-            value = session.collected[f.key]
+        if f.name in session.collected:
+            value = session.collected[f.name]
             if f.type == "number":
                 # 格式化数字，去除无意义小数尾
                 if isinstance(value, float) and value.is_integer():

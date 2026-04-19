@@ -10,6 +10,7 @@ from models import (
     ChatStartRequest,
 )
 from app.agents.chat_agent import (
+    SessionConflictError,
     get_session,
     handle_message,
     mark_completed,
@@ -30,13 +31,17 @@ async def chat_start(request: ChatStartRequest) -> ApiResponseModel:
         request.activity_id,
         request.template_type.value,
     )
-    response = start_session(
-        session_id=request.session_id,
-        activity_id=request.activity_id,
-        activity_name=request.activity_name,
-        template_type=request.template_type,
-        form_schema=request.form_schema,
-    )
+    try:
+        response = start_session(
+            session_id=request.session_id,
+            activity_id=request.activity_id,
+            activity_name=request.activity_name,
+            template_type=request.template_type,
+            form_schema=request.form_schema,
+        )
+    except SessionConflictError:
+        logger.warning("sessionId 冲突: sessionId=%s", request.session_id)
+        raise HTTPException(status_code=409, detail=f"会话 {request.session_id} 已存在")
     return ApiResponseModel(code=200, message="success", data=response.model_dump())
 
 

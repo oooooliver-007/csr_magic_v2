@@ -8,6 +8,7 @@ import com.csr.chat.service.ChatService;
 import com.csr.common.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/v2/chat")
+@PreAuthorize("isAuthenticated()")
 public class ChatController {
 
     private final ChatService chatService;

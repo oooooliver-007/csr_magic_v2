@@ -61,11 +61,10 @@ class ChatTemplateType(str, Enum):
 
 
 class ChatSessionStatus(str, Enum):
-    """会话状态"""
+    """会话状态。只保留三种终态；字段不合法由 reply 兜底，不单独升级为 FAILED。"""
     COLLECTING = "COLLECTING"     # 字段收集中
     CONFIRMING = "CONFIRMING"     # 字段齐全，等待用户确认
     COMPLETED = "COMPLETED"       # 已确认并提交
-    FAILED = "FAILED"             # 失败（字段不合法等）
 
 
 class ChatStartRequest(BaseModel):

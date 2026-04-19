@@ -172,4 +172,8 @@ d:\windsurf_workspaces4\
 | 2026-04-16 | ai-poster/poster-gallery | PosterGallery 作为可复用组件，同时用于 AIPosterStudioPage 和 MyProfilePage | 复用一套画廊逻辑，通过 refreshKey prop 触发刷新 |
 | 2026-04-19 | ai-chat-registration/agent-flow | AI 服务字段收集采用规则状态机（按模板类型定义必填字段清单），Qwen 仅作自然语言润色层，离线/测试场景下依然可闭环 | 保证对话流程确定性和可测试性，避免完全依赖 LLM 推理导致字段抽取失败 |
 | 2026-04-19 | ai-chat-registration/agent-flow | 后端 ChatService 用内存 Map 维护 sessionId → (userId, activityId) 所有权索引，确认提交后清理，防止重复 signup | MVP 阶段不引入会话表；跨用户访问统一返回 403，确认成功后移除索引以避免二次调用参与记录表 |
+| 2026-04-19 | ai-chat-registration/agent-flow | chat 模块改用 `chat_session` 表持久化会话所有权 + `@Scheduled` 定时清理过期会话；sessionId 冲突 → 409（前后端 putIfAbsent） | 单实例内存 Map 无法在重启 / 多副本场景保留会话，且会被同 ID 请求覆盖活跃会话；DB 方案实现简单且满足 MVP |
+| 2026-04-19 | ai-chat-registration/agent-flow | ChatServiceImpl.confirm() 拆成“事务内 signup”+“事务外通知 AI /complete”，外部 HTTP 全部通过带 3s/15s 超时的 RestTemplate | 避免 AI 服务抖动挂满 tomcat 线程、且 AI 回调失败不应回滚已完成的报名；与其他 ServiceImpl 对齐类级 `@Transactional(readOnly=true)` |
+| 2026-04-19 | ai-chat-registration/agent-flow | Agent 意图识别改为白名单等值 + 短语匹配（拒绝子串误命中），并新增 `parse_modify_instruction` 解析“把 X 改成 Y”等格式，未识别字段时主动反问 | 子串匹配导致 `对会` 命中 `对`；用户改字段时需要明确落位，否则容易跳步或误修改 |
+| 2026-04-19 | ai-chat-registration/agent-flow | `activity.form_schema` / `FormFieldSchema` 的权威字段键统一为 `name`，与前端 / 后端 JPA 实体对齐；AI 服务仅保留 `key` 作为历史数据 fallback | 三端命名一致避免数据漂移；文档落在 `docs/shared/data-models.md` 作为唯一来源 |
 | 2026-04-16 | ai-poster/poster-studio | PosterServiceImpl.getStatus() 需要显式声明 @Transactional（writable）覆盖类级别 readOnly=true | syncStatusFromAiService 是自调用（self-invocation），@Transactional 被 Spring AOP 代理绕过，导致状态更新无法持久化 |
