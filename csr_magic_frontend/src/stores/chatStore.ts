@@ -1,133 +1,133 @@
 import { create } from 'zustand';
 import type {
-  ChatDraft,
   ChatMessage,
-  ChatSession,
+  ChatServerMessage,
+  ChatSessionResponse,
   ChatStage,
 } from '../types/chat';
-import type { ActivityDetail } from '../types/participation';
 import { chatApi } from '../services/chatApi';
 
 /**
- * AI 对话报名 — 会话状态（Zustand）
+ * AI 对话报名 — 当前页面会话状态（Zustand）
  *
- * 该 store 只负责 *当前页面* 持有的单条对话会话：
- * - 消息历史（含打字机动画标记）
- * - 已收集字段 + 阶段
- * - 错误与发送中状态
+ * store 不再持有任何 schema。前端消息历史与 collectedFields 完全由后端
+ * `/api/v2/chat/*` 响应驱动：
+ * - `startSession(activityId)`  →  POST /chat/start
+ * - `resumeSession(sessionId)`  →  GET  /chat/sessions/{sessionId}
+ * - `sendMessage(content)`      →  POST /chat/message
+ * - `confirmSubmit()`           →  POST /chat/confirm
  *
- * 草稿持久化通过 `sessionStorage`（见 `draftStorageKey()`），
- * 跨页面导航 / 误关浏览器后可恢复。
+ * `sending` / `submitting` 做重入保护：在途请求未完成时丢弃新请求。
  */
 
-export interface ChatStoreState extends ChatSession {
+export interface ChatStoreState {
+  sessionId: string;
+  activityId: number;
+  messages: ChatMessage[];
+  collectedFields: Record<string, unknown>;
+  stage: ChatStage;
+  participationId: number | null;
   loading: boolean;
   sending: boolean;
+  submitting: boolean;
   error: string | null;
 }
 
 interface ChatStoreActions {
   reset: () => void;
-  setSession: (session: ChatSession) => void;
   setError: (error: string | null) => void;
-  startSession: (activity: ActivityDetail) => Promise<void>;
-  sendMessage: (content: string) => Promise<void>;
-  appendMessage: (message: ChatMessage) => void;
   markTypewriterDone: (messageId: string) => void;
-  setStage: (stage: ChatStage) => void;
-  updateCollectedFields: (patch: Record<string, unknown>) => void;
-  loadFromDraft: (draft: ChatDraft, activity: ActivityDetail) => void;
+  startSession: (activityId: number) => Promise<void>;
+  resumeSession: (sessionId: string) => Promise<void>;
+  sendMessage: (content: string) => Promise<void>;
+  confirmSubmit: () => Promise<number | null>;
 }
 
 const INITIAL_STATE: ChatStoreState = {
   sessionId: '',
   activityId: 0,
-  templateType: 'BASIC',
-  schema: [],
   messages: [],
   collectedFields: {},
   stage: 'COLLECTING',
+  participationId: null,
   loading: false,
   sending: false,
+  submitting: false,
   error: null,
 };
+
+let msgCounter = 0;
+function clientMessageId(): string {
+  msgCounter += 1;
+  return `msg_${Date.now()}_${msgCounter}`;
+}
+
+function mapRole(role: string): ChatMessage['role'] {
+  const lower = role.toLowerCase();
+  if (lower === 'user') return 'USER';
+  if (lower === 'assistant' || lower === 'ai') return 'AI';
+  return 'SYSTEM';
+}
+
+/** 将后端 messages[] 规范化为前端渲染消息；最末一条 AI 消息默认带打字机动画 */
+function hydrateMessages(
+  serverMessages: ChatServerMessage[],
+  options: { animateLastAi: boolean },
+): ChatMessage[] {
+  const now = Date.now();
+  const mapped: ChatMessage[] = serverMessages.map((m, idx) => ({
+    id: `srv_${now}_${idx}`,
+    role: mapRole(m.role),
+    content: m.content,
+    createdAt: new Date(now + idx).toISOString(),
+    typewriter: false,
+  }));
+  if (options.animateLastAi) {
+    for (let i = mapped.length - 1; i >= 0; i -= 1) {
+      const msg = mapped[i];
+      if (msg && msg.role === 'AI') {
+        mapped[i] = { ...msg, typewriter: true };
+        break;
+      }
+    }
+  }
+  return mapped;
+}
+
+function applySessionResponse(
+  state: ChatStoreState,
+  data: ChatSessionResponse,
+  options: { animateLastAi: boolean },
+): Partial<ChatStoreState> {
+  return {
+    sessionId: data.sessionId,
+    activityId: data.activityId,
+    messages: hydrateMessages(data.messages, options),
+    collectedFields: data.collectedFields ?? {},
+    stage: data.status,
+    participationId: data.participationId ?? state.participationId,
+    error: null,
+  };
+}
+
+function extractErrorMessage(err: unknown, fallback: string): string {
+  if (err && typeof err === 'object') {
+    const maybeAxios = err as {
+      response?: { data?: { message?: string } };
+      message?: string;
+    };
+    if (maybeAxios.response?.data?.message) return maybeAxios.response.data.message;
+    if (typeof maybeAxios.message === 'string') return maybeAxios.message;
+  }
+  return fallback;
+}
 
 export const useChatStore = create<ChatStoreState & ChatStoreActions>((set, get) => ({
   ...INITIAL_STATE,
 
   reset: () => set({ ...INITIAL_STATE }),
 
-  setSession: (session) =>
-    set({
-      ...session,
-      loading: false,
-      sending: false,
-      error: null,
-    }),
-
   setError: (error) => set({ error }),
-
-  startSession: async (activity) => {
-    set({ loading: true, error: null });
-    try {
-      const response = await chatApi.createSession(activity);
-      // 创建后立即 getSession 拿到完整 messages（含首个问题）
-      const snapshot = await chatApi.getSession(response.sessionId);
-      set({
-        sessionId: response.sessionId,
-        activityId: activity.id,
-        templateType: activity.templateType,
-        schema: response.schema,
-        messages: snapshot?.messages ?? [response.openingMessage],
-        collectedFields: snapshot?.collectedFields ?? {},
-        stage: snapshot?.stage ?? 'COLLECTING',
-        loading: false,
-        sending: false,
-        error: null,
-      });
-    } catch (err) {
-      set({
-        loading: false,
-        error: err instanceof Error ? err.message : '创建对话会话失败，请重试',
-      });
-    }
-  },
-
-  sendMessage: async (content) => {
-    const { sessionId, sending } = get();
-    if (!sessionId || sending || !content.trim()) return;
-
-    const userMessage: ChatMessage = {
-      id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      role: 'USER',
-      content: content.trim(),
-      createdAt: new Date().toISOString(),
-    };
-
-    set((state) => ({
-      messages: [...state.messages, userMessage],
-      sending: true,
-      error: null,
-    }));
-
-    try {
-      const response = await chatApi.sendMessage(sessionId, content.trim());
-      set((state) => ({
-        messages: [...state.messages, response.reply],
-        collectedFields: response.collectedFields,
-        stage: response.stage,
-        sending: false,
-      }));
-    } catch (err) {
-      set({
-        sending: false,
-        error: err instanceof Error ? err.message : '网络异常，请重试',
-      });
-    }
-  },
-
-  appendMessage: (message) =>
-    set((state) => ({ messages: [...state.messages, message] })),
 
   markTypewriterDone: (messageId) =>
     set((state) => ({
@@ -136,38 +136,112 @@ export const useChatStore = create<ChatStoreState & ChatStoreActions>((set, get)
       ),
     })),
 
-  setStage: (stage) => set({ stage }),
+  startSession: async (activityId) => {
+    if (get().loading) return;
+    set({ loading: true, error: null });
+    try {
+      const response = await chatApi.start(activityId);
+      const data = response.data.data;
+      set((state) => ({
+        ...applySessionResponse(state, data, { animateLastAi: true }),
+        loading: false,
+        sending: false,
+        submitting: false,
+        participationId: data.participationId ?? null,
+      }));
+    } catch (err) {
+      set({
+        loading: false,
+        error: extractErrorMessage(err, '创建对话会话失败，请重试'),
+      });
+    }
+  },
 
-  updateCollectedFields: (patch) =>
+  resumeSession: async (sessionId) => {
+    if (!sessionId || get().loading) return;
+    set({ loading: true, error: null });
+    try {
+      const response = await chatApi.getSession(sessionId);
+      const data = response.data.data;
+      set((state) => ({
+        ...applySessionResponse(state, data, { animateLastAi: false }),
+        loading: false,
+        sending: false,
+        submitting: false,
+        participationId: data.participationId ?? null,
+      }));
+    } catch (err) {
+      set({
+        loading: false,
+        error: extractErrorMessage(err, '恢复对话失败，请重新开始'),
+      });
+    }
+  },
+
+  sendMessage: async (content) => {
+    const trimmed = content.trim();
+    const { sessionId, sending, submitting, stage } = get();
+    // 重入保护：sending / submitting 中丢弃新请求，避免并发写入后端 Agent
+    if (!sessionId || !trimmed || sending || submitting) return;
+    if (stage === 'COMPLETED' || stage === 'ERROR') return;
+
+    const userMessage: ChatMessage = {
+      id: clientMessageId(),
+      role: 'USER',
+      content: trimmed,
+      createdAt: new Date().toISOString(),
+    };
     set((state) => ({
-      collectedFields: { ...state.collectedFields, ...patch },
-    })),
-
-  loadFromDraft: (draft, activity) => {
-    chatApi.finalizeSessionAsDraft(draft.sessionId, draft);
-    set({
-      sessionId: draft.sessionId,
-      activityId: activity.id,
-      templateType: activity.templateType,
-      schema:
-        activity.templateType === 'CUSTOM' && activity.formSchema
-          ? safeParseSchema(activity.formSchema)
-          : get().schema,
-      messages: draft.messages.map((m) => ({ ...m, typewriter: false })),
-      collectedFields: draft.collectedFields,
-      stage: draft.stage,
-      loading: false,
-      sending: false,
+      messages: [...state.messages, userMessage],
+      sending: true,
       error: null,
-    });
+    }));
+
+    try {
+      const response = await chatApi.sendMessage(sessionId, trimmed);
+      const data = response.data.data;
+      const aiReply: ChatMessage = {
+        id: clientMessageId(),
+        role: 'AI',
+        content: data.reply,
+        createdAt: new Date().toISOString(),
+        typewriter: true,
+      };
+      set((state) => ({
+        messages: [...state.messages, aiReply],
+        collectedFields: data.collectedFields ?? state.collectedFields,
+        stage: data.status,
+        participationId: data.participationId ?? state.participationId,
+        sending: false,
+      }));
+    } catch (err) {
+      set({
+        sending: false,
+        error: extractErrorMessage(err, '网络异常，请重试'),
+      });
+    }
+  },
+
+  confirmSubmit: async () => {
+    const { sessionId, submitting, sending } = get();
+    if (!sessionId || submitting || sending) return null;
+    set({ submitting: true, error: null });
+    try {
+      const response = await chatApi.confirm(sessionId);
+      const data = response.data.data;
+      set((state) => ({
+        ...applySessionResponse(state, data, { animateLastAi: false }),
+        stage: data.status,
+        participationId: data.participationId ?? null,
+        submitting: false,
+      }));
+      return data.participationId ?? null;
+    } catch (err) {
+      set({
+        submitting: false,
+        error: extractErrorMessage(err, '提交失败，请稍后重试'),
+      });
+      return null;
+    }
   },
 }));
-
-function safeParseSchema(json: string): ChatStoreState['schema'] {
-  try {
-    const parsed = JSON.parse(json) as ChatStoreState['schema'];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}

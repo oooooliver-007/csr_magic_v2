@@ -1,71 +1,112 @@
-import { describe, it, expect } from 'vitest';
-import { chatApi } from './chatApi';
-import type { ActivityDetail } from '../types/participation';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-function mockActivity(overrides: Partial<ActivityDetail> = {}): ActivityDetail {
+// 先 mock 再 import，避免 apiClient 真实发请求
+vi.mock('./apiClient', () => {
+  const post = vi.fn();
+  const get = vi.fn();
   return {
-    id: 1,
-    eventId: 10,
-    eventName: '2026 春季 CSR',
-    name: '植树活动',
-    description: '种一棵小树',
-    templateType: 'DONATION',
-    startTime: '2026-05-01T00:00:00Z',
-    endTime: '2026-05-02T00:00:00Z',
-    maxParticipants: 30,
-    coverImage: null,
-    status: 'UPCOMING',
-    formSchema: null,
-    currentParticipants: 5,
-    createdAt: '2026-04-01T00:00:00Z',
-    updatedAt: null,
-    currentUserParticipation: null,
-    ...overrides,
+    default: { post, get },
   };
+});
+
+import { chatApi } from './chatApi';
+import apiClient from './apiClient';
+
+const mockedPost = apiClient.post as unknown as ReturnType<typeof vi.fn>;
+const mockedGet = apiClient.get as unknown as ReturnType<typeof vi.fn>;
+
+function okResponse<T>(data: T) {
+  return { data: { code: 0, message: 'ok', data } };
 }
 
-describe('chatApi (mock implementation)', () => {
-  it('createSession 返回开场白 + 第一个字段问题', async () => {
-    const activity = mockActivity();
-    const res = await chatApi.createSession(activity);
-    expect(res.sessionId).toMatch(/^sess_/);
-    expect(res.schema.length).toBeGreaterThan(0);
-    const snapshot = await chatApi.getSession(res.sessionId);
-    expect(snapshot).not.toBeNull();
-    expect(snapshot?.messages.length).toBeGreaterThanOrEqual(2);
-    expect(snapshot?.stage).toBe('COLLECTING');
+describe('chatApi', () => {
+  beforeEach(() => {
+    mockedPost.mockReset();
+    mockedGet.mockReset();
   });
 
-  it('sendMessage 依次收集字段并进入 CONFIRMING', async () => {
-    const activity = mockActivity();
-    const { sessionId } = await chatApi.createSession(activity);
+  it('start 以 { activityId } POST /api/v2/chat/start', async () => {
+    mockedPost.mockResolvedValueOnce(
+      okResponse({
+        sessionId: 'sess_1',
+        activityId: 42,
+        reply: 'hi',
+        status: 'COLLECTING',
+        collectedFields: {},
+        complete: false,
+        messages: [],
+      }),
+    );
 
-    // DONATION schema: amount(number, required) + message(text, optional)
-    const r1 = await chatApi.sendMessage(sessionId, '100');
-    expect(r1.collectedFields.amount).toBe(100);
-    expect(r1.stage).toBe('COLLECTING');
+    const res = await chatApi.start(42);
 
-    const r2 = await chatApi.sendMessage(sessionId, '加油');
-    expect(r2.collectedFields.message).toBe('加油');
-    expect(r2.stage).toBe('CONFIRMING');
+    expect(mockedPost).toHaveBeenCalledTimes(1);
+    expect(mockedPost.mock.calls[0]?.[0]).toBe('/api/v2/chat/start');
+    expect(mockedPost.mock.calls[0]?.[1]).toEqual({ activityId: 42 });
+    expect(res.data.data.sessionId).toBe('sess_1');
   });
 
-  it('数字字段解析错误时给出重试提示，不推进阶段', async () => {
-    const activity = mockActivity();
-    const { sessionId } = await chatApi.createSession(activity);
-    const res = await chatApi.sendMessage(sessionId, 'abc');
-    expect(res.stage).toBe('COLLECTING');
-    expect(res.reply.content).toContain('数字');
+  it('sendMessage 以 { sessionId, content } POST /api/v2/chat/message', async () => {
+    mockedPost.mockResolvedValueOnce(
+      okResponse({
+        sessionId: 'sess_1',
+        activityId: 42,
+        reply: '好的',
+        status: 'CONFIRMING',
+        collectedFields: { amount: 100 },
+        complete: true,
+        messages: [],
+      }),
+    );
+
+    await chatApi.sendMessage('sess_1', '100');
+
+    expect(mockedPost).toHaveBeenCalledWith('/api/v2/chat/message', {
+      sessionId: 'sess_1',
+      content: '100',
+    });
   });
 
-  it('无 schema 的活动直接进入 CONFIRMING', async () => {
-    const activity = mockActivity({ templateType: 'CUSTOM', formSchema: '[]' });
-    const { sessionId } = await chatApi.createSession(activity);
-    const snapshot = await chatApi.getSession(sessionId);
-    expect(snapshot?.stage).toBe('CONFIRMING');
+  it('confirm 以 { sessionId } POST /api/v2/chat/confirm', async () => {
+    mockedPost.mockResolvedValueOnce(
+      okResponse({
+        sessionId: 'sess_1',
+        activityId: 42,
+        reply: '已提交',
+        status: 'COMPLETED',
+        collectedFields: {},
+        complete: true,
+        messages: [],
+        participationId: 777,
+      }),
+    );
+
+    const res = await chatApi.confirm('sess_1');
+
+    expect(mockedPost).toHaveBeenCalledWith('/api/v2/chat/confirm', {
+      sessionId: 'sess_1',
+    });
+    expect(res.data.data.participationId).toBe(777);
   });
 
-  it('无效 sessionId 发送消息抛错', async () => {
-    await expect(chatApi.sendMessage('not_exist', '你好')).rejects.toThrow();
+  it('getSession 以 GET /api/v2/chat/sessions/{sessionId} 获取会话', async () => {
+    mockedGet.mockResolvedValueOnce(
+      okResponse({
+        sessionId: 'sess_1',
+        activityId: 42,
+        reply: '',
+        status: 'COLLECTING',
+        collectedFields: {},
+        complete: false,
+        messages: [],
+      }),
+    );
+
+    await chatApi.getSession('sess/1?x=1');
+
+    // 对 sessionId 做了 encodeURIComponent，避免特殊字符
+    expect(mockedGet).toHaveBeenCalledWith(
+      '/api/v2/chat/sessions/sess%2F1%3Fx%3D1',
+    );
   });
 });

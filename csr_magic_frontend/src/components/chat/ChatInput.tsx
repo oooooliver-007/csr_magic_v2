@@ -1,4 +1,4 @@
-import { useState, type KeyboardEvent } from 'react';
+import { useRef, useState, type CompositionEvent, type KeyboardEvent } from 'react';
 import { Send, Loader2 } from 'lucide-react';
 
 interface ChatInputProps {
@@ -11,6 +11,7 @@ interface ChatInputProps {
 /**
  * 对话底部输入框
  * - Enter 发送，Shift+Enter 换行
+ * - 中文 IME：拼音候选阶段 Enter 只提交候选，不触发 send
  * - 发送中：输入框禁用 + loading 图标
  */
 export default function ChatInput({
@@ -20,6 +21,7 @@ export default function ChatInput({
   placeholder = '输入消息...',
 }: ChatInputProps) {
   const [value, setValue] = useState('');
+  const composingRef = useRef(false);
 
   const isDisabled = disabled || sending;
   const canSend = !isDisabled && value.trim().length > 0;
@@ -32,10 +34,20 @@ export default function ChatInput({
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
+    if (e.key !== 'Enter' || e.shiftKey) return;
+    // IME 候选阶段：浏览器在 keydown 上通过 isComposing / keyCode 229 表示未完成输入
+    if (composingRef.current || e.nativeEvent.isComposing || e.keyCode === 229) {
+      return;
     }
+    e.preventDefault();
+    handleSend();
+  };
+
+  const handleCompositionStart = (_e: CompositionEvent<HTMLTextAreaElement>) => {
+    composingRef.current = true;
+  };
+  const handleCompositionEnd = (_e: CompositionEvent<HTMLTextAreaElement>) => {
+    composingRef.current = false;
   };
 
   return (
@@ -46,6 +58,8 @@ export default function ChatInput({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
           placeholder={placeholder}
           disabled={isDisabled}
           aria-label="聊天输入框"

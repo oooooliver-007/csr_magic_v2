@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Sparkles, User } from 'lucide-react';
 import type { ChatMessage } from '../../types/chat';
 
@@ -6,7 +6,7 @@ interface ChatBubbleProps {
   message: ChatMessage;
   /** 打字机动画完成后回调，用于清除 typewriter 标志，避免再次渲染时重复动画 */
   onTypewriterDone?: (messageId: string) => void;
-  /** 打字机速度（毫秒/字），默认 30ms */
+  /** 打字机速度（毫秒/字符），默认 30ms */
   typewriterSpeedMs?: number;
 }
 
@@ -15,7 +15,8 @@ interface ChatBubbleProps {
  *
  * - USER 消息：右对齐，绿色背景，白色文字
  * - AI   消息：左对齐，白色卡片 + 绿色 Sparkles 图标，支持打字机动画
- * - 遵循原型 UI_UX_prototype/src/components/EmployeeApp.tsx 第 487-518 行
+ * - 打字机按 Unicode code point 切分（`Array.from`），避免 emoji / CJK surrogate
+ *   被截断为半字符的渲染问题。
  */
 export default function ChatBubble({
   message,
@@ -24,29 +25,33 @@ export default function ChatBubble({
 }: ChatBubbleProps) {
   const isUser = message.role === 'USER';
   const isTypewriting = message.role === 'AI' && message.typewriter === true;
-  const [displayText, setDisplayText] = useState(isTypewriting ? '' : message.content);
+
+  // 按 code point 切分，保证 emoji / CJK 组合字符完整
+  const chars = useMemo(() => Array.from(message.content), [message.content]);
+  const [visibleCount, setVisibleCount] = useState(isTypewriting ? 0 : chars.length);
 
   useEffect(() => {
     if (!isTypewriting) {
-      setDisplayText(message.content);
+      setVisibleCount(chars.length);
       return;
     }
-
+    setVisibleCount(0);
     let idx = 0;
-    setDisplayText('');
     const timer = window.setInterval(() => {
       idx += 1;
-      setDisplayText(message.content.slice(0, idx));
-      if (idx >= message.content.length) {
+      setVisibleCount(idx);
+      if (idx >= chars.length) {
         window.clearInterval(timer);
         onTypewriterDone?.(message.id);
       }
     }, typewriterSpeedMs);
-
     return () => {
       window.clearInterval(timer);
     };
-  }, [message.id, message.content, isTypewriting, onTypewriterDone, typewriterSpeedMs]);
+  }, [message.id, chars, isTypewriting, onTypewriterDone, typewriterSpeedMs]);
+
+  const displayText = isTypewriting ? chars.slice(0, visibleCount).join('') : message.content;
+  const showCursor = isTypewriting && visibleCount < chars.length;
 
   return (
     <div
@@ -75,7 +80,7 @@ export default function ChatBubble({
         >
           <p className="text-sm leading-relaxed">
             {displayText}
-            {isTypewriting && displayText.length < message.content.length && (
+            {showCursor && (
               <span
                 aria-hidden
                 className="inline-block w-1.5 h-4 align-[-2px] ml-0.5 bg-current animate-pulse"

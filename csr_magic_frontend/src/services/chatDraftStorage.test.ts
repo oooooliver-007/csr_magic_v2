@@ -5,16 +5,6 @@ import {
   loadChatDraft,
   saveChatDraft,
 } from './chatDraftStorage';
-import type { ChatMessage } from '../types/chat';
-
-const sampleMessages: ChatMessage[] = [
-  {
-    id: '1',
-    role: 'AI',
-    content: 'hi',
-    createdAt: '2026-04-19T00:00:00Z',
-  },
-];
 
 describe('chatDraftStorage', () => {
   beforeEach(() => {
@@ -23,42 +13,35 @@ describe('chatDraftStorage', () => {
 
   it('key 格式为 chat_draft_{activityId}_{userId}', () => {
     expect(draftStorageKey(10, 20)).toBe('chat_draft_10_20');
-    expect(draftStorageKey(10, null)).toBe('chat_draft_10_0');
   });
 
-  it('保存后可以读取同样的草稿', () => {
-    saveChatDraft(1, 2, {
-      sessionId: 's1',
-      messages: sampleMessages,
-      collectedFields: { amount: 100 },
-      stage: 'COLLECTING',
-    });
+  it('未登录（userId 为 null / undefined / 0）时抛错，避免草稿串用户', () => {
+    expect(() => draftStorageKey(10, null)).toThrow();
+    expect(() => draftStorageKey(10, undefined)).toThrow();
+    expect(() => draftStorageKey(10, 0)).toThrow();
+  });
+
+  it('非法 activityId 抛错', () => {
+    expect(() => draftStorageKey(0, 1)).toThrow();
+    expect(() => draftStorageKey(Number.NaN, 1)).toThrow();
+  });
+
+  it('保存后可以读取同样的草稿（只含 sessionId）', () => {
+    saveChatDraft(1, 2, 'sess_abc');
     const draft = loadChatDraft(1, 2);
     expect(draft).not.toBeNull();
-    expect(draft?.sessionId).toBe('s1');
-    expect(draft?.messages).toHaveLength(1);
-    expect(draft?.collectedFields.amount).toBe(100);
-    expect(draft?.stage).toBe('COLLECTING');
+    expect(draft?.sessionId).toBe('sess_abc');
+    expect(draft?.activityId).toBe(1);
     expect(draft?.updatedAt).toBeTruthy();
   });
 
   it('activityId 不匹配时返回 null', () => {
-    saveChatDraft(1, 2, {
-      sessionId: 's1',
-      messages: sampleMessages,
-      collectedFields: {},
-      stage: 'COLLECTING',
-    });
+    saveChatDraft(1, 2, 'sess_abc');
     expect(loadChatDraft(999, 2)).toBeNull();
   });
 
   it('clearChatDraft 可清空草稿', () => {
-    saveChatDraft(1, 2, {
-      sessionId: 's1',
-      messages: sampleMessages,
-      collectedFields: {},
-      stage: 'COLLECTING',
-    });
+    saveChatDraft(1, 2, 'sess_abc');
     clearChatDraft(1, 2);
     expect(loadChatDraft(1, 2)).toBeNull();
   });

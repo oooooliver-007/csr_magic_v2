@@ -1,15 +1,35 @@
-import type { FormFieldSchema, TemplateType } from './activity';
+/**
+ * AI 对话报名 — 前端领域类型
+ *
+ * 后端契约（见 docs/shared/api-contracts.md 与 PR #3）：
+ *   POST   /api/v2/chat/start          body { activityId }
+ *   POST   /api/v2/chat/message        body { sessionId, content }
+ *   POST   /api/v2/chat/confirm        body { sessionId }
+ *   GET    /api/v2/chat/sessions/{sessionId}
+ *
+ * 所有响应 data 字段：
+ *   { sessionId, activityId, reply, status, collectedFields, complete,
+ *     messages, participationId? }
+ */
 
 /**
- * 聊天消息角色
- * - USER：员工发送的消息
- * - AI：Agent 回复
- * - SYSTEM：系统通知（预留，如错误提示、状态变更）
+ * 前端展示层的消息角色。
+ * 后端 `messages[].role` 为 "user" / "assistant" / "system"，
+ * 在 `chatStore` 转换为该枚举。
  */
 export type ChatRole = 'USER' | 'AI' | 'SYSTEM';
 
 /**
- * 聊天消息
+ * 会话阶段（与后端 `ChatResponse.status` 一致）
+ * - COLLECTING：正在收集字段
+ * - CONFIRMING：已收集完成，等待用户确认
+ * - COMPLETED：已成功报名（后端调用 participationService.signup 完成）
+ * - ERROR：前端网络/业务错误，仅前端使用
+ */
+export type ChatStage = 'COLLECTING' | 'CONFIRMING' | 'COMPLETED' | 'ERROR';
+
+/**
+ * 前端渲染用的聊天消息
  */
 export interface ChatMessage {
   /** 客户端生成的稳定 id，用于 React key */
@@ -18,60 +38,41 @@ export interface ChatMessage {
   content: string;
   /** ISO 8601 UTC */
   createdAt: string;
-  /** AI 消息是否使用打字机动画（默认 true） */
+  /** AI 消息是否使用打字机动画（默认最新一条 AI 消息为 true） */
   typewriter?: boolean;
 }
 
 /**
- * Agent 对话阶段
- * - COLLECTING：正在收集字段
- * - CONFIRMING：已收集完成，等待用户确认提交
- * - SUBMITTED：已成功提交报名
- * - ERROR：网络或业务错误，前端展示重试
+ * 后端返回的原始消息（messages[] 数组项）
  */
-export type ChatStage = 'COLLECTING' | 'CONFIRMING' | 'SUBMITTED' | 'ERROR';
+export interface ChatServerMessage {
+  role: string;
+  content: string;
+}
 
 /**
- * 会话快照（含消息历史 + 已收集字段 + 阶段）
+ * `POST /chat/start|message|confirm` 与 `GET /chat/sessions/{id}` 的响应 data
  */
-export interface ChatSession {
+export interface ChatSessionResponse {
   sessionId: string;
   activityId: number;
-  templateType: TemplateType;
-  /** 需要 Agent 收集的字段 schema（根据 templateType 派生） */
-  schema: FormFieldSchema[];
-  messages: ChatMessage[];
+  reply: string;
+  status: ChatStage;
   collectedFields: Record<string, unknown>;
-  stage: ChatStage;
+  complete: boolean;
+  messages: ChatServerMessage[];
+  participationId?: number | null;
 }
 
 /**
- * 创建会话响应
- */
-export interface CreateChatSessionResponse {
-  sessionId: string;
-  openingMessage: ChatMessage;
-  schema: FormFieldSchema[];
-}
-
-/**
- * 发送消息响应
- */
-export interface SendChatMessageResponse {
-  reply: ChatMessage;
-  collectedFields: Record<string, unknown>;
-  stage: ChatStage;
-}
-
-/**
- * sessionStorage 草稿结构
+ * sessionStorage 草稿结构（仅保存 sessionId，状态由后端拉回）。
+ *
+ * 重入流程：入页检测到草稿 → 用 sessionId 调 `GET /chat/sessions/{id}`
+ * 拿回最新的 messages / collectedFields / status，避免前端落盘状态与后端漂移。
  */
 export interface ChatDraft {
   sessionId: string;
   activityId: number;
-  messages: ChatMessage[];
-  collectedFields: Record<string, unknown>;
-  stage: ChatStage;
-  /** 草稿更新时间（ISO 8601 UTC） */
+  /** 草稿写入时间（ISO 8601 UTC） */
   updatedAt: string;
 }
