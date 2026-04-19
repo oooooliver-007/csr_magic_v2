@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
 from config import PORT, POSTER_STORAGE_DIR
+from app.api.chat import router as chat_router
 from app.api.poster import router as poster_router
 
 logging.basicConfig(
@@ -33,6 +34,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # 注册路由
 app.include_router(poster_router, prefix="/poster", tags=["海报生成"])
+app.include_router(chat_router, prefix="/chat", tags=["AI 对话报名"])
 
 
 @app.get("/health")

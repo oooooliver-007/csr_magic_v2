@@ -170,4 +170,6 @@ d:\windsurf_workspaces4\
 | 2026-04-15 | ai-poster/poster-studio | 海报图片存储为 AI 服务本地 /static/posters/，后端记录完整 URL | MVP 本地存储，生产环境可迁移到 OSS/S3 |
 | 2026-04-16 | ai-poster/poster-gallery | PosterResponse 增加 activityName 字段，Service 层关联 ActivityRepository 查询 | 画廊卡片需展示活动名，避免前端额外请求 |
 | 2026-04-16 | ai-poster/poster-gallery | PosterGallery 作为可复用组件，同时用于 AIPosterStudioPage 和 MyProfilePage | 复用一套画廊逻辑，通过 refreshKey prop 触发刷新 |
+| 2026-04-19 | ai-chat-registration/agent-flow | AI 服务字段收集采用规则状态机（按模板类型定义必填字段清单），Qwen 仅作自然语言润色层，离线/测试场景下依然可闭环 | 保证对话流程确定性和可测试性，避免完全依赖 LLM 推理导致字段抽取失败 |
+| 2026-04-19 | ai-chat-registration/agent-flow | 后端 ChatService 用内存 Map 维护 sessionId → (userId, activityId) 所有权索引，确认提交后清理，防止重复 signup | MVP 阶段不引入会话表；跨用户访问统一返回 403，确认成功后移除索引以避免二次调用参与记录表 |
 | 2026-04-16 | ai-poster/poster-studio | PosterServiceImpl.getStatus() 需要显式声明 @Transactional（writable）覆盖类级别 readOnly=true | syncStatusFromAiService 是自调用（self-invocation），@Transactional 被 Spring AOP 代理绕过，导致状态更新无法持久化 |

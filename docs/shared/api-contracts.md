@@ -96,8 +96,15 @@
 
 ## AI 对话报名模块（chat-registration）
 
-| 方法 | 路径 | 说明 | 认证 |
-|------|------|------|------|
-| POST | `/api/v2/chat/sessions` | 创建对话会话 | 是 |
-| POST | `/api/v2/chat/sessions/{sessionId}/messages` | 发送消息 | 是 |
-| GET | `/api/v2/chat/sessions/{sessionId}` | 获取会话历史 | 是 |
+| 方法 | 路径 | 说明 | 认证 | 状态 |
+|------|------|------|------|------|
+| POST | `/api/v2/chat/start` | 创建对话会话（根据 activityId） | 是 | ✅ 已实现 |
+| POST | `/api/v2/chat/message` | 发送用户消息，返回 Agent 回复 + 已收集字段 | 是 | ✅ 已实现 |
+| POST | `/api/v2/chat/confirm` | 确认提交，触发 participationService.signup | 是 | ✅ 已实现 |
+| GET | `/api/v2/chat/sessions/{sessionId}` | 查询会话状态与对话历史 | 是 | ✅ 已实现 |
+
+- POST /api/v2/chat/start 请求体：`{ activityId: number }`；响应 data 结构：`{ sessionId, activityId, reply, status, collectedFields, complete, messages, participationId? }`
+- POST /api/v2/chat/message 请求体：`{ sessionId: string, content: string }`
+- POST /api/v2/chat/confirm 请求体：`{ sessionId: string }`；字段未齐时返回 400；提交成功后 status=COMPLETED 且返回 participationId
+- status 取值：COLLECTING（收集中）/ CONFIRMING（待确认）/ COMPLETED（已提交）/ FAILED
+- 会话所有权由 sessionId → userId 内存映射维护，跨用户访问返回 403
