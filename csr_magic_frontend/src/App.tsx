@@ -16,6 +16,7 @@ import HomePage from './pages/HomePage';
 import MyProfilePage from './pages/MyProfilePage';
 import NotificationListPage from './pages/NotificationListPage';
 import AIPosterStudioPage from './pages/AIPosterStudioPage';
+import ChatRegistrationPage from './pages/ChatRegistrationPage';
 import { useAuthStore } from './stores/authStore';
 
 export default function App() {
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/activities" element={<ActivityListPage />} />
           <Route path="/activities/:id" element={<ActivityDetailPage />} />
+          <Route path="/activities/:id/chat" element={<ChatRegistrationPage />} />
           <Route path="/notifications" element={<NotificationListPage />} />
           <Route path="/my" element={<MyProfilePage />} />
           <Route path="/poster" element={<AIPosterStudioPage />} />

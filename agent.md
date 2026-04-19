@@ -171,3 +171,7 @@ d:\windsurf_workspaces4\
 | 2026-04-16 | ai-poster/poster-gallery | PosterResponse 增加 activityName 字段，Service 层关联 ActivityRepository 查询 | 画廊卡片需展示活动名，避免前端额外请求 |
 | 2026-04-16 | ai-poster/poster-gallery | PosterGallery 作为可复用组件，同时用于 AIPosterStudioPage 和 MyProfilePage | 复用一套画廊逻辑，通过 refreshKey prop 触发刷新 |
 | 2026-04-16 | ai-poster/poster-studio | PosterServiceImpl.getStatus() 需要显式声明 @Transactional（writable）覆盖类级别 readOnly=true | syncStatusFromAiService 是自调用（self-invocation），@Transactional 被 Spring AOP 代理绕过，导致状态更新无法持久化 |
+| 2026-04-19 | ai-chat-registration/chat-ui | `services/chatApi.ts` 当前使用内置 Mock Agent（字段顺序收集、阶段机 COLLECTING → CONFIRMING → SUBMITTED），后端 `/api/v2/chat/*` 由 Dev-2 接入后可原地替换，不改 store/组件 | 解耦前后端节奏，让 chat-ui 验收项独立跑通，避免阻塞 |
+| 2026-04-19 | ai-chat-registration/chat-ui | 页面不引入 React Query，沿用项目现有 `useState + useEffect + services/` 约定；Zustand 仅维护当前页对话状态 | 项目未依赖 React Query，保持技术栈一致，减少额外依赖 |
+| 2026-04-19 | ai-chat-registration/chat-ui | 最终提交走 `participationApi.signup({ activityId, formData })`，Agent 收集字段序列化为 JSON | 不新增后端端点，复用现有报名链路；Agent 与表单模式产出一致 data |
+| 2026-04-19 | ai-chat-registration/chat-ui | 草稿存 `sessionStorage` key=`chat_draft_{activityId}_{userId}`，重进页面时提示「继续 / 重新开始」 | 符合 spec 自动保存 + 恢复提示要求；sessionStorage 在关闭标签页后自动清理，避免久置脏数据 |
