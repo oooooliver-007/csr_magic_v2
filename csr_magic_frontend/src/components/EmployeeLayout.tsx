@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { Menu, Leaf, X } from 'lucide-react';
+import { Menu, Leaf, X, LogOut } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 import NotificationBell from './NotificationBell';
 
@@ -14,6 +14,7 @@ const navLinks = [
 export default function EmployeeLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
 
   return (
@@ -61,14 +62,22 @@ export default function EmployeeLayout() {
               ))}
             </div>
 
-            {/* 右侧：通知 + 头像 */}
-            <div className="flex items-center gap-4">
+            {/* 右侧：通知 + 头像 + 登出 */}
+            <div className="flex items-center gap-3">
               <NotificationBell />
               <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#2EB87A] to-[#FFB347] p-[2px]">
                 <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-sm font-bold text-[#2EB87A]">
                   {user?.displayName?.charAt(0) ?? user?.username?.charAt(0) ?? 'U'}
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={logout}
+                className="p-2 text-[#1A2E22]/40 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                title="退出登录"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>

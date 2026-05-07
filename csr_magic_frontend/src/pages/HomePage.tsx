@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, LogOut } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import ContributionStats from '../components/ContributionStats';
 import HomePosterCta from '../components/home/HomePosterCta';
 import HomeRecentTimeline from '../components/home/HomeRecentTimeline';
@@ -36,7 +36,6 @@ function getRecommendedActivities(activities: Activity[]): Activity[] {
 export default function HomePage() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
-  const logout = useAuthStore((s) => s.logout);
 
   const [recommendedActivities, setRecommendedActivities] = useState<Activity[]>([]);
   const [recentParticipations, setRecentParticipations] = useState<MyParticipation[]>([]);
@@ -87,21 +86,11 @@ export default function HomePage() {
   return (
     <div className="space-y-10">
       <section>
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between mb-8">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-[#1A2E22]">Hi，{user.displayName || user.username} 👋</h1>
-            <p className="mt-3 text-sm md:text-base text-[#1A2E22]/60">
-              快速查看你的 CSR 动态、近期活动和参与进展。
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={logout}
-            className="inline-flex items-center justify-center gap-2 self-start px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-[#1A2E22]/70 hover:border-red-200 hover:text-red-600 transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            退出登录
-          </button>
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-[#1A2E22]">Hi，{user.displayName || user.username} 👋</h1>
+          <p className="mt-3 text-sm md:text-base text-[#1A2E22]/60">
+            快速查看你的 CSR 动态、近期活动和参与进展。
+          </p>
         </div>
         <ContributionStats />
       </section>
