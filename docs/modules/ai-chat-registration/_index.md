@@ -7,7 +7,7 @@
 
 | 功能 | spec 文件 | design 文件 | 状态 | 依赖 |
 |------|-----------|-------------|------|------|
-| 对话界面 | spec-chat-ui.md | design-chat-ui.md | 待实现 | activity-detail |
+| 对话界面 | spec-chat-ui.md | design-chat-ui.md | ✅已实现 | activity-detail |
 | Agent 对话流程 | spec-agent-flow.md | design-agent-flow.md | 待实现 | chat-ui |
 
 ## 模块间依赖
