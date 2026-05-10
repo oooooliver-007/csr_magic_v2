@@ -96,8 +96,16 @@
 
 ## AI 对话报名模块（chat-registration）
 
-| 方法 | 路径 | 说明 | 认证 |
-|------|------|------|------|
-| POST | `/api/v2/chat/sessions` | 创建对话会话 | 是 |
-| POST | `/api/v2/chat/sessions/{sessionId}/messages` | 发送消息 | 是 |
-| GET | `/api/v2/chat/sessions/{sessionId}` | 获取会话历史 | 是 |
+| 方法 | 路径 | 说明 | 认证 | 状态 |
+|------|------|------|------|------|
+| POST | `/api/v2/chat/start` | 创建对话会话（根据 activityId） | 是 | ✅ 已实现 |
+| POST | `/api/v2/chat/message` | 发送用户消息，返回 Agent 回复 + 已收集字段 | 是 | ✅ 已实现 |
+| POST | `/api/v2/chat/confirm` | 确认提交，触发 participationService.signup | 是 | ✅ 已实现 |
+| GET | `/api/v2/chat/sessions/{sessionId}` | 查询会话状态与对话历史 | 是 | ✅ 已实现 |
+
+- POST /api/v2/chat/start 请求体：`{ activityId: number }`；响应 data 结构：`{ sessionId, activityId, reply, status, collectedFields, complete, messages, participationId? }`；sessionId 冲突返回 409。
+- POST /api/v2/chat/message 请求体：`{ sessionId: string, content: string }`。
+- POST /api/v2/chat/confirm 请求体：`{ sessionId: string }`；字段未齐时返回 400；确认成功后调用后端 `participationService.signup` 完成报名，status=COMPLETED 且返回 participationId；AI 侧 `/complete` 回调失败不会阻塞主流程，仅打 WARN 日志。
+- status 取值：`COLLECTING`（收集中）/ `CONFIRMING`（待确认）/ `COMPLETED`（已提交）。AI 服务与后端均只持有这 3 种终态，不再暴露 `FAILED`；字段不合法由 `reply` 文案兜底。
+- 会话所有权由 `chat_session` 表持久化（sessionId → userId/activityId/status），跨用户访问返回 403；定时任务按 updated_at 清理超过 24 小时的陈旧会话。
+- 字段摘要阶段用户回复中若同时命中“修改”与“确认”关键词，优先判为修改意图，避免误提交。

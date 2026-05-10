@@ -66,7 +66,7 @@
 | max_participants | INT | | 人数上限（NULL=不限） |
 | cover_image | TEXT | | 封面图 |
 | status | VARCHAR(20) | | UPCOMING / ONGOING / ENDED |
-| form_schema | JSONB | | 自定义模板字段配置 |
+| form_schema | JSONB | | 自定义模板字段配置；JSON 数组，元素遵循下方 FormFieldSchema |
 | created_at | TIMESTAMPTZ | NOT NULL | |
 | updated_at | TIMESTAMPTZ | | |
 
@@ -124,6 +124,35 @@
 | target_id | BIGINT | | |
 | detail | JSONB | | 操作详情 |
 | created_at | TIMESTAMPTZ | NOT NULL | |
+
+### chat_session（AI 对话会话表）
+
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| session_id | VARCHAR(64) | PK | AI 服务与后端共享的会话 ID（UUID） |
+| user_id | BIGINT | FK → users.id, NOT NULL | 会话所属用户 |
+| activity_id | BIGINT | FK → activity.id, NOT NULL | 会话对应活动 |
+| status | VARCHAR(20) | NOT NULL | COLLECTING / CONFIRMING / COMPLETED |
+| created_at | TIMESTAMPTZ | NOT NULL | |
+| updated_at | TIMESTAMPTZ | NOT NULL | 由定时任务依据此字段清理 TTL 过期会话 |
+
+## FormFieldSchema（权威字段定义）
+
+`activity.form_schema` 数组元素的字段，前端 (`csr_magic_frontend`) / 后端 (`csr_magic_backend`)
+/ AI 服务 (`csr_ai_service`) **均以此处为唯一来源**。
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `name` | string | 是 | **权威字段键**。`user_activity.form_data` 中的 JSON 键与此对齐。 |
+| `label` | string | 是 | 展示给用户的字段名，Agent 用于摘要与意图匹配。 |
+| `type` | enum | 是 | `text` / `number`（后续扩展前先更新此处）。 |
+| `required` | boolean | 是 | 是否必填。`false` 时允许用户回复“跳过”。 |
+| `unit` | string | 否 | 数字字段的单位（如 `元`、`小时`），仅用于展示。 |
+| `max` | number | 否 | 数字上限（可选业务校验）。 |
+| `prompt` | string | 否 | Agent 询问字段时使用的自定义提示语。 |
+| `invalid_hint` | string | 否 | 字段解析失败时的自定义兜底文案。 |
+
+> 历史数据可能存在旧版键名 `key`；AI 服务解析时仅作为 fallback，新写入数据必须使用 `name`。
 
 ## ER 关系
 

@@ -1,8 +1,9 @@
 """AI 服务 Pydantic 请求/响应模型"""
 
-from pydantic import BaseModel, Field
-from typing import Optional
 from enum import Enum
+from typing import Any, Optional
+
+from pydantic import BaseModel, Field
 
 
 class PosterStyle(str, Enum):
@@ -46,3 +47,52 @@ class ApiResponseModel(BaseModel):
     code: int = 200
     message: str = "success"
     data: Optional[object] = None
+
+
+# ========== AI 对话报名 ==========
+
+class ChatTemplateType(str, Enum):
+    """活动模板类型（与后端保持一致）"""
+    BASIC = "BASIC"
+    DONATION = "DONATION"
+    VOLUNTEER = "VOLUNTEER"
+    CHECKIN = "CHECKIN"
+    CUSTOM = "CUSTOM"
+
+
+class ChatSessionStatus(str, Enum):
+    """会话状态。只保留三种终态；字段不合法由 reply 兜底，不单独升级为 FAILED。"""
+    COLLECTING = "COLLECTING"     # 字段收集中
+    CONFIRMING = "CONFIRMING"     # 字段齐全，等待用户确认
+    COMPLETED = "COMPLETED"       # 已确认并提交
+
+
+class ChatStartRequest(BaseModel):
+    """创建会话请求（AI 服务内部）"""
+    session_id: str = Field(..., description="后端分配的会话 ID")
+    activity_id: int
+    activity_name: str
+    template_type: ChatTemplateType
+    form_schema: Optional[str] = Field(None, description="CUSTOM 模板的字段 Schema（JSON 字符串）")
+
+
+class ChatMessageRequest(BaseModel):
+    """发送消息请求（AI 服务内部）"""
+    session_id: str
+    content: str = Field(..., description="用户输入内容")
+
+
+class ChatMessage(BaseModel):
+    """对话消息"""
+    role: str  # user / assistant
+    content: str
+
+
+class ChatResponse(BaseModel):
+    """对话响应（AI 服务）"""
+    session_id: str
+    reply: str
+    status: ChatSessionStatus
+    collected_fields: dict[str, Any] = Field(default_factory=dict)
+    is_complete: bool = False
+    messages: Optional[list[ChatMessage]] = None

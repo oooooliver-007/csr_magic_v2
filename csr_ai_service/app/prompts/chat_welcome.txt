@@ -1,0 +1,5 @@
+BASIC=你好！欢迎参加「{activity_name}」，如需留下参与备注请直接输入，或回复「跳过」直接报名。
+DONATION=你好！我来帮你完成「{activity_name}」的捐赠报名，请先告诉我你计划捐赠的金额（单位：元）。
+VOLUNTEER=你好！我来帮你完成「{activity_name}」的志愿者报名，请告诉我你计划参与的服务时长（单位：小时）。
+CHECKIN=你好！我来帮你完成「{activity_name}」的签到，回复「确认」即可完成签到。
+CUSTOM=你好！我来帮你完成「{activity_name}」的报名，接下来我会逐项收集所需信息。
