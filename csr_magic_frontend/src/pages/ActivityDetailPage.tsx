@@ -49,12 +49,20 @@ export default function ActivityDetailPage() {
   const handleSignup = async (formData: Record<string, unknown>) => {
     if (!activity) return;
     try {
-      await participationApi.signup({
-        activityId: activity.id,
-        formData: JSON.stringify(formData),
-      });
-      await fetchActivity();
-      showToast('success', '报名提交成功，请等待审核');
+      const participation = activity.currentUserParticipation;
+      if (showResubmitForm && participation && participation.state === 'REJECTED') {
+        await participationApi.resubmit(participation.id, JSON.stringify(formData));
+        setShowResubmitForm(false);
+        await fetchActivity();
+        showToast('success', '重新提交成功，请等待审核');
+      } else {
+        await participationApi.signup({
+          activityId: activity.id,
+          formData: JSON.stringify(formData),
+        });
+        await fetchActivity();
+        showToast('success', '报名提交成功，请等待审核');
+      }
     } catch (err: unknown) {
       const message = extractErrorMessage(err);
       throw new Error(message);
@@ -270,6 +278,11 @@ function RegistrationCard({
             formSchemaJson={activity.formSchema}
             onSubmit={onSignup}
             disabled={isFull}
+            initialValues={
+              showResubmitForm && participation?.formData
+                ? parseFormData(participation.formData)
+                : undefined
+            }
           />
         </div>
       )}
@@ -353,4 +366,16 @@ function extractErrorMessage(err: unknown): string {
     return axiosErr.response?.data?.message ?? '操作失败';
   }
   return '操作失败';
+}
+
+function parseFormData(formData: string): Record<string, unknown> | undefined {
+  try {
+    const parsed = JSON.parse(formData);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>;
+    }
+  } catch {
+    // fall through
+  }
+  return undefined;
 }
