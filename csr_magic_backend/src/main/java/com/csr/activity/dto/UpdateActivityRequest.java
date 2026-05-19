@@ -16,5 +16,20 @@ public record UpdateActivityRequest(
     Integer maxParticipants,
     String coverImage,
     String status,
-    String formSchema
-) {}
+    String formSchema,
+    Boolean allowFamily,
+    Integer maxFamilyPerUser
+) {
+    public UpdateActivityRequest(Long eventId,
+                                 String name,
+                                 TemplateType templateType,
+                                 String description,
+                                 String startTime,
+                                 String endTime,
+                                 Integer maxParticipants,
+                                 String coverImage,
+                                 String status,
+                                 String formSchema) {
+        this(eventId, name, templateType, description, startTime, endTime, maxParticipants, coverImage, status, formSchema, null, null);
+    }
+}

@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { BarChart3, CalendarDays, ClipboardList, Users, UserCircle, Bell, LogOut } from 'lucide-react';
+import { BarChart3, CalendarDays, ClipboardList, Users, UserCircle, LogOut } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
+import NotificationBell from './NotificationBell';
 
 const menuItems = [
   { path: '/admin', label: '数据看板', icon: BarChart3, end: true },
@@ -8,7 +9,6 @@ const menuItems = [
   { path: '/admin/activities', label: '活动管理', icon: ClipboardList, end: false },
   { path: '/admin/participations', label: '参与审核', icon: Users, end: false },
   { path: '/admin/users', label: '用户管理', icon: UserCircle, end: false },
-  { path: '/admin/notifications', label: '通知管理', icon: Bell, end: false },
 ] as const;
 
 export default function AdminLayout() {
@@ -77,12 +77,13 @@ export default function AdminLayout() {
       {/* 右侧主区域 */}
       <main className="flex-1 ml-64 flex flex-col min-h-screen">
         {/* 顶部面包屑 */}
-        <header className="h-16 bg-white/50 backdrop-blur-sm border-b border-gray-200 flex items-center px-8 sticky top-0 z-10">
+        <header className="h-16 bg-white/50 backdrop-blur-sm border-b border-gray-200 flex items-center justify-between px-8 sticky top-0 z-10">
           <div className="flex items-center text-sm font-medium text-[#1A2E22]/60">
             <span>管理端</span>
             <span className="mx-2">/</span>
             <span className="text-[#1A2E22]">{currentPage?.label ?? '未知页面'}</span>
           </div>
+          <NotificationBell viewAllPath="/notifications" />
         </header>
 
         <div className="p-8 flex-1">

@@ -71,26 +71,40 @@ async function globalSetup(config: FullConfig) {
     fs.mkdirSync(authDir, { recursive: true });
   }
 
+  // 如果已有 storageState 文件则复用（无需后端 API）
+  if (fs.existsSync(storageStatePath)) {
+    console.log(`[global-setup] 复用已有认证状态: ${storageStatePath}`);
+    return;
+  }
+
   // 通过 API 获取认证 token
-  const authData = await getAuthToken();
+  try {
+    const authData = await getAuthToken();
 
-  // 构造 storageState JSON（模拟 localStorage 内容）
-  const storageState = {
-    cookies: [],
-    origins: [
-      {
-        origin: BASE_URL,
-        localStorage: [
-          { name: 'accessToken', value: authData.accessToken },
-          { name: 'refreshToken', value: authData.refreshToken },
-          { name: 'user', value: JSON.stringify(authData.user) },
-        ],
-      },
-    ],
-  };
+    // 构造 storageState JSON（模拟 localStorage 内容）
+    const storageState = {
+      cookies: [],
+      origins: [
+        {
+          origin: BASE_URL,
+          localStorage: [
+            { name: 'accessToken', value: authData.accessToken },
+            { name: 'refreshToken', value: authData.refreshToken },
+            { name: 'user', value: JSON.stringify(authData.user) },
+          ],
+        },
+      ],
+    };
 
-  fs.writeFileSync(storageStatePath, JSON.stringify(storageState, null, 2));
-  console.log(`[global-setup] 认证状态已保存: ${storageStatePath}`);
+    fs.writeFileSync(storageStatePath, JSON.stringify(storageState, null, 2));
+    console.log(`[global-setup] 认证状态已保存: ${storageStatePath}`);
+  } catch (err) {
+    console.error(`[global-setup] 无法获取认证token (API不可用): ${err}`);
+    console.log(`[global-setup] 将尝试使用已有认证状态继续...`);
+    if (!fs.existsSync(storageStatePath)) {
+      throw new Error('无法获取认证且没有已保存的认证状态');
+    }
+  }
 }
 
 export default globalSetup;

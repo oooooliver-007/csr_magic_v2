@@ -62,6 +62,8 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
   const coverImage = watch('coverImage');
   const watchedTemplateType = watch('templateType');
   const [customSchema, setCustomSchema] = useState<FormFieldSchema[]>([]);
+  const [allowFamily, setAllowFamily] = useState(false);
+  const [maxFamilyPerUser, setMaxFamilyPerUser] = useState<number | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -86,6 +88,8 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
           coverImage: activity.coverImage ?? '',
           status: activity.status,
         });
+        setAllowFamily(activity.allowFamily);
+        setMaxFamilyPerUser(activity.maxFamilyPerUser);
       } else {
         reset({
           eventId: 0,
@@ -98,6 +102,8 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
           coverImage: '',
           status: 'UPCOMING',
         });
+        setAllowFamily(false);
+        setMaxFamilyPerUser(null);
       }
     }
   }, [open, activity, reset]);
@@ -106,8 +112,8 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 500 * 1024) {
-      showToast('封面图不能超过500KB', 'error');
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('封面图不能超过5MB', 'error');
       return;
     }
 
@@ -133,6 +139,8 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
         formSchema: data.templateType === 'CUSTOM' && customSchema.length > 0
           ? JSON.stringify(customSchema)
           : undefined,
+        allowFamily: allowFamily || undefined,
+        maxFamilyPerUser: allowFamily ? maxFamilyPerUser : null,
       };
 
       if (isEdit) {
@@ -144,8 +152,14 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
       }
       onSuccess();
     } catch (error) {
-      showToast(isEdit ? '更新失败' : '创建失败', 'error');
+      const message = extractErrorMessage(error, isEdit ? '更新失败' : '创建失败');
+      showToast(message, 'error');
     }
+  };
+
+  const onInvalid = () => {
+    const firstError = Object.values(errors)[0]?.message;
+    showToast(firstError ?? '请检查表单填写', 'error');
   };
 
   if (!open) return null;
@@ -172,7 +186,7 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
         </div>
 
         {/* 表单 */}
-        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col min-h-0">
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="flex-1 flex flex-col min-h-0">
           <div className="flex-1 overflow-y-auto p-6 space-y-5 min-h-0">
             {/* 所属事件 */}
             <div className="space-y-1.5">
@@ -282,6 +296,27 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
               )}
             </div>
 
+            {/* 家属同行 */}
+            <div className="p-4 rounded-xl bg-gray-50/50 border border-gray-100 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-[#1A2E22]">允许携带家属</span>
+                <button type="button"
+                  onClick={() => { setAllowFamily(!allowFamily); if (allowFamily) setMaxFamilyPerUser(null); }}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${allowFamily ? 'bg-[#2EB87A]' : 'bg-gray-200'}`}>
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${allowFamily ? 'translate-x-5' : 'translate-x-0'}`} />
+                </button>
+              </div>
+              {allowFamily && (
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-[#1A2E22]">每人最多携带家属数</label>
+                  <input type="number" value={maxFamilyPerUser ?? ''}
+                    onChange={(e) => { const v = e.target.value; setMaxFamilyPerUser(v === '' ? null : Number(v)); }}
+                    placeholder="不限" min={1}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#2EB87A] focus:outline-none text-sm" />
+                </div>
+              )}
+            </div>
+
             {/* 描述 */}
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-[#1A2E22]">描述</label>
@@ -313,7 +348,7 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
                     <Upload className="w-5 h-5 text-gray-400" />
                   </div>
                   <p className="text-sm font-medium text-[#1A2E22]">点击上传封面图</p>
-                  <p className="text-xs text-[#1A2E22]/50 mt-1">支持 JPG、PNG（≤500KB）</p>
+                  <p className="text-xs text-[#1A2E22]/50 mt-1">支持 JPG、PNG（≤5MB）</p>
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/gif,image/webp"
@@ -361,4 +396,13 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
       </div>
     </>
   );
+}
+
+function extractErrorMessage(err: unknown, fallback: string): string {
+  if (typeof err === 'object' && err !== null && 'response' in err) {
+    const axiosErr = err as { response?: { data?: { message?: string } } };
+    return axiosErr.response?.data?.message ?? fallback;
+  }
+  if (err instanceof Error) return err.message;
+  return fallback;
 }

@@ -54,6 +54,31 @@
 - PATCH /api/v2/participations/{id}/review 请求体：{ action: "APPROVE" | "REJECT", rejectReason?: string }
 - PATCH /api/v2/participations/{id}/review 中当 action = "REJECT" 时，rejectReason 必填
 
+## 家属同行（family-companion）
+
+家属同行功能在活动模块和参与模块中扩展了以下字段：
+
+**ActivityResponse / ActivityDetailResponse 新增字段**：
+- `currentOccupiedSlots` (Long)：当前占用名额数（1 员工 + N 家属），用于名额满判断
+- `allowFamily` (Boolean)：是否允许携带家属
+- `maxFamilyPerUser` (Integer | null)：每人最多携带家属数，null 表示不限
+
+**CreateActivityRequest / UpdateActivityRequest 新增字段**：
+- `allowFamily` (Boolean, 可选)：是否允许携带家属
+- `maxFamilyPerUser` (Integer | null, 可选)：每人最多携带家属数
+
+**SignupRequest 新增字段**：
+- `familyMembers` (Array<{name: string, relation: string}>, 可选)：家属列表，relation 枚举：SPOUSE/CHILD/PARENT/OTHER
+
+**ParticipationResponse / MyParticipationResponse 新增字段**：
+- `familyMembers` (Array<{name: string, relation: string}>)：家属列表
+
+**业务规则**：
+- 活动未开启 allowFamily 时，报名不可携带家属
+- 携带家属数不可超过 maxFamilyPerUser（若设置）
+- 合并名额（1 + 家属数）不可超过活动 maxParticipants
+- 关闭 allowFamily 时 maxFamilyPerUser 自动清空为 null
+
 ## 看板模块（dashboard）
 
 | 方法 | 路径 | 说明 | 认证 |

@@ -51,14 +51,14 @@ class ActivityControllerTest {
     private static final ActivityResponse SAMPLE_ACTIVITY = new ActivityResponse(
         1L, 1L, "2026春季CSR月", "春季植树活动", "参与植树造林",
         "VOLUNTEER", "2026-04-15T00:00:00Z", "2026-04-16T00:00:00Z",
-        50, null, "UPCOMING", null, 0L,
+        50, null, "UPCOMING", null, 0L, 0L, false, null,
         "2026-04-01T00:00:00Z", null
     );
 
     private static final ActivityDetailResponse SAMPLE_DETAIL = new ActivityDetailResponse(
         1L, 1L, "2026春季CSR月", "春季植树活动", "参与植树造林",
         "VOLUNTEER", "2026-04-15T00:00:00Z", "2026-04-16T00:00:00Z",
-        50, null, "UPCOMING", null, 0L,
+        50, null, "UPCOMING", null, 0L, 0L, false, null,
         "2026-04-01T00:00:00Z", null, null
     );
 
@@ -182,7 +182,7 @@ class ActivityControllerTest {
         ActivityResponse updated = new ActivityResponse(
             1L, 1L, "2026春季CSR月", "更新后的活动", "参与植树造林",
             "VOLUNTEER", "2026-04-15T00:00:00Z", "2026-04-16T00:00:00Z",
-            50, null, "ONGOING", null, 0L,
+            50, null, "ONGOING", null, 0L, 0L, false, null,
             "2026-04-01T00:00:00Z", "2026-04-10T00:00:00Z"
         );
         when(activityService.update(eq(1L), any())).thenReturn(updated);

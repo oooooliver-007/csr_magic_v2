@@ -1,13 +1,17 @@
 import { useState, useCallback } from 'react';
-import type { TemplateType, FormFieldSchema } from '../types/activity';
+import type { TemplateType, FormFieldSchema, Activity } from '../types/activity';
+import type { FamilyMember } from '../types/participation';
 import DynamicForm from './DynamicForm';
+import FamilyMembersInput from './FamilyMembersInput';
 import { getFormSchemaByType, TEMPLATE_TYPE_LABELS } from '../constants/templateSchemas';
 
 interface SignupFormProps {
   templateType: TemplateType;
   formSchemaJson: string | null;
-  onSubmit: (formData: Record<string, unknown>) => Promise<void>;
+  onSubmit: (formData: Record<string, unknown>, familyMembers: FamilyMember[]) => Promise<void>;
   disabled?: boolean;
+  activity?: Activity;
+  initialFamilyMembers?: FamilyMember[];
 }
 
 /**
@@ -20,10 +24,15 @@ export default function SignupForm({
   formSchemaJson,
   onSubmit,
   disabled = false,
+  activity,
+  initialFamilyMembers,
 }: SignupFormProps) {
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>(
+    initialFamilyMembers ?? []
+  );
 
   const schema: FormFieldSchema[] = (() => {
     if (templateType === 'CUSTOM' && formSchemaJson) {
@@ -68,7 +77,8 @@ export default function SignupForm({
 
     setSubmitting(true);
     try {
-      await onSubmit(values);
+      const validMembers = familyMembers.filter((m) => m.name.trim() !== '');
+      await onSubmit(values, validMembers);
     } finally {
       setSubmitting(false);
     }
@@ -92,6 +102,15 @@ export default function SignupForm({
         disabled={disabled || submitting}
         showCheckinTime={isCheckin}
       />
+
+      {activity?.allowFamily && (
+        <FamilyMembersInput
+          value={familyMembers}
+          onChange={setFamilyMembers}
+          maxCount={activity.maxFamilyPerUser}
+          disabled={disabled || submitting}
+        />
+      )}
 
       <button
         type="submit"

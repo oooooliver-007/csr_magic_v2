@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronRight, Sparkles, MessageSquare, Loader2 } from 'lucide-react';
 import { activityApi } from '../services/activityApi';
 import { participationApi } from '../services/participationApi';
-import type { ActivityDetail } from '../types/participation';
+import type { ActivityDetail, FamilyMember } from '../types/participation';
 import ActivityInfo from '../components/ActivityInfo';
 import ParticipationStatus from '../components/ParticipationStatus';
 import SignupForm from '../components/SignupForm';
@@ -46,12 +46,13 @@ export default function ActivityDetailPage() {
     fetchActivity();
   }, [fetchActivity]);
 
-  const handleSignup = async (formData: Record<string, unknown>) => {
+  const handleSignup = async (formData: Record<string, unknown>, familyMembers: FamilyMember[]) => {
     if (!activity) return;
     try {
       await participationApi.signup({
         activityId: activity.id,
         formData: JSON.stringify(formData),
+        familyMembers: familyMembers.length > 0 ? familyMembers : undefined,
       });
       await fetchActivity();
       showToast('success', '报名提交成功，请等待审核');
@@ -192,7 +193,7 @@ interface RegistrationCardProps {
   showSignupForm: boolean;
   showResubmitForm: boolean;
   withdrawing: boolean;
-  onSignup: (formData: Record<string, unknown>) => Promise<void>;
+  onSignup: (formData: Record<string, unknown>, familyMembers: FamilyMember[]) => Promise<void>;
   onWithdraw: () => void;
   onResubmit: () => void;
   onNavigateChat: () => void;
@@ -270,6 +271,12 @@ function RegistrationCard({
             formSchemaJson={activity.formSchema}
             onSubmit={onSignup}
             disabled={isFull}
+            activity={activity}
+            initialFamilyMembers={
+              showResubmitForm && participation?.familyMembers
+                ? participation.familyMembers
+                : undefined
+            }
           />
         </div>
       )}

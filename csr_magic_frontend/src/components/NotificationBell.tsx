@@ -6,7 +6,11 @@ import { notificationApi } from '../services/notificationApi';
 import type { NotificationItem } from '../types/notification';
 import { getNotificationHref } from '../constants/notificationMeta';
 
-export default function NotificationBell() {
+interface NotificationBellProps {
+  viewAllPath?: string;
+}
+
+export default function NotificationBell({ viewAllPath = '/notifications' }: NotificationBellProps) {
   const navigate = useNavigate();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = useState(false);
@@ -89,7 +93,7 @@ export default function NotificationBell() {
 
   const handleViewAll = () => {
     setOpen(false);
-    navigate('/notifications');
+    navigate(viewAllPath);
   };
 
   return (

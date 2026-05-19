@@ -58,7 +58,7 @@ CSR Magic 是一个银行 CSR（企业社会责任）活动管理平台，提供
 | auth | `docs/modules/auth/` | 2 | 登录/注册、JWT 认证 |
 | event | `docs/modules/event/` | 1 | 事件 CRUD |
 | activity | `docs/modules/activity/` | 4 | 活动列表、详情+报名、CRUD（管理端）、模板系统 |
-| participation | `docs/modules/participation/` | 1 | 报名/退出 |
+| participation | `docs/modules/participation/` | 2 | 报名/退出、家属同行 |
 | dashboard | `docs/modules/dashboard/` | 1 | 统计看板 |
 | notification | `docs/modules/notification/` | 1 | 站内通知系统 |
 | user-management | `docs/modules/user-management/` | 1 | 用户 CRUD + 角色 |
@@ -105,7 +105,6 @@ d:\windsurf_workspaces4\
 | `/admin/activities` | 活动管理 |
 | `/admin/participations` | 参与明细 + 审核 |
 | `/admin/users` | 用户管理 |
-| `/admin/notifications` | 通知管理 |
 
 ## 关键设计决策
 
@@ -171,3 +170,8 @@ d:\windsurf_workspaces4\
 | 2026-04-16 | ai-poster/poster-gallery | PosterResponse 增加 activityName 字段，Service 层关联 ActivityRepository 查询 | 画廊卡片需展示活动名，避免前端额外请求 |
 | 2026-04-16 | ai-poster/poster-gallery | PosterGallery 作为可复用组件，同时用于 AIPosterStudioPage 和 MyProfilePage | 复用一套画廊逻辑，通过 refreshKey prop 触发刷新 |
 | 2026-04-16 | ai-poster/poster-studio | PosterServiceImpl.getStatus() 需要显式声明 @Transactional（writable）覆盖类级别 readOnly=true | syncStatusFromAiService 是自调用（self-invocation），@Transactional 被 Spring AOP 代理绕过，导致状态更新无法持久化 |
+| 2026-05-14 | participation/family-companion | 家属信息存储为 user_activity.family_members JSONB 字段（[{name, relation}]），relation 枚举 SPOUSE/CHILD/PARENT/OTHER | 家属是报名附属信息，JSONB 灵活存储避免独立表 JOIN；枚举覆盖主要家属关系，OTHER 兜底 |
+| 2026-05-14 | participation/family-companion | 名额计算从 countByActivityId 改为 sumOccupiedSlots（1 + JSONB_ARRAY_LENGTH(family_members)），ActivityResponse 新增 currentOccupiedSlots 字段 | 家属占用名额需计入总占用数，否则名额满判断失真；native query 在 DB 层聚合避免 Java 层遍历 |
+| 2026-05-14 | participation/family-companion | 活动 allowFamily 关闭时自动清空 maxFamilyPerUser 为 null，开启时 maxFamilyPerUser < 1 拒绝 | 防止脏数据：关闭开关后残留上限值导致前端误判；开启时上限必须 ≥1 才有实际意义 |
+| 2026-05-14 | participation/family-companion | 前端 FamilyMembersInput 作为独立可复用组件，接受 value/onChange/maxCount/disabled，SignupForm 条件渲染 | 家属输入逻辑独立封装，驳回后通过 initialFamilyMembers 回填，管理端 ExpandedDetail 复用 FAMILY_RELATION_LABELS 映射展示 |
+| 2026-05-19 | notification/admin-entry | 暂不暴露 `/admin/notifications` 管理端菜单，管理端顶部通知铃铛“查看全部”统一跳转 `/notifications`，旧 `/admin/notifications` 重定向到 `/notifications` | 当前已实现的是个人通知中心，通知模板管理尚未实现；避免管理端入口误导并避免在管理端布局中渲染员工通知页 |

@@ -20,11 +20,18 @@ public record ActivityDetailResponse(
     String status,
     String formSchema,
     Long currentParticipants,
+    Long currentOccupiedSlots,
+    Boolean allowFamily,
+    Integer maxFamilyPerUser,
     String createdAt,
     String updatedAt,
     ParticipationResponse currentUserParticipation
 ) {
     public static ActivityDetailResponse from(Activity entity, Long currentParticipants, ParticipationResponse participation) {
+        return from(entity, currentParticipants, currentParticipants, participation);
+    }
+
+    public static ActivityDetailResponse from(Activity entity, Long currentParticipants, Long currentOccupiedSlots, ParticipationResponse participation) {
         return new ActivityDetailResponse(
             entity.getId(),
             entity.getEvent().getId(),
@@ -39,6 +46,9 @@ public record ActivityDetailResponse(
             entity.getStatus(),
             entity.getFormSchema(),
             currentParticipants,
+            currentOccupiedSlots,
+            entity.isAllowFamily(),
+            entity.getMaxFamilyPerUser(),
             entity.getCreatedAt().toString(),
             entity.getUpdatedAt() != null ? entity.getUpdatedAt().toString() : null,
             participation

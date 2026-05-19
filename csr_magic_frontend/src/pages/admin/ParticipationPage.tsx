@@ -9,6 +9,7 @@ import type { PageResponse } from '../../types/common';
 import type { Activity } from '../../types/activity';
 import type { Event } from '../../types/event';
 import type { UserInfo } from '../../types/user';
+import { FAMILY_RELATION_LABELS } from '../../constants/familyRelation';
 
 /** 状态徽章配色 */
 const STATE_BADGE: Record<string, { label: string; cls: string }> = {
@@ -381,7 +382,7 @@ export default function ParticipationPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="p-4 text-[#1A2E22]/80">{record.activityName}</td>
+                        <td className="p-4 text-[#1A2E22]/80">{record.activityName}{record.familyMembers && record.familyMembers.length > 0 && <span className="text-[#2EB87A] ml-1">· +{record.familyMembers.length}</span>}</td>
                         <td className="p-4 text-[#1A2E22]/80">{new Date(record.createdAt).toLocaleDateString('zh-CN')}</td>
                         <td className="p-4 text-[#1A2E22]/70 max-w-[220px]">
                           <p className="truncate" title={formatFormSummary(record.formData)}>{formatFormSummary(record.formData)}</p>
@@ -497,6 +498,9 @@ export default function ParticipationPage() {
                     <p><span className="text-[#1A2E22]/50">活动：</span>{record.activityName}</p>
                     <p><span className="text-[#1A2E22]/50">报名时间：</span>{new Date(record.createdAt).toLocaleDateString('zh-CN')}</p>
                     <p><span className="text-[#1A2E22]/50">内容摘要：</span>{formatFormSummary(record.formData)}</p>
+                    {record.familyMembers && record.familyMembers.length > 0 && (
+                      <p className="text-[#2EB87A]">· +{record.familyMembers.length} 家属</p>
+                    )}
                     <p><span className="text-[#1A2E22]/50">审核人：</span>{record.reviewedByName ?? '-'}</p>
                   </div>
 
@@ -647,6 +651,19 @@ function ExpandedDetail({ record }: { record: Participation }) {
           )}
         </div>
       </div>
+      {record.familyMembers && record.familyMembers.length > 0 && (
+        <div className="mt-4">
+          <h4 className="text-xs font-bold text-[#1A2E22]/50 uppercase tracking-wider mb-2">家属信息（占用 {1 + record.familyMembers.length} 个名额）</h4>
+          <div className="space-y-1">
+            {record.familyMembers.map((m, i) => (
+              <div key={i} className="flex justify-between text-sm">
+                <span className="text-[#1A2E22]/60">{m.name}</span>
+                <span className="font-medium text-[#1A2E22]">{FAMILY_RELATION_LABELS[m.relation] ?? m.relation}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {attachments.length > 0 && (
         <div className="mt-4 space-y-2">
           <h4 className="text-xs font-bold text-[#1A2E22]/50 uppercase tracking-wider">附件图片</h4>

@@ -61,7 +61,7 @@ export default function UserAvatarDropdown({ showRole = false, size = 'md' }: Us
                 {user?.role === 'ADMIN' ? '系统管理员' : '员工'}
               </p>
             )}
-            <p className="text-xs text-[#1A2E22]/40 mt-0.5 truncate">{user?.email}</p>
+            <p className="text-xs text-[#1A2E22]/40 mt-0.5 truncate">{user?.username}</p>
           </div>
 
           {/* 菜单项 */}

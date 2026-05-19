@@ -50,6 +50,9 @@ const mockActivities: Activity[] = [
     status: 'UPCOMING',
     formSchema: null,
     currentParticipants: 12,
+    currentOccupiedSlots: 12,
+    allowFamily: false,
+    maxFamilyPerUser: null,
     createdAt: '2026-04-01T00:00:00Z',
     updatedAt: null,
   },
@@ -67,6 +70,9 @@ const mockActivities: Activity[] = [
     status: 'ONGOING',
     formSchema: null,
     currentParticipants: 35,
+    currentOccupiedSlots: 35,
+    allowFamily: false,
+    maxFamilyPerUser: null,
     createdAt: '2026-04-02T00:00:00Z',
     updatedAt: null,
   },
@@ -82,6 +88,7 @@ const mockParticipations: MyParticipation[] = [
     rejectReason: null,
     createdAt: '2026-04-10T00:00:00Z',
     updatedAt: null,
+    familyMembers: [],
   },
 ];
 

@@ -1,4 +1,10 @@
 export type ParticipationState = 'PENDING' | 'APPROVED' | 'REJECTED' | 'RE_SUBMITTED';
+export type FamilyRelation = 'SPOUSE' | 'CHILD' | 'PARENT' | 'OTHER';
+
+export interface FamilyMember {
+  name: string;
+  relation: FamilyRelation;
+}
 
 export interface Participation {
   id: number;
@@ -15,11 +21,13 @@ export interface Participation {
   reviewedAt: string | null;
   createdAt: string;
   updatedAt: string | null;
+  familyMembers: FamilyMember[];
 }
 
 export interface SignupRequest {
   activityId: number;
   formData?: string;
+  familyMembers?: FamilyMember[];
 }
 
 export type ReviewAction = 'APPROVE' | 'REJECT';
@@ -50,6 +58,7 @@ export interface MyParticipation {
   rejectReason: string | null;
   createdAt: string;
   updatedAt: string | null;
+  familyMembers: FamilyMember[];
 }
 
 export interface ActivityDetail {
@@ -66,6 +75,9 @@ export interface ActivityDetail {
   status: import('./activity').ActivityStatus;
   formSchema: string | null;
   currentParticipants: number;
+  currentOccupiedSlots: number;
+  allowFamily: boolean;
+  maxFamilyPerUser: number | null;
   createdAt: string;
   updatedAt: string | null;
   currentUserParticipation: Participation | null;

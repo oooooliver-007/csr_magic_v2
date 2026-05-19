@@ -44,6 +44,12 @@ public class Activity {
     @JdbcTypeCode(SqlTypes.JSON)
     private String formSchema;
 
+    @Column(name = "allow_family", nullable = false)
+    private boolean allowFamily = false;
+
+    @Column(name = "max_family_per_user")
+    private Integer maxFamilyPerUser;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -150,6 +156,22 @@ public class Activity {
 
     public void setFormSchema(String formSchema) {
         this.formSchema = formSchema;
+    }
+
+    public boolean isAllowFamily() {
+        return allowFamily;
+    }
+
+    public void setAllowFamily(boolean allowFamily) {
+        this.allowFamily = allowFamily;
+    }
+
+    public Integer getMaxFamilyPerUser() {
+        return maxFamilyPerUser;
+    }
+
+    public void setMaxFamilyPerUser(Integer maxFamilyPerUser) {
+        this.maxFamilyPerUser = maxFamilyPerUser;
     }
 
     public Instant getCreatedAt() {

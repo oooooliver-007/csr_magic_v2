@@ -492,4 +492,98 @@ class ActivityServiceImplTest {
 
         assertThrows(ActivityNotFoundException.class, () -> activityService.getDetail(999L, 100L));
     }
+
+    // === 家属同行测试 ===
+
+    @Test
+    @DisplayName("创建活动：allowFamily=true 且 maxFamilyPerUser 有效时正确保存")
+    void create_allowFamilyWithValidMax() {
+        CreateActivityRequest request = new CreateActivityRequest(
+            1L, "家属活动", TemplateType.BASIC, null, null, null, null, null, null, null,
+            true, 3
+        );
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
+        when(activityRepository.save(any(Activity.class))).thenAnswer(inv -> {
+            Activity a = inv.getArgument(0);
+            a.setId(20L);
+            ReflectionTestUtils.setField(a, "createdAt", Instant.now());
+            return a;
+        });
+
+        ActivityResponse response = activityService.create(request);
+
+        assertTrue(response.allowFamily());
+        assertEquals(3, response.maxFamilyPerUser());
+    }
+
+    @Test
+    @DisplayName("创建活动：allowFamily=true 但 maxFamilyPerUser < 1 时抛出 BusinessException")
+    void create_allowFamilyInvalidMax() {
+        CreateActivityRequest request = new CreateActivityRequest(
+            1L, "家属活动", TemplateType.BASIC, null, null, null, null, null, null, null,
+            true, 0
+        );
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
+
+        BusinessException ex = assertThrows(BusinessException.class,
+            () -> activityService.create(request));
+        assertEquals(400, ex.getCode());
+        assertTrue(ex.getMessage().contains("家属"));
+    }
+
+    @Test
+    @DisplayName("创建活动：allowFamily=false 时 maxFamilyPerUser 被清空为 null")
+    void create_allowFamilyFalseClearsMax() {
+        CreateActivityRequest request = new CreateActivityRequest(
+            1L, "普通活动", TemplateType.BASIC, null, null, null, null, null, null, null,
+            false, 5
+        );
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
+        when(activityRepository.save(any(Activity.class))).thenAnswer(inv -> {
+            Activity a = inv.getArgument(0);
+            a.setId(21L);
+            ReflectionTestUtils.setField(a, "createdAt", Instant.now());
+            return a;
+        });
+
+        ActivityResponse response = activityService.create(request);
+
+        assertFalse(response.allowFamily());
+        assertNull(response.maxFamilyPerUser());
+    }
+
+    @Test
+    @DisplayName("更新活动：开启 allowFamily 并设置有效上限")
+    void update_enableAllowFamily() {
+        UpdateActivityRequest request = new UpdateActivityRequest(
+            null, null, null, null, null, null, null, null, null, null,
+            true, 2
+        );
+        when(activityRepository.findById(1L)).thenReturn(Optional.of(testActivity));
+        when(activityRepository.save(any(Activity.class))).thenReturn(testActivity);
+
+        activityService.update(1L, request);
+
+        assertTrue(testActivity.isAllowFamily());
+        assertEquals(2, testActivity.getMaxFamilyPerUser());
+    }
+
+    @Test
+    @DisplayName("更新活动：关闭 allowFamily 时 maxFamilyPerUser 被清空")
+    void update_disableAllowFamily() {
+        testActivity.setAllowFamily(true);
+        testActivity.setMaxFamilyPerUser(3);
+
+        UpdateActivityRequest request = new UpdateActivityRequest(
+            null, null, null, null, null, null, null, null, null, null,
+            false, null
+        );
+        when(activityRepository.findById(1L)).thenReturn(Optional.of(testActivity));
+        when(activityRepository.save(any(Activity.class))).thenReturn(testActivity);
+
+        activityService.update(1L, request);
+
+        assertFalse(testActivity.isAllowFamily());
+        assertNull(testActivity.getMaxFamilyPerUser());
+    }
 }

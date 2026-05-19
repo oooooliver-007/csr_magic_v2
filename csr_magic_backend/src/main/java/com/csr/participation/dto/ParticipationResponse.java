@@ -2,6 +2,8 @@ package com.csr.participation.dto;
 
 import com.csr.participation.entity.UserActivity;
 
+import java.util.List;
+
 /**
  * 参与记录响应 DTO（含用户和活动信息，供管理端列表使用）
  */
@@ -19,7 +21,8 @@ public record ParticipationResponse(
     String reviewedByName,
     String reviewedAt,
     String createdAt,
-    String updatedAt
+    String updatedAt,
+    List<FamilyMemberDto> familyMembers
 ) {
     public static ParticipationResponse from(UserActivity entity) {
         return new ParticipationResponse(
@@ -36,7 +39,8 @@ public record ParticipationResponse(
             entity.getReviewedBy() != null ? entity.getReviewedBy().getDisplayName() : null,
             entity.getReviewedAt() != null ? entity.getReviewedAt().toString() : null,
             entity.getCreatedAt().toString(),
-            entity.getUpdatedAt() != null ? entity.getUpdatedAt().toString() : null
+            entity.getUpdatedAt() != null ? entity.getUpdatedAt().toString() : null,
+            FamilyMemberJson.parse(entity.getFamilyMembers())
         );
     }
 }

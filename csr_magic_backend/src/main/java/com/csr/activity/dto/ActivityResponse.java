@@ -16,10 +16,17 @@ public record ActivityResponse(
     String status,
     String formSchema,
     Long currentParticipants,
+    Long currentOccupiedSlots,
+    Boolean allowFamily,
+    Integer maxFamilyPerUser,
     String createdAt,
     String updatedAt
 ) {
     public static ActivityResponse from(Activity entity, Long currentParticipants) {
+        return from(entity, currentParticipants, currentParticipants);
+    }
+
+    public static ActivityResponse from(Activity entity, Long currentParticipants, Long currentOccupiedSlots) {
         return new ActivityResponse(
             entity.getId(),
             entity.getEvent().getId(),
@@ -34,6 +41,9 @@ public record ActivityResponse(
             entity.getStatus(),
             entity.getFormSchema(),
             currentParticipants,
+            currentOccupiedSlots,
+            entity.isAllowFamily(),
+            entity.getMaxFamilyPerUser(),
             entity.getCreatedAt().toString(),
             entity.getUpdatedAt() != null ? entity.getUpdatedAt().toString() : null
         );

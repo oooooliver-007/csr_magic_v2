@@ -6,6 +6,8 @@ import com.csr.activity.repository.ActivityRepository;
 import com.csr.auth.entity.User;
 import com.csr.auth.repository.UserRepository;
 import com.csr.common.BusinessException;
+import com.csr.participation.dto.FamilyMemberDto;
+import com.csr.participation.dto.FamilyMemberJson;
 import com.csr.participation.dto.MyParticipationResponse;
 import com.csr.participation.dto.ParticipationResponse;
 import com.csr.participation.dto.ReviewRequest;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -69,6 +72,26 @@ public class ParticipationServiceImpl implements ParticipationService {
             }
         }
 
+        // 家属校验
+        List<FamilyMemberDto> familyMembers = request.familyMembers() != null ? request.familyMembers() : List.of();
+        if (!familyMembers.isEmpty()) {
+            if (!activity.isAllowFamily()) {
+                throw new BusinessException(400, "本活动不允许携带家属");
+            }
+            if (activity.getMaxFamilyPerUser() != null && familyMembers.size() > activity.getMaxFamilyPerUser()) {
+                throw new BusinessException(400, "超出家属人数限制，最多携带 " + activity.getMaxFamilyPerUser() + " 名家属");
+            }
+        }
+
+        // 合并名额校验
+        if (activity.getMaxParticipants() != null) {
+            long occupied = userActivityRepository.sumOccupiedSlots(request.activityId());
+            long totalAfterSignup = occupied + 1 + familyMembers.size();
+            if (totalAfterSignup > activity.getMaxParticipants()) {
+                throw new BusinessException(400, "剩余名额不足以容纳您和家属");
+            }
+        }
+
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new BusinessException(404, "用户不存在"));
 
@@ -77,6 +100,7 @@ public class ParticipationServiceImpl implements ParticipationService {
         participation.setActivity(activity);
         participation.setState(ParticipationState.PENDING);
         participation.setFormData(request.formData());
+        participation.setFamilyMembers(FamilyMemberJson.stringify(familyMembers));
 
         UserActivity saved = userActivityRepository.save(participation);
         notificationService.send(

@@ -101,6 +101,16 @@ public class ActivityServiceImpl implements ActivityService {
             activity.setStatus(request.status());
         }
         activity.setFormSchema(resolveFormSchema(request.templateType(), request.formSchema()));
+        if (request.allowFamily() != null && request.allowFamily()) {
+            activity.setAllowFamily(true);
+            if (request.maxFamilyPerUser() != null && request.maxFamilyPerUser() < 1) {
+                throw new BusinessException(400, "每人最多携带家属数必须大于等于1");
+            }
+            activity.setMaxFamilyPerUser(request.maxFamilyPerUser());
+        } else {
+            activity.setAllowFamily(false);
+            activity.setMaxFamilyPerUser(null);
+        }
 
         Activity saved = activityRepository.save(activity);
         log.info("创建活动成功，ID: {}, 名称: {}, 所属事件: {}", saved.getId(), saved.getName(), event.getName());
@@ -144,6 +154,18 @@ public class ActivityServiceImpl implements ActivityService {
         }
         if (request.status() != null) {
             activity.setStatus(request.status());
+        }
+        if (request.allowFamily() != null) {
+            if (request.allowFamily()) {
+                activity.setAllowFamily(true);
+                if (request.maxFamilyPerUser() != null && request.maxFamilyPerUser() < 1) {
+                    throw new BusinessException(400, "每人最多携带家属数必须大于等于1");
+                }
+                activity.setMaxFamilyPerUser(request.maxFamilyPerUser());
+            } else {
+                activity.setAllowFamily(false);
+                activity.setMaxFamilyPerUser(null);
+            }
         }
 
         Activity saved = activityRepository.save(activity);

@@ -24,6 +24,9 @@ export interface Activity {
   status: ActivityStatus;
   formSchema: string | null;
   currentParticipants: number;
+  currentOccupiedSlots: number;
+  allowFamily: boolean;
+  maxFamilyPerUser: number | null;
   createdAt: string;
   updatedAt: string | null;
 }
@@ -39,6 +42,8 @@ export interface CreateActivityRequest {
   coverImage?: string;
   status?: ActivityStatus;
   formSchema?: string;
+  allowFamily?: boolean;
+  maxFamilyPerUser?: number | null;
 }
 
 export interface UpdateActivityRequest {
@@ -52,6 +57,8 @@ export interface UpdateActivityRequest {
   coverImage?: string;
   status?: ActivityStatus;
   formSchema?: string;
+  allowFamily?: boolean;
+  maxFamilyPerUser?: number | null;
 }
 
 export interface ActivityListParams {

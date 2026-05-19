@@ -67,6 +67,8 @@
 | cover_image | TEXT | | 封面图 |
 | status | VARCHAR(20) | | UPCOMING / ONGOING / ENDED |
 | form_schema | JSONB | | 自定义模板字段配置 |
+| allow_family | BOOLEAN | DEFAULT false | 是否允许携带家属 |
+| max_family_per_user | INT | | 每人最多携带家属数（NULL=不限） |
 | created_at | TIMESTAMPTZ | NOT NULL | |
 | updated_at | TIMESTAMPTZ | | |
 
@@ -79,6 +81,7 @@
 | activity_id | BIGINT | FK → activity.id | |
 | state | VARCHAR(20) | NOT NULL | PENDING / APPROVED / REJECTED / RE_SUBMITTED |
 | form_data | JSONB | | 用户提交的表单数据 |
+| family_members | JSONB | | 家属列表 JSON：[{name, relation}] |
 | reject_reason | VARCHAR(500) | | 驳回原因 |
 | reviewed_by | BIGINT | FK → users.id | 审核人 |
 | reviewed_at | TIMESTAMPTZ | | |

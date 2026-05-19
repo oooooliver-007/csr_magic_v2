@@ -118,6 +118,11 @@ export default function ParticipationList({ onExport }: ParticipationListProps) 
                       >
                         {record.activityName}
                       </h4>
+                      {record.familyMembers && record.familyMembers.length > 0 && (
+                        <p className="text-xs text-[#1A2E22]/50 mt-0.5">
+                          携带 {record.familyMembers.length} 名家属
+                        </p>
+                      )}
                       <p className="text-sm text-[#1A2E22]/60 mt-1">{dateStr}</p>
                     </div>
                     <span className={`shrink-0 text-xs font-medium px-2 py-1 rounded-lg ${stateInfo.classes}`}>

@@ -7,6 +7,8 @@ node_modules/
 dist/
 build/
 target/
+.vite/
+csr_ai_service/static/posters/
 *.jar
 *.war
 *.class
@@ -29,6 +31,7 @@ venv/
 *.iml
 *.iws
 .vscode/
+.windsurf/skills/**/*.png
 *.swp
 *.swo
 *~

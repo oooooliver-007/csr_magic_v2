@@ -32,6 +32,10 @@ public class UserActivity {
     @JdbcTypeCode(SqlTypes.JSON)
     private String formData;
 
+    @Column(name = "family_members", columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private String familyMembers;
+
     @Column(length = 500)
     private String rejectReason;
 
@@ -96,6 +100,14 @@ public class UserActivity {
 
     public void setFormData(String formData) {
         this.formData = formData;
+    }
+
+    public String getFamilyMembers() {
+        return familyMembers;
+    }
+
+    public void setFamilyMembers(String familyMembers) {
+        this.familyMembers = familyMembers;
     }
 
     public String getRejectReason() {

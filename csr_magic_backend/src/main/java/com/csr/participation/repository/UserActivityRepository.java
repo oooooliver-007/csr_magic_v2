@@ -19,6 +19,9 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Long
 
     long countByActivityId(Long activityId);
 
+    @Query(value = "SELECT COALESCE(SUM(1 + COALESCE(JSONB_ARRAY_LENGTH(family_members), 0)), 0) FROM user_activity WHERE activity_id = :activityId", nativeQuery = true)
+    long sumOccupiedSlots(@Param("activityId") Long activityId);
+
     long countByUserId(Long userId);
 
     List<UserActivity> findTop5ByUserIdOrderByCreatedAtDesc(Long userId);
