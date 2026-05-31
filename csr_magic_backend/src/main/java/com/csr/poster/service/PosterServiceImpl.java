@@ -19,10 +19,12 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -48,6 +50,31 @@ public class PosterServiceImpl implements PosterService {
         this.activityRepository = activityRepository;
         this.userRepository = userRepository;
         this.restTemplate = new RestTemplate();
+    }
+
+    /**
+     * 定时轮询 AI 服务，同步 PENDING / GENERATING 任务的最新状态。
+     * 每 15 秒执行一次。AI 服务重启导致状态丢失时，此轮询确保客户端不永久卡住。
+     */
+    @Scheduled(fixedDelay = 15000)
+    @Transactional
+    public void scheduledStatusSync() {
+        List<AiPoster> pendingTasks = aiPosterRepository.findByStatusIn(
+                List.of("PENDING", "GENERATING"));
+
+        if (pendingTasks.isEmpty()) {
+            return;
+        }
+
+        log.debug("定时轮询：发现 {} 个待同步的海报任务", pendingTasks.size());
+        for (AiPoster poster : pendingTasks) {
+            try {
+                syncStatusFromAiService(poster);
+            } catch (Exception e) {
+                log.warn("定时轮询同步失败: taskId={}, error={}",
+                        poster.getTaskId(), e.getMessage());
+            }
+        }
     }
 
     @Override

@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface AiPosterRepository extends JpaRepository<AiPoster, Long> {
@@ -12,4 +13,6 @@ public interface AiPosterRepository extends JpaRepository<AiPoster, Long> {
     Optional<AiPoster> findByTaskId(String taskId);
 
     Page<AiPoster> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+
+    List<AiPoster> findByStatusIn(List<String> statuses);
 }

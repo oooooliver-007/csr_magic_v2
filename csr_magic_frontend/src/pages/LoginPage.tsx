@@ -34,8 +34,8 @@ export default function LoginPage() {
     setServerError('');
     try {
       const res = await authApi.login(data);
-      const { accessToken, refreshToken, user } = res.data.data;
-      setAuth(accessToken, refreshToken, user);
+      const { accessToken, user } = res.data.data;
+      setAuth(accessToken, user);
 
       // 根据角色跳转
       if (user.role === 'ADMIN') {

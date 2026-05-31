@@ -7,7 +7,7 @@ const apiClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// 请求拦截器：附加 Token
+// 请求拦截器：附加 Access Token
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken');
   if (token) {
@@ -36,7 +36,6 @@ const processQueue = (error: unknown, token: string | null) => {
 
 const clearAuthAndRedirect = () => {
   localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
   localStorage.removeItem('user');
   window.location.href = '/login';
 };
@@ -49,12 +48,6 @@ apiClient.interceptors.response.use(
 
     // 非 401 或已重试过，直接拒绝
     if (error.response?.status !== 401 || originalRequest._retry) {
-      return Promise.reject(error);
-    }
-
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (!refreshToken) {
-      clearAuthAndRedirect();
       return Promise.reject(error);
     }
 
@@ -72,7 +65,8 @@ apiClient.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      const response = await authApi.refresh(refreshToken);
+      // refreshToken 由 httpOnly Cookie 自动携带，无需手动传
+      const response = await authApi.refresh();
       const newAccessToken = response.data.data.accessToken;
       localStorage.setItem('accessToken', newAccessToken);
 

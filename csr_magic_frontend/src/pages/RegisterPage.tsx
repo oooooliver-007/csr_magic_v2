@@ -42,8 +42,8 @@ export default function RegisterPage() {
     setServerError('');
     try {
       const res = await authApi.register(data);
-      const { accessToken, refreshToken, user } = res.data.data;
-      setAuth(accessToken, refreshToken, user);
+      const { accessToken, user } = res.data.data;
+      setAuth(accessToken, user);
 
       // 注册成功自动登录，跳转首页
       navigate('/', { replace: true });

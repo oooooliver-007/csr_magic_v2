@@ -58,9 +58,8 @@ export default function MyProfilePage() {
     setUser(updatedUser);
     // 同步更新 authStore 中的用户信息
     const accessToken = localStorage.getItem('accessToken');
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (accessToken && refreshToken && authUser) {
-      setAuth(accessToken, refreshToken, {
+    if (accessToken && authUser) {
+      setAuth(accessToken, {
         ...authUser,
         displayName: updatedUser.displayName,
         realName: updatedUser.realName,

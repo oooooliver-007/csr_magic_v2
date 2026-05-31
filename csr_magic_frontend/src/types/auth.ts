@@ -24,6 +24,6 @@ export interface RegisterRequest {
 
 export interface AuthResponse {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string; // 由 httpOnly Cookie 承载，JSON 中不再使用
   user: User;
 }

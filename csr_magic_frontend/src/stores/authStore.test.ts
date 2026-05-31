@@ -39,10 +39,9 @@ describe('authStore', () => {
   beforeEach(() => {
     mockStorage = createLocalStorageMock();
     vi.stubGlobal('localStorage', mockStorage);
-    // 重置 store 状态
+    // 重置 store 状态（refreshToken 不再存在于 state 中）
     useAuthStore.setState({
       accessToken: null,
-      refreshToken: null,
       user: null,
       isAuthenticated: false,
     });
@@ -50,35 +49,32 @@ describe('authStore', () => {
 
   it('setAuth 设置 Token 和用户信息到 state 和 localStorage', () => {
     const { setAuth } = useAuthStore.getState();
-    setAuth('at-123', 'rt-456', mockUser);
+    setAuth('at-123', mockUser);
 
     const state = useAuthStore.getState();
     expect(state.accessToken).toBe('at-123');
-    expect(state.refreshToken).toBe('rt-456');
     expect(state.user?.username).toBe('testuser');
     expect(state.isAuthenticated).toBe(true);
     expect(localStorage.getItem('accessToken')).toBe('at-123');
-    expect(localStorage.getItem('refreshToken')).toBe('rt-456');
+    expect(localStorage.getItem('user')).toBe(JSON.stringify(mockUser));
   });
 
   it('logout 清除 state 和 localStorage', () => {
     const { setAuth, logout } = useAuthStore.getState();
-    setAuth('at-123', 'rt-456', mockUser);
+    setAuth('at-123', mockUser);
 
     logout();
 
     const state = useAuthStore.getState();
     expect(state.accessToken).toBeNull();
-    expect(state.refreshToken).toBeNull();
     expect(state.user).toBeNull();
     expect(state.isAuthenticated).toBe(false);
     expect(localStorage.getItem('accessToken')).toBeNull();
-    expect(localStorage.getItem('refreshToken')).toBeNull();
+    expect(localStorage.getItem('user')).toBeNull();
   });
 
   it('loadFromStorage 从 localStorage 恢复状态', () => {
     localStorage.setItem('accessToken', 'at-saved');
-    localStorage.setItem('refreshToken', 'rt-saved');
     localStorage.setItem('user', JSON.stringify(mockUser));
 
     const { loadFromStorage } = useAuthStore.getState();
@@ -86,7 +82,6 @@ describe('authStore', () => {
 
     const state = useAuthStore.getState();
     expect(state.accessToken).toBe('at-saved');
-    expect(state.refreshToken).toBe('rt-saved');
     expect(state.user?.username).toBe('testuser');
     expect(state.isAuthenticated).toBe(true);
   });
