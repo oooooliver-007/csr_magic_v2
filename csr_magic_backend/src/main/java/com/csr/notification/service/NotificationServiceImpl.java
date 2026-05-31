@@ -75,4 +75,32 @@ public class NotificationServiceImpl implements NotificationService {
         notificationRepository.save(notification);
         log.info("发送通知给用户 {}：[{}] {}", targetUser.getId(), type, title);
     }
+
+    @Override
+    public Page<NotificationResponse> getAdminNotifications(Pageable pageable) {
+        return notificationRepository.findAdminNotifications(pageable)
+            .map(NotificationResponse::from);
+    }
+
+    @Override
+    public long getAdminUnreadCount() {
+        return notificationRepository.countAdminUnreadNotifications();
+    }
+
+    @Override
+    @Transactional
+    public void markAdminNotificationAsRead(Long notificationId) {
+        Notification notification = notificationRepository.findAdminNotificationById(notificationId)
+            .orElseThrow(() -> new BusinessException(404, "通知不存在"));
+        if (!Boolean.TRUE.equals(notification.getIsRead())) {
+            notification.setIsRead(true);
+            notificationRepository.save(notification);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void markAllAdminNotificationsAsRead() {
+        notificationRepository.markAllAdminNotificationsAsRead();
+    }
 }

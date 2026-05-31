@@ -152,6 +152,12 @@ public class ParticipationServiceImpl implements ParticipationService {
     }
 
     @Override
+    public Page<ParticipationResponse> getReviewTodos(Pageable pageable) {
+        return userActivityRepository.findReviewTodos(pageable)
+                .map(ParticipationResponse::from);
+    }
+
+    @Override
     @Transactional
     public ParticipationResponse review(Long participationId, Long adminUserId, ReviewRequest request) {
         UserActivity participation = userActivityRepository.findById(participationId)

@@ -38,6 +38,7 @@ vi.mock('./pages/HomePage', () => ({ default: () => <div>首页</div> }));
 vi.mock('./pages/MyProfilePage', () => ({ default: () => <div>个人中心页</div> }));
 vi.mock('./pages/NotificationListPage', () => ({ default: () => <div>通知中心页</div> }));
 vi.mock('./pages/AIPosterStudioPage', () => ({ default: () => <div>海报工作台页</div> }));
+vi.mock('./pages/admin/AdminNotificationPage', () => ({ default: () => <div>通知管理页</div> }));
 
 vi.mock('./stores/authStore', () => ({
   useAuthStore: (selector: (state: { loadFromStorage: () => void }) => unknown) =>
@@ -45,7 +46,7 @@ vi.mock('./stores/authStore', () => ({
 }));
 
 describe('App 路由', () => {
-  it('访问旧的 /admin/notifications 时进入统一个人通知中心而不是管理端子页', async () => {
+  it('访问 /admin/notifications 重定向并渲染管理端参与审核页', async () => {
     render(
       <MemoryRouter initialEntries={['/admin/notifications']}>
         <App />
@@ -53,9 +54,9 @@ describe('App 路由', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('员工端布局')).toBeInTheDocument();
+      expect(screen.getByText('管理端布局')).toBeInTheDocument();
     });
-    expect(screen.getByText('通知中心页')).toBeInTheDocument();
-    expect(screen.queryByText('管理端布局')).not.toBeInTheDocument();
+    expect(screen.getByText('参与审核页')).toBeInTheDocument();
+    expect(screen.queryByText('员工端布局')).not.toBeInTheDocument();
   });
 });

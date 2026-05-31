@@ -7,6 +7,7 @@ import com.csr.notification.service.NotificationService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,6 +48,34 @@ public class NotificationController {
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<Void> markAllAsRead() {
         notificationService.markAllAsRead(getCurrentUserId());
+        return ApiResponse.success(null);
+    }
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Page<NotificationResponse>> getAdminNotifications(Pageable pageable) {
+        return ApiResponse.success(notificationService.getAdminNotifications(pageable));
+    }
+
+    @GetMapping("/admin/unread-count")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<UnreadCountResponse> getAdminUnreadCount() {
+        return ApiResponse.success(new UnreadCountResponse(notificationService.getAdminUnreadCount()));
+    }
+
+    @PatchMapping("/admin/{id}/read")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> markAdminAsRead(@PathVariable Long id) {
+        notificationService.markAdminNotificationAsRead(id);
+        return ApiResponse.success(null);
+    }
+
+    @PatchMapping("/admin/read-all")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> markAllAdminAsRead() {
+        notificationService.markAllAdminNotificationsAsRead();
         return ApiResponse.success(null);
     }
 

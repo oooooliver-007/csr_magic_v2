@@ -13,6 +13,7 @@ import com.csr.participation.dto.FamilyMemberDto;
 import com.csr.participation.dto.ParticipationResponse;
 import com.csr.participation.dto.SignupRequest;
 import com.csr.participation.entity.FamilyRelation;
+import com.csr.participation.entity.ParticipationState;
 import com.csr.participation.entity.UserActivity;
 import com.csr.participation.exception.ParticipationNotFoundException;
 import com.csr.participation.repository.UserActivityRepository;
@@ -23,6 +24,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
@@ -308,5 +313,26 @@ class ParticipationServiceImplTest {
         assertEquals(2, response.familyMembers().size());
         assertEquals("张三", response.familyMembers().get(0).name());
         assertEquals(FamilyRelation.SPOUSE, response.familyMembers().get(0).relation());
+    }
+
+    @Test
+    @DisplayName("审核待办：只查询 PENDING 和 RE_SUBMITTED 状态")
+    void getReviewTodos_queriesPendingAndResubmitted() {
+        UserActivity pending = new UserActivity();
+        pending.setId(1L);
+        pending.setUser(testUser);
+        pending.setActivity(testActivity);
+        pending.setState(ParticipationState.PENDING);
+        ReflectionTestUtils.setField(pending, "createdAt", Instant.parse("2026-04-14T10:00:00Z"));
+
+        PageRequest pageable = PageRequest.of(0, 5);
+        when(userActivityRepository.findReviewTodos(any(Pageable.class)))
+            .thenReturn(new PageImpl<>(List.of(pending), pageable, 1));
+
+        Page<ParticipationResponse> response = participationService.getReviewTodos(pageable);
+
+        assertEquals(1, response.getTotalElements());
+        assertEquals("PENDING", response.getContent().get(0).state());
+        verify(userActivityRepository).findReviewTodos(pageable);
     }
 }

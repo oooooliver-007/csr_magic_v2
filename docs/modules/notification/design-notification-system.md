@@ -71,3 +71,18 @@ depends_on:
 ## 引用
 - 对应功能规格：spec-notification-system.md
 - 参考实现：docs/exemplar/
+
+## 角色体验重构 (Admin 端任务化)
+
+为了给管理员和普通用户提供更具针对性的通知体验，系统对管理端顶部的铃铛与功能入口进行了重构：
+
+### 1. 管理端“审批待办”铃铛
+- **管理端顶栏铃铛** (`AdminReviewTodoBell.tsx`)：代替了原有的传统消息通知流水铃铛。
+- **任务化驱动**：该铃铛由 `/api/v2/participations/review-todos` 接口驱动，返回当前所有状态为 `PENDING` 和 `RE_SUBMITTED` 的报名参与记录（按创建时间倒序）。
+- **角标指示**：铃铛角标数字显示当前处于待审核状态的报名总数 (`totalElements`)。
+- **下拉展示**：下拉列表展示最新的 5 条待审核信息（含申请人、活动、提交时间以及是否为重新提交）。点击待办行或底部的“查看全部”将直接导航至管理端 `/admin/participations?state=PENDING`。
+
+### 2. 移除通知管理入口与兜底重定向
+- **侧边栏变更**：移除管理端左侧侧边栏的「通知管理」菜单项。
+- **路由重定向**：访问原管理端通知页面 `/admin/notifications` 的路由在前端被重定向至 `/admin/participations?state=PENDING`，防止老路由产生 404 并且无缝引导管理员至核心审核场景。
+- **员工端保留**：员工端的站内通知中心及铃铛保留现状（关注具体的审批结果通知 `REVIEW_APPROVED`、`REVIEW_REJECTED` 等）。

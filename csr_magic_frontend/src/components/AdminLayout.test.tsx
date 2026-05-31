@@ -3,9 +3,9 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import AdminLayout from './AdminLayout';
 
-vi.mock('./NotificationBell', () => ({
-  default: ({ viewAllPath = '/notifications' }: { viewAllPath?: string }) => (
-    <div data-testid="notification-bell" data-view-all-path={viewAllPath}>通知铃铛</div>
+vi.mock('./AdminReviewTodoBell', () => ({
+  default: () => (
+    <div data-testid="admin-review-todo-bell">待办铃铛</div>
   ),
 }));
 
@@ -30,15 +30,15 @@ function renderAdminLayout() {
 }
 
 describe('AdminLayout', () => {
-  it('不在管理端侧边栏暴露未实现的通知管理入口', () => {
+  it('侧边栏不再有通知管理入口', () => {
     renderAdminLayout();
 
     expect(screen.queryByRole('link', { name: '通知管理' })).not.toBeInTheDocument();
   });
 
-  it('顶部通知铃铛查看全部跳转到统一个人通知中心', () => {
+  it('顶部包含待审核任务铃铛', () => {
     renderAdminLayout();
 
-    expect(screen.getByTestId('notification-bell')).toHaveAttribute('data-view-all-path', '/notifications');
+    expect(screen.getByTestId('admin-review-todo-bell')).toBeInTheDocument();
   });
 });

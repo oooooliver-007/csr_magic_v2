@@ -18,4 +18,12 @@ public interface NotificationService {
     void createNotification(Long userId, String type, String title, String content);
 
     void send(User targetUser, String type, String title, String content);
+
+    Page<NotificationResponse> getAdminNotifications(Pageable pageable);
+
+    long getAdminUnreadCount();
+
+    void markAdminNotificationAsRead(Long notificationId);
+
+    void markAllAdminNotificationsAsRead();
 }

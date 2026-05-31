@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { BarChart3, CalendarDays, ClipboardList, Users, UserCircle, LogOut } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
-import NotificationBell from './NotificationBell';
+import AdminReviewTodoBell from './AdminReviewTodoBell';
 
 const menuItems = [
   { path: '/admin', label: '数据看板', icon: BarChart3, end: true },
@@ -83,7 +83,7 @@ export default function AdminLayout() {
             <span className="mx-2">/</span>
             <span className="text-[#1A2E22]">{currentPage?.label ?? '未知页面'}</span>
           </div>
-          <NotificationBell viewAllPath="/notifications" />
+          <AdminReviewTodoBell />
         </header>
 
         <div className="p-8 flex-1">

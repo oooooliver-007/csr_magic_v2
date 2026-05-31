@@ -28,6 +28,16 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Long
 
     Page<UserActivity> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
 
+    @Query(value = "SELECT ua FROM UserActivity ua "
+        + "JOIN FETCH ua.user "
+        + "JOIN FETCH ua.activity "
+        + "LEFT JOIN FETCH ua.reviewedBy "
+        + "WHERE ua.state IN (com.csr.participation.entity.ParticipationState.PENDING, com.csr.participation.entity.ParticipationState.RE_SUBMITTED) "
+        + "ORDER BY ua.createdAt DESC",
+        countQuery = "SELECT COUNT(ua) FROM UserActivity ua "
+        + "WHERE ua.state IN (com.csr.participation.entity.ParticipationState.PENDING, com.csr.participation.entity.ParticipationState.RE_SUBMITTED)")
+    Page<UserActivity> findReviewTodos(Pageable pageable);
+
     /**
      * 管理端筛选查询（支持 eventId / activityId / userId / state 筛选 + keyword 搜索）
      * 使用 nativeQuery + CAST 模式（Hibernate 6 + PostgreSQL null 参数类型推断问题）

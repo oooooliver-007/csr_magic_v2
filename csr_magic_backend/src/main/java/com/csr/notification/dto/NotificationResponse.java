@@ -4,6 +4,9 @@ import com.csr.notification.entity.Notification;
 
 public record NotificationResponse(
     Long id,
+    Long userId,
+    String username,
+    String displayName,
     String type,
     String title,
     String content,
@@ -13,6 +16,9 @@ public record NotificationResponse(
     public static NotificationResponse from(Notification notification) {
         return new NotificationResponse(
             notification.getId(),
+            notification.getUser().getId(),
+            notification.getUser().getUsername(),
+            notification.getUser().getDisplayName(),
             notification.getType(),
             notification.getTitle(),
             notification.getContent(),

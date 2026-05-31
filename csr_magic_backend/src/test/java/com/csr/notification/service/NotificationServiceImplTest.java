@@ -158,4 +158,60 @@ class NotificationServiceImplTest {
         assertEquals(404, ex.getCode());
         assertEquals("用户不存在", ex.getMessage());
     }
+
+    @Test
+    @DisplayName("admin 获取全局通知列表：返回非管理员用户通知分页")
+    void getAdminNotifications_success() {
+        Pageable pageable = PageRequest.of(0, 5);
+        Page<Notification> page = new PageImpl<>(List.of(testNotification), pageable, 1);
+        when(notificationRepository.findAdminNotifications(pageable)).thenReturn(page);
+
+        Page<NotificationResponse> result = notificationService.getAdminNotifications(pageable);
+
+        assertEquals(1, result.getTotalElements());
+        assertEquals("报名提交成功", result.getContent().get(0).title());
+        assertEquals(1L, result.getContent().get(0).userId());
+        assertEquals("测试用户", result.getContent().get(0).displayName());
+    }
+
+    @Test
+    @DisplayName("admin 获取全局未读数：返回仓储统计结果")
+    void getAdminUnreadCount_success() {
+        when(notificationRepository.countAdminUnreadNotifications()).thenReturn(9L);
+
+        long result = notificationService.getAdminUnreadCount();
+
+        assertEquals(9L, result);
+    }
+
+    @Test
+    @DisplayName("admin 标记单条已读：成功更新未读通知")
+    void markAdminNotificationAsRead_success() {
+        when(notificationRepository.findAdminNotificationById(10L)).thenReturn(Optional.of(testNotification));
+
+        notificationService.markAdminNotificationAsRead(10L);
+
+        assertTrue(testNotification.getIsRead());
+        verify(notificationRepository).save(testNotification);
+    }
+
+    @Test
+    @DisplayName("admin 标记单条已读：通知不存在时抛出 404")
+    void markAdminNotificationAsRead_notFound() {
+        when(notificationRepository.findAdminNotificationById(999L)).thenReturn(Optional.empty());
+
+        BusinessException ex = assertThrows(BusinessException.class,
+            () -> notificationService.markAdminNotificationAsRead(999L));
+
+        assertEquals(404, ex.getCode());
+        assertEquals("通知不存在", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("admin 全部标记已读：调用仓储批量更新")
+    void markAllAdminNotificationsAsRead_success() {
+        notificationService.markAllAdminNotificationsAsRead();
+
+        verify(notificationRepository).markAllAdminNotificationsAsRead();
+    }
 }

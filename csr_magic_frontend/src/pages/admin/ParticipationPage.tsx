@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, Fragment } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, Check, X, ChevronDown, ChevronUp, Download, Loader2 } from 'lucide-react';
 import { participationApi } from '../../services/participationApi';
 import { activityApi } from '../../services/activityApi';
@@ -20,14 +21,22 @@ const STATE_BADGE: Record<string, { label: string; cls: string }> = {
 };
 
 export default function ParticipationPage() {
+  const [searchParams] = useSearchParams();
+  const stateParam = searchParams.get('state') as ParticipationState | null;
+
   /* ─── 筛选状态 ─── */
   const [keyword, setKeyword] = useState('');
   const [eventFilter, setEventFilter] = useState<number | ''>('');
-  const [statusFilter, setStatusFilter] = useState<ParticipationState | ''>('');
+  const [statusFilter, setStatusFilter] = useState<ParticipationState | ''>(stateParam || '');
   const [activityFilter, setActivityFilter] = useState<number | ''>('');
   const [userFilter, setUserFilter] = useState<number | ''>('');
   const [createdFrom, setCreatedFrom] = useState('');
   const [createdTo, setCreatedTo] = useState('');
+
+  // 监听 URL 中的 state 查询参数，同步到状态过滤
+  useEffect(() => {
+    setStatusFilter(stateParam || '');
+  }, [stateParam]);
 
   /* ─── 数据状态 ─── */
   const [records, setRecords] = useState<Participation[]>([]);

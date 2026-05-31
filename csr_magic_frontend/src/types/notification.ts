@@ -21,3 +21,9 @@ export interface NotificationListParams {
   page?: number;
   size?: number;
 }
+
+export interface AdminNotificationItem extends NotificationItem {
+  userId: number;
+  username: string;
+  displayName: string;
+}

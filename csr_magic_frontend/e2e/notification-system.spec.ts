@@ -242,7 +242,7 @@ test.describe('通知系统', () => {
     await expect(reviewApprovedNotification).toBeVisible({ timeout: 10000 });
     await expect(latestSignupNotification).toBeVisible({ timeout: 10000 });
     await expect(oldestSignupNotification).toHaveCount(0);
-    await expect(page.getByRole('button', { name: /查看全部/i })).toBeVisible();
+    await expect(page.getByTestId('notification-dropdown').getByRole('button', { name: /查看全部/i })).toBeVisible();
   });
 
   test('通知列表页按时间倒序展示，且报名与审核操作都会触发通知', async ({ page }) => {

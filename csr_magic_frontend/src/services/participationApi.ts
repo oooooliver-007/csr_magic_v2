@@ -24,6 +24,10 @@ export const participationApi = {
   list: (params: ParticipationListParams = {}) =>
     apiClient.get<ApiResponse<PageResponse<Participation>>>(BASE, { params }),
 
+  /** 管理端审核待办（PENDING + RE_SUBMITTED 状态的分页列表） */
+  getReviewTodos: (params: { page?: number; size?: number } = {}) =>
+    apiClient.get<ApiResponse<PageResponse<Participation>>>(`${BASE}/review-todos`, { params }),
+
   /** 审核参与记录（通过/驳回） */
   review: (id: number, data: ReviewRequest) =>
     apiClient.patch<ApiResponse<Participation>>(`${BASE}/${id}/review`, data),

@@ -68,6 +68,15 @@ public class ParticipationController {
     }
 
     /**
+     * 获取管理端审核待办（PENDING + RE_SUBMITTED 状态的分页列表）
+     */
+    @GetMapping("/review-todos")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Page<ParticipationResponse>> getReviewTodos(Pageable pageable) {
+        return ApiResponse.success(participationService.getReviewTodos(pageable));
+    }
+
+    /**
      * 审核参与记录（通过/驳回）
      */
     @PatchMapping("/{id}/review")

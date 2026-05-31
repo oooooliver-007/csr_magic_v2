@@ -20,4 +20,18 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Modifying
     @Query("UPDATE Notification n SET n.isRead = true WHERE n.user.id = :userId AND n.isRead = false")
     int markAllAsReadByUserId(Long userId);
+
+    @Query(value = "SELECT n FROM Notification n JOIN FETCH n.user u WHERE u.role <> 'ADMIN' ORDER BY n.createdAt DESC",
+           countQuery = "SELECT COUNT(n) FROM Notification n WHERE n.user.role <> 'ADMIN'")
+    Page<Notification> findAdminNotifications(Pageable pageable);
+
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.user.role <> 'ADMIN' AND n.isRead = false")
+    long countAdminUnreadNotifications();
+
+    @Query("SELECT n FROM Notification n JOIN FETCH n.user u WHERE n.id = :id AND u.role <> 'ADMIN'")
+    Optional<Notification> findAdminNotificationById(Long id);
+
+    @Modifying
+    @Query("UPDATE Notification n SET n.isRead = true WHERE n.user.role <> 'ADMIN' AND n.isRead = false")
+    int markAllAdminNotificationsAsRead();
 }

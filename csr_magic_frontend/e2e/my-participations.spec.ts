@@ -62,7 +62,7 @@ test.describe('个人中心 - 我的参与记录', () => {
     await page.getByRole('button', { name: '我的海报' }).click();
 
     await expect(page.getByText('暂无海报')).toBeVisible();
-    await expect(page.getByRole('button', { name: /去生成海报/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /去生成海报/ }).first()).toBeVisible();
   });
 
   test('Tab 切换：切换后再切回个人设置', async ({ page }) => {

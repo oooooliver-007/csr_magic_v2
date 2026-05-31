@@ -73,6 +73,9 @@ class NotificationControllerTest {
         SecurityContextHolder.getContext().setAuthentication(userAuthentication());
         NotificationResponse notification = new NotificationResponse(
             10L,
+            1L,
+            "testuser",
+            "测试用户",
             "SIGNUP_SUCCESS",
             "报名提交成功",
             "您已成功提交报名申请",
@@ -125,5 +128,69 @@ class NotificationControllerTest {
             .andExpect(jsonPath("$.code").value(200));
 
         verify(notificationService).markAllAsRead(1L);
+    }
+
+    private UsernamePasswordAuthenticationToken adminAuthentication() {
+        return new UsernamePasswordAuthenticationToken(
+            1L,
+            null,
+            List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+        );
+    }
+
+    @Test
+    @DisplayName("GET /notifications/admin 返回全局通知分页")
+    void getAdminNotifications_success() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(adminAuthentication());
+        NotificationResponse notification = new NotificationResponse(
+            10L, 2L, "lisi", "李四", "SIGNUP_SUCCESS", "报名提交成功",
+            "您已成功提交报名申请", false, "2026-04-14T12:00:00Z"
+        );
+        Page<NotificationResponse> page = new PageImpl<>(List.of(notification));
+        when(notificationService.getAdminNotifications(any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/v2/notifications/admin")
+                .param("page", "0").param("size", "10"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(200))
+            .andExpect(jsonPath("$.data.content[0].userId").value(2))
+            .andExpect(jsonPath("$.data.content[0].username").value("lisi"));
+    }
+
+    @Test
+    @DisplayName("GET /notifications/admin/unread-count 返回全局未读数")
+    void getAdminUnreadCount_success() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(adminAuthentication());
+        when(notificationService.getAdminUnreadCount()).thenReturn(5L);
+
+        mockMvc.perform(get("/api/v2/notifications/admin/unread-count"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.count").value(5));
+    }
+
+    @Test
+    @DisplayName("PATCH /notifications/admin/{id}/read 标记员工通知已读")
+    void markAdminAsRead_success() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(adminAuthentication());
+        doNothing().when(notificationService).markAdminNotificationAsRead(10L);
+
+        mockMvc.perform(patch("/api/v2/notifications/admin/10/read"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(200));
+
+        verify(notificationService).markAdminNotificationAsRead(10L);
+    }
+
+    @Test
+    @DisplayName("PATCH /notifications/admin/read-all 全部员工通知标记已读")
+    void markAllAdminAsRead_success() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(adminAuthentication());
+        doNothing().when(notificationService).markAllAdminNotificationsAsRead();
+
+        mockMvc.perform(patch("/api/v2/notifications/admin/read-all"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.code").value(200));
+
+        verify(notificationService).markAllAdminNotificationsAsRead();
     }
 }

@@ -47,6 +47,7 @@
 | POST | `/api/v2/participations/{id}/withdraw` | 退出活动 | 是 | ✅ 已实现 |
 | GET | `/api/v2/participations/my` | 我的参与记录 | 是 | ✅ 已实现 |
 | GET | `/api/v2/participations` | 参与列表（管理端，分页+筛选） | 是（Admin） | ✅ 已实现 |
+| GET | `/api/v2/participations/review-todos` | 获取管理端审核待办（仅 PENDING + RE_SUBMITTED） | 是（Admin） | ✅ 已实现 |
 | PATCH | `/api/v2/participations/{id}/review` | 审核（通过/驳回） | 是（Admin） | ✅ 已实现 |
 
 - GET /api/v2/participations 查询参数：page、size、eventId、activityId、userId、state、keyword、createdFrom、createdTo
@@ -96,6 +97,10 @@
 | GET | `/api/v2/notifications/unread-count` | 未读通知数 | 是 |
 | PATCH | `/api/v2/notifications/{id}/read` | 标记已读 | 是 |
 | PATCH | `/api/v2/notifications/read-all` | 全部标记已读 | 是 |
+| GET | `/api/v2/notifications/admin` | 全局通知列表（所有非admin用户） | 是（Admin） |
+| GET | `/api/v2/notifications/admin/unread-count` | 全局未读通知数 | 是（Admin） |
+| PATCH | `/api/v2/notifications/admin/{id}/read` | 标记员工通知已读（直接更新员工数据） | 是（Admin） |
+| PATCH | `/api/v2/notifications/admin/read-all` | 全部员工通知标记已读 | 是（Admin） |
 
 ## 用户模块（user）
 

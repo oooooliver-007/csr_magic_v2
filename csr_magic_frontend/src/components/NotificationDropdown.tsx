@@ -24,7 +24,7 @@ export default function NotificationDropdown({
   const EmptyIcon = getNotificationEmptyIcon();
 
   return (
-    <div className="absolute right-0 top-full mt-3 w-[360px] max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-100 bg-white shadow-xl overflow-hidden">
+    <div data-testid="notification-dropdown" className="absolute right-0 top-full mt-3 w-[360px] max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-100 bg-white shadow-xl overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div>
           <h3 className="text-sm font-bold text-[#1A2E22]">通知</h3>

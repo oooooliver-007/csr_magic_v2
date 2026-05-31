@@ -3,36 +3,42 @@ import { Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NotificationDropdown from './NotificationDropdown';
 import { notificationApi } from '../services/notificationApi';
-import type { NotificationItem } from '../types/notification';
+import type { AdminNotificationItem, NotificationItem } from '../types/notification';
 import { getNotificationHref } from '../constants/notificationMeta';
 
 interface NotificationBellProps {
+  scope?: 'user' | 'admin';
   viewAllPath?: string;
 }
 
-export default function NotificationBell({ viewAllPath = '/notifications' }: NotificationBellProps) {
+export default function NotificationBell({ scope = 'user', viewAllPath }: NotificationBellProps) {
+  const resolvedViewAllPath = viewAllPath ?? (scope === 'admin' ? '/admin/notifications' : '/notifications');
   const navigate = useNavigate();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = useState(false);
-  const [items, setItems] = useState<NotificationItem[]>([]);
+  const [items, setItems] = useState<(NotificationItem | AdminNotificationItem)[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchUnreadCount = useCallback(async () => {
     try {
-      const res = await notificationApi.getUnreadCount();
+      const res = scope === 'admin'
+        ? await notificationApi.getAdminUnreadCount()
+        : await notificationApi.getUnreadCount();
       setUnreadCount(res.data.data.count);
     } catch {
       setUnreadCount(0);
     }
-  }, []);
+  }, [scope]);
 
   const fetchRecentNotifications = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await notificationApi.getMyNotifications({ page: 0, size: 5 });
+      const res = scope === 'admin'
+        ? await notificationApi.getAdminNotifications({ page: 0, size: 5 })
+        : await notificationApi.getMyNotifications({ page: 0, size: 5 });
       setItems(res.data.data.content);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? '加载通知失败';
@@ -40,7 +46,7 @@ export default function NotificationBell({ viewAllPath = '/notifications' }: Not
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [scope]);
 
   const refreshAll = useCallback(async () => {
     await Promise.all([fetchUnreadCount(), fetchRecentNotifications()]);
@@ -77,23 +83,29 @@ export default function NotificationBell({ viewAllPath = '/notifications' }: Not
     }
   };
 
-  const handleItemClick = async (notification: NotificationItem) => {
+  const handleItemClick = async (notification: NotificationItem | AdminNotificationItem) => {
     try {
       if (!notification.isRead) {
-        await notificationApi.markAsRead(notification.id);
+        if (scope === 'admin') {
+          await notificationApi.markAdminAsRead(notification.id);
+        } else {
+          await notificationApi.markAsRead(notification.id);
+        }
       }
     } catch {
       // ignore
     } finally {
       setOpen(false);
       await fetchUnreadCount();
-      navigate(getNotificationHref(notification));
+      if (scope !== 'admin') {
+        navigate(getNotificationHref(notification as NotificationItem));
+      }
     }
   };
 
   const handleViewAll = () => {
     setOpen(false);
-    navigate(viewAllPath);
+    navigate(resolvedViewAllPath);
   };
 
   return (

@@ -24,6 +24,8 @@ public interface ParticipationService {
                                           ParticipationState state, String keyword,
                                           Instant createdFrom, Instant createdTo, Pageable pageable);
 
+    Page<ParticipationResponse> getReviewTodos(Pageable pageable);
+
     /**
      * 审核参与记录（通过/驳回）
      */

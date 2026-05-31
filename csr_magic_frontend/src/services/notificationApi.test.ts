@@ -51,4 +51,42 @@ describe('notificationApi', () => {
 
     expect(apiClient.patch).toHaveBeenCalledWith('/api/v2/notifications/read-all');
   });
+
+  it('getAdminNotifications 调用 GET /api/v2/notifications/admin 并传递分页参数', async () => {
+    const mockResponse = { data: { code: 200, data: { content: [], totalElements: 0, totalPages: 0 } } };
+    vi.mocked(apiClient.get).mockResolvedValue(mockResponse);
+
+    const result = await notificationApi.getAdminNotifications({ page: 0, size: 10 });
+
+    expect(apiClient.get).toHaveBeenCalledWith('/api/v2/notifications/admin', {
+      params: { page: 0, size: 10 },
+    });
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('getAdminUnreadCount 调用 GET /api/v2/notifications/admin/unread-count', async () => {
+    const mockResponse = { data: { code: 200, data: { count: 9 } } };
+    vi.mocked(apiClient.get).mockResolvedValue(mockResponse);
+
+    const result = await notificationApi.getAdminUnreadCount();
+
+    expect(apiClient.get).toHaveBeenCalledWith('/api/v2/notifications/admin/unread-count');
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('markAdminAsRead 调用 PATCH /api/v2/notifications/admin/:id/read', async () => {
+    vi.mocked(apiClient.patch).mockResolvedValue({ data: { code: 200 } });
+
+    await notificationApi.markAdminAsRead(10);
+
+    expect(apiClient.patch).toHaveBeenCalledWith('/api/v2/notifications/admin/10/read');
+  });
+
+  it('markAllAdminAsRead 调用 PATCH /api/v2/notifications/admin/read-all', async () => {
+    vi.mocked(apiClient.patch).mockResolvedValue({ data: { code: 200 } });
+
+    await notificationApi.markAllAdminAsRead();
+
+    expect(apiClient.patch).toHaveBeenCalledWith('/api/v2/notifications/admin/read-all');
+  });
 });
