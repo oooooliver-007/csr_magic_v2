@@ -193,6 +193,26 @@ public class PosterServiceImpl implements PosterService {
                     poster.setStatus(status);
                     poster.setPosterUrl(posterUrl);
                     poster.setErrorMessage(errorMessage);
+
+                    // COMPLETED 且无 posterData 时，从 AI 服务下载图片存入 DB
+                    if ("COMPLETED".equals(status) && poster.getPosterData() == null) {
+                        try {
+                            byte[] imageBytes = restTemplate.getForObject(
+                                    aiServiceBaseUrl + "/poster/" + poster.getTaskId() + "/image",
+                                    byte[].class);
+                            if (imageBytes != null && imageBytes.length > 0) {
+                                poster.setPosterData(imageBytes);
+                                // 将 URL 替换为后端端点，前端直接访问后端
+                                poster.setPosterUrl("/api/v2/posters/" + poster.getTaskId() + "/image");
+                                log.info("海报图片已存入 DB: taskId={}, size={} bytes",
+                                        poster.getTaskId(), imageBytes.length);
+                            }
+                        } catch (Exception e) {
+                            log.warn("下载海报图片失败: taskId={}, error={}",
+                                    poster.getTaskId(), e.getMessage());
+                        }
+                    }
+
                     aiPosterRepository.save(poster);
                     log.info("同步海报状态: taskId={}, status={}", poster.getTaskId(), status);
                 }
@@ -200,6 +220,26 @@ public class PosterServiceImpl implements PosterService {
         } catch (Exception e) {
             log.warn("同步 AI 服务状态失败: {}", e.getMessage());
         }
+    }
+
+    @Override
+    public byte[] getPosterImage(String taskId, Long userId) {
+        AiPoster poster = aiPosterRepository.findByTaskId(taskId)
+                .orElse(null);
+        if (poster == null || !poster.getUserId().equals(userId)) {
+            return null;
+        }
+        return poster.getPosterData();
+    }
+
+    @Override
+    public byte[] getPosterImageByTaskId(String taskId) {
+        AiPoster poster = aiPosterRepository.findByTaskId(taskId)
+                .orElse(null);
+        if (poster == null) {
+            return null;
+        }
+        return poster.getPosterData();
     }
 
     @Transactional

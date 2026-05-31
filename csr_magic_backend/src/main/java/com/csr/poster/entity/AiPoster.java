@@ -32,6 +32,10 @@ public class AiPoster {
     @Column(length = 500)
     private String posterUrl;
 
+    @Lob
+    @Column(name = "poster_data", columnDefinition = "BYTEA")
+    private byte[] posterData;
+
     @Column(columnDefinition = "TEXT")
     private String errorMessage;
 
@@ -75,6 +79,9 @@ public class AiPoster {
 
     public String getPosterUrl() { return posterUrl; }
     public void setPosterUrl(String posterUrl) { this.posterUrl = posterUrl; }
+
+    public byte[] getPosterData() { return posterData; }
+    public void setPosterData(byte[] posterData) { this.posterData = posterData; }
 
     public String getErrorMessage() { return errorMessage; }
     public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }

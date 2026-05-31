@@ -1,0 +1,750 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "CSR Magic V2",
+    "languages": [
+      "Java",
+      "TypeScript",
+      "Python"
+    ],
+    "frameworks": [
+      "Spring Boot 3.4",
+      "React 19",
+      "FastAPI"
+    ],
+    "description": "银行企业社会责任活动管理平台，支持活动创建、参与、AI海报生成等功能",
+    "analyzedAt": "2026-05-27T22:53:50.481219",
+    "gitCommitHash": "unknown"
+  },
+  "nodes": [
+    {
+      "id": "domain:activity-management",
+      "type": "domain",
+      "name": "活动管理",
+      "summary": "负责CSR活动的创建、编辑、查看和管理，包括活动模板和事件管理",
+      "tags": [
+        "activity",
+        "event",
+        "management"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entities": [
+          "Activity",
+          "Event",
+          "ActivityTemplate"
+        ],
+        "businessRules": [
+          "活动必须有开始和结束时间",
+          "活动可以关联多个事件"
+        ],
+        "crossDomainInteractions": [
+          "与用户管理交互进行权限验证",
+          "与参与管理交互跟踪参与情况"
+        ]
+      }
+    },
+    {
+      "id": "domain:user-management",
+      "type": "domain",
+      "name": "用户管理",
+      "summary": "负责用户账户、认证、授权和个人信息管理",
+      "tags": [
+        "user",
+        "auth",
+        "profile"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entities": [
+          "User",
+          "Role",
+          "Permission"
+        ],
+        "businessRules": [
+          "用户必须有唯一邮箱",
+          "密码必须加密存储"
+        ],
+        "crossDomainInteractions": [
+          "为其他领域提供认证和授权服务"
+        ]
+      }
+    },
+    {
+      "id": "domain:participation-management",
+      "type": "domain",
+      "name": "参与管理",
+      "summary": "负责用户参与活动的报名、审核和跟踪",
+      "tags": [
+        "participation",
+        "signup",
+        "review"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entities": [
+          "Participation",
+          "Signup",
+          "Review"
+        ],
+        "businessRules": [
+          "用户不能重复参与同一活动",
+          "参与需要审核"
+        ],
+        "crossDomainInteractions": [
+          "与活动管理交互获取活动信息",
+          "与通知管理交互发送审核结果"
+        ]
+      }
+    },
+    {
+      "id": "domain:ai-poster-generation",
+      "type": "domain",
+      "name": "AI海报生成",
+      "summary": "利用AI技术自动生成活动宣传海报",
+      "tags": [
+        "ai",
+        "poster",
+        "generation"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entities": [
+          "Poster",
+          "Task",
+          "Template"
+        ],
+        "businessRules": [
+          "海报生成是异步任务",
+          "需要提供活动信息作为输入"
+        ],
+        "crossDomainInteractions": [
+          "与活动管理交互获取活动详情"
+        ]
+      }
+    },
+    {
+      "id": "domain:notification-management",
+      "type": "domain",
+      "name": "通知管理",
+      "summary": "负责系统通知的发送和管理",
+      "tags": [
+        "notification",
+        "message",
+        "alert"
+      ],
+      "complexity": "simple",
+      "domainMeta": {
+        "entities": [
+          "Notification",
+          "Message"
+        ],
+        "businessRules": [
+          "通知必须有接收者",
+          "支持多种通知类型"
+        ],
+        "crossDomainInteractions": [
+          "为其他领域提供通知发送服务"
+        ]
+      }
+    },
+    {
+      "id": "flow:create-activity",
+      "type": "flow",
+      "name": "创建活动",
+      "summary": "创建新的CSR活动",
+      "tags": [
+        "activity",
+        "create"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "POST /api/activities",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "flow:manage-events",
+      "type": "flow",
+      "name": "管理事件",
+      "summary": "管理活动下的子事件",
+      "tags": [
+        "event",
+        "management"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "POST /api/events",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "flow:user-authentication",
+      "type": "flow",
+      "name": "用户认证",
+      "summary": "用户登录和身份验证",
+      "tags": [
+        "auth",
+        "login"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "POST /api/auth/login",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "flow:profile-management",
+      "type": "flow",
+      "name": "个人资料管理",
+      "summary": "管理用户个人信息",
+      "tags": [
+        "profile",
+        "settings"
+      ],
+      "complexity": "simple",
+      "domainMeta": {
+        "entryPoint": "PUT /api/users/profile",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "flow:participation-signup",
+      "type": "flow",
+      "name": "参与报名",
+      "summary": "用户报名参加活动",
+      "tags": [
+        "signup",
+        "participation"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "POST /api/participations",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "flow:participation-review",
+      "type": "flow",
+      "name": "参与审核",
+      "summary": "管理员审核用户参与申请",
+      "tags": [
+        "review",
+        "approval"
+      ],
+      "complexity": "moderate",
+      "domainMeta": {
+        "entryPoint": "PUT /api/participations/{id}/review",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "flow:generate-poster",
+      "type": "flow",
+      "name": "生成海报",
+      "summary": "使用AI生成活动宣传海报",
+      "tags": [
+        "poster",
+        "ai",
+        "generate"
+      ],
+      "complexity": "complex",
+      "domainMeta": {
+        "entryPoint": "POST /api/poster/generate",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "flow:send-notification",
+      "type": "flow",
+      "name": "发送通知",
+      "summary": "向用户发送系统通知",
+      "tags": [
+        "notification",
+        "send"
+      ],
+      "complexity": "simple",
+      "domainMeta": {
+        "entryPoint": "POST /api/notifications",
+        "entryType": "http"
+      }
+    },
+    {
+      "id": "step:create-activity:validate-input",
+      "type": "step",
+      "name": "验证输入",
+      "summary": "验证活动创建请求的数据",
+      "tags": [
+        "validation"
+      ],
+      "complexity": "simple",
+      "filePath": "csr_magic_frontend/src/components/admin/ActivityFormDrawer.tsx",
+      "lineRange": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "step:create-activity:check-permissions",
+      "type": "step",
+      "name": "检查权限",
+      "summary": "验证用户是否有创建活动的权限",
+      "tags": [
+        "auth",
+        "permission"
+      ],
+      "complexity": "simple",
+      "filePath": "csr_magic_backend/src/main/java/com/csr/controller/ActivityController.java",
+      "lineRange": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "step:create-activity:save-activity",
+      "type": "step",
+      "name": "保存活动",
+      "summary": "将活动数据保存到数据库",
+      "tags": [
+        "database",
+        "save"
+      ],
+      "complexity": "simple",
+      "filePath": "csr_magic_backend/src/main/java/com/csr/service/ActivityService.java",
+      "lineRange": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "step:create-activity:return-response",
+      "type": "step",
+      "name": "返回响应",
+      "summary": "返回创建成功的响应",
+      "tags": [
+        "response"
+      ],
+      "complexity": "simple",
+      "filePath": "csr_magic_backend/src/main/java/com/csr/controller/ActivityController.java",
+      "lineRange": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "step:user-authentication:validate-credentials",
+      "type": "step",
+      "name": "验证凭证",
+      "summary": "验证用户名和密码",
+      "tags": [
+        "validation",
+        "credentials"
+      ],
+      "complexity": "simple",
+      "filePath": "csr_magic_backend/src/main/java/com/csr/service/AuthService.java",
+      "lineRange": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "step:user-authentication:generate-token",
+      "type": "step",
+      "name": "生成令牌",
+      "summary": "生成JWT认证令牌",
+      "tags": [
+        "jwt",
+        "token"
+      ],
+      "complexity": "moderate",
+      "filePath": "csr_magic_backend/src/main/java/com/csr/util/JwtUtil.java",
+      "lineRange": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "step:user-authentication:return-token",
+      "type": "step",
+      "name": "返回令牌",
+      "summary": "将令牌返回给客户端",
+      "tags": [
+        "response"
+      ],
+      "complexity": "simple",
+      "filePath": "csr_magic_backend/src/main/java/com/csr/controller/AuthController.java",
+      "lineRange": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "step:participation-signup:check-activity",
+      "type": "step",
+      "name": "检查活动",
+      "summary": "验证活动是否存在且可报名",
+      "tags": [
+        "validation"
+      ],
+      "complexity": "simple",
+      "filePath": "csr_magic_backend/src/main/java/com/csr/service/ParticipationService.java",
+      "lineRange": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "step:participation-signup:check-duplicate",
+      "type": "step",
+      "name": "检查重复",
+      "summary": "检查用户是否已报名该活动",
+      "tags": [
+        "validation",
+        "duplicate"
+      ],
+      "complexity": "simple",
+      "filePath": "csr_magic_backend/src/main/java/com/csr/service/ParticipationService.java",
+      "lineRange": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "step:participation-signup:create-participation",
+      "type": "step",
+      "name": "创建参与记录",
+      "summary": "创建参与活动的记录",
+      "tags": [
+        "database",
+        "create"
+      ],
+      "complexity": "simple",
+      "filePath": "csr_magic_backend/src/main/java/com/csr/service/ParticipationService.java",
+      "lineRange": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "step:participation-signup:send-confirmation",
+      "type": "step",
+      "name": "发送确认",
+      "summary": "向用户发送报名确认通知",
+      "tags": [
+        "notification"
+      ],
+      "complexity": "simple",
+      "filePath": "csr_magic_backend/src/main/java/com/csr/service/NotificationService.java",
+      "lineRange": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "step:generate-poster:receive-request",
+      "type": "step",
+      "name": "接收请求",
+      "summary": "接收海报生成请求",
+      "tags": [
+        "api",
+        "receive"
+      ],
+      "complexity": "simple",
+      "filePath": "csr_ai_service/app/api/poster.py",
+      "lineRange": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "step:generate-poster:build-prompt",
+      "type": "step",
+      "name": "构建提示词",
+      "summary": "根据活动信息构建AI提示词",
+      "tags": [
+        "ai",
+        "prompt"
+      ],
+      "complexity": "moderate",
+      "filePath": "csr_ai_service/app/utils/prompt_builder.py",
+      "lineRange": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "step:generate-poster:call-ai-service",
+      "type": "step",
+      "name": "调用AI服务",
+      "summary": "调用AI图像生成服务",
+      "tags": [
+        "ai",
+        "generation"
+      ],
+      "complexity": "complex",
+      "filePath": "csr_ai_service/app/agents/poster_agent.py",
+      "lineRange": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "step:generate-poster:compose-image",
+      "type": "step",
+      "name": "合成图像",
+      "summary": "将AI生成的图像与模板合成",
+      "tags": [
+        "image",
+        "compose"
+      ],
+      "complexity": "moderate",
+      "filePath": "csr_ai_service/app/utils/image_compose.py",
+      "lineRange": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "step:generate-poster:save-poster",
+      "type": "step",
+      "name": "保存海报",
+      "summary": "保存生成的海报到存储",
+      "tags": [
+        "storage",
+        "save"
+      ],
+      "complexity": "simple",
+      "filePath": "csr_ai_service/app/utils/storage.py",
+      "lineRange": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "step:generate-poster:return-result",
+      "type": "step",
+      "name": "返回结果",
+      "summary": "返回海报生成结果",
+      "tags": [
+        "response"
+      ],
+      "complexity": "simple",
+      "filePath": "csr_ai_service/app/api/poster.py",
+      "lineRange": [
+        0,
+        0
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "source": "domain:activity-management",
+      "target": "flow:create-activity",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:activity-management",
+      "target": "flow:manage-events",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:user-management",
+      "target": "flow:user-authentication",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:user-management",
+      "target": "flow:profile-management",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:participation-management",
+      "target": "flow:participation-signup",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:participation-management",
+      "target": "flow:participation-review",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:ai-poster-generation",
+      "target": "flow:generate-poster",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "domain:notification-management",
+      "target": "flow:send-notification",
+      "type": "contains_flow",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "flow:create-activity",
+      "target": "step:create-activity:validate-input",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:create-activity",
+      "target": "step:create-activity:check-permissions",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:create-activity",
+      "target": "step:create-activity:save-activity",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:create-activity",
+      "target": "step:create-activity:return-response",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:user-authentication",
+      "target": "step:user-authentication:validate-credentials",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:user-authentication",
+      "target": "step:user-authentication:generate-token",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:user-authentication",
+      "target": "step:user-authentication:return-token",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:participation-signup",
+      "target": "step:participation-signup:check-activity",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:participation-signup",
+      "target": "step:participation-signup:check-duplicate",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:participation-signup",
+      "target": "step:participation-signup:create-participation",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:participation-signup",
+      "target": "step:participation-signup:send-confirmation",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:generate-poster",
+      "target": "step:generate-poster:receive-request",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.1
+    },
+    {
+      "source": "flow:generate-poster",
+      "target": "step:generate-poster:build-prompt",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.2
+    },
+    {
+      "source": "flow:generate-poster",
+      "target": "step:generate-poster:call-ai-service",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.3
+    },
+    {
+      "source": "flow:generate-poster",
+      "target": "step:generate-poster:compose-image",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.4
+    },
+    {
+      "source": "flow:generate-poster",
+      "target": "step:generate-poster:save-poster",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "flow:generate-poster",
+      "target": "step:generate-poster:return-result",
+      "type": "flow_step",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:activity-management",
+      "target": "domain:user-management",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "活动管理需要用户管理提供权限验证",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:participation-management",
+      "target": "domain:activity-management",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "参与管理需要活动管理提供活动信息",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:participation-management",
+      "target": "domain:notification-management",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "参与管理需要通知管理发送审核结果",
+      "weight": 0.6
+    },
+    {
+      "source": "domain:ai-poster-generation",
+      "target": "domain:activity-management",
+      "type": "cross_domain",
+      "direction": "forward",
+      "description": "AI海报生成需要活动管理提供活动详情",
+      "weight": 0.6
+    }
+  ],
+  "layers": [],
+  "tour": []
+}

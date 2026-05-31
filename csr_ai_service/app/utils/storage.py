@@ -29,3 +29,11 @@ def save_poster(task_id: str, image_bytes: bytes) -> str:
 
     # 返回可通过 HTTP 访问的相对路径
     return f"/static/posters/{file_name}"
+
+
+def get_poster_bytes(task_id: str) -> bytes | None:
+    """读取已保存的海报图片字节数据，不存在时返回 None"""
+    file_path = Path(POSTER_STORAGE_DIR) / f"{task_id}.png"
+    if not file_path.exists():
+        return None
+    return file_path.read_bytes()

@@ -1,0 +1,63 @@
+# .understandignore — patterns for files/dirs to exclude from analysis
+# Syntax: same as .gitignore (globs, # comments, ! negation, trailing / for dirs)
+
+# --- Built-in defaults (always excluded) ---
+node_modules/
+.git/
+dist/
+build/
+obj/
+*.lock
+*.min.js
+*.min.css
+*.map
+*.generated.*
+.idea/
+.vscode/
+LICENSE
+.gitignore
+.editorconfig
+.prettierrc
+.eslintrc*
+*.log
+
+# --- From .gitignore (project-specific) ---
+.pnp/
+.pnp.js
+.vite/
+*.jar
+*.war
+*.class
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+.env
+.env.local
+.env.*.local
+target/
+
+# --- Detected directories (exclude from analysis) ---
+docs/
+tests/
+test/
+__tests__/
+fixtures/
+examples/
+scripts/
+migrations/
+.storybook/
+csr_magic_frontend/node_modules/
+csr_magic_frontend/dist/
+csr_magic_frontend/e2e/
+csr_magic_backend/target/
+csr_ai_service/__pycache__/
+csr_ai_service/tests/
+.claude/worktrees/
+
+# --- Test file patterns ---
+*.test.*
+*.spec.*
+*.snap

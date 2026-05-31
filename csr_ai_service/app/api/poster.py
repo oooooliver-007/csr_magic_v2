@@ -11,6 +11,8 @@ from models import (
     ApiResponseModel,
 )
 from app.agents.poster_agent import run_poster_generation, get_task_status
+from app.utils.storage import get_poster_bytes
+from fastapi.responses import Response
 
 logger = logging.getLogger(__name__)
 
@@ -56,3 +58,16 @@ async def get_poster_status(task_id: str) -> ApiResponseModel:
         message="success",
         data=task.model_dump(),
     )
+
+
+@router.get("/{task_id}/image")
+async def get_poster_image(task_id: str):
+    """
+    返回海报原始 PNG 图片字节，供后端下载后存入 DB。
+    文件不存在时返回 404。
+    """
+    image_bytes = get_poster_bytes(task_id)
+    if image_bytes is None:
+        raise HTTPException(status_code=404, detail=f"海报图片不存在: {task_id}")
+
+    return Response(content=image_bytes, media_type="image/png")
