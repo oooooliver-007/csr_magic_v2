@@ -32,7 +32,6 @@ public class AiPoster {
     @Column(length = 500)
     private String posterUrl;
 
-    @Lob
     @Column(name = "poster_data", columnDefinition = "BYTEA")
     private byte[] posterData;
 

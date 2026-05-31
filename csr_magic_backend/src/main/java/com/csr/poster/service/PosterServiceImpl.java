@@ -37,6 +37,7 @@ public class PosterServiceImpl implements PosterService {
     private final AiPosterRepository aiPosterRepository;
     private final ActivityRepository activityRepository;
     private final UserRepository userRepository;
+    private final AiServiceClient aiServiceClient;
     private final RestTemplate restTemplate;
 
     @Value("${ai-service.base-url:http://localhost:8000}")
@@ -45,10 +46,12 @@ public class PosterServiceImpl implements PosterService {
     public PosterServiceImpl(
             AiPosterRepository aiPosterRepository,
             ActivityRepository activityRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            AiServiceClient aiServiceClient) {
         this.aiPosterRepository = aiPosterRepository;
         this.activityRepository = activityRepository;
         this.userRepository = userRepository;
+        this.aiServiceClient = aiServiceClient;
         this.restTemplate = new RestTemplate();
     }
 
@@ -97,7 +100,7 @@ public class PosterServiceImpl implements PosterService {
         log.info("创建海报生成任务: taskId={}, userId={}, activityId={}", taskId, userId, request.activityId());
 
         // 异步调用 AI 服务
-        callAiServiceAsync(taskId, activity, request, userId);
+        aiServiceClient.callGenerate(taskId, activity, request, userId);
 
         return new GenerateTaskResponse(taskId);
     }
@@ -138,36 +141,6 @@ public class PosterServiceImpl implements PosterService {
                             .orElse(null);
                     return PosterResponse.from(poster, activityName);
                 });
-    }
-
-    @Async
-    protected void callAiServiceAsync(String taskId, Activity activity,
-                                       GeneratePosterRequest request, Long userId) {
-        try {
-            String userName = userRepository.findById(userId)
-                    .map(u -> u.getDisplayName() != null ? u.getDisplayName() : u.getUsername())
-                    .orElse(null);
-
-            Map<String, Object> body = Map.of(
-                    "task_id", taskId,
-                    "activity_name", activity.getName(),
-                    "activity_type", activity.getTemplateType().name(),
-                    "style", request.style(),
-                    "user_prompt", request.userPrompt() != null ? request.userPrompt() : "",
-                    "user_name", userName != null ? userName : ""
-            );
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
-
-            restTemplate.postForEntity(aiServiceBaseUrl + "/poster/generate", entity, String.class);
-            log.info("已发送海报生成请求至 AI 服务: taskId={}", taskId);
-
-        } catch (Exception e) {
-            log.error("调用 AI 服务失败: taskId={}, error={}", taskId, e.getMessage());
-            updatePosterStatus(taskId, "FAILED", null, "AI 服务调用失败: " + e.getMessage());
-        }
     }
 
     @Transactional
