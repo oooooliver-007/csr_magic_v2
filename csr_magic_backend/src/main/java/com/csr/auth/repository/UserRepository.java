@@ -14,16 +14,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByUsername(String username);
 
-    @Query(value = "SELECT * FROM users u WHERE " +
-            "(:keyword IS NULL OR (u.username ILIKE '%' || CAST(:keyword AS TEXT) || '%' " +
-            "OR u.display_name ILIKE '%' || CAST(:keyword AS TEXT) || '%' " +
-            "OR u.real_name ILIKE '%' || CAST(:keyword AS TEXT) || '%')) " +
-            "AND (:region IS NULL OR u.region = CAST(:region AS TEXT))",
-            countQuery = "SELECT COUNT(*) FROM users u WHERE " +
-            "(:keyword IS NULL OR (u.username ILIKE '%' || CAST(:keyword AS TEXT) || '%' " +
-            "OR u.display_name ILIKE '%' || CAST(:keyword AS TEXT) || '%' " +
-            "OR u.real_name ILIKE '%' || CAST(:keyword AS TEXT) || '%')) " +
-            "AND (:region IS NULL OR u.region = CAST(:region AS TEXT))",
-            nativeQuery = true)
+    @Query("SELECT u FROM User u WHERE " +
+            "(:keyword = '' OR lower(u.username) LIKE lower(concat(concat('%', :keyword), '%')) " +
+            "OR lower(u.displayName) LIKE lower(concat(concat('%', :keyword), '%')) " +
+            "OR lower(u.realName) LIKE lower(concat(concat('%', :keyword), '%'))) " +
+            "AND (:region = '' OR u.region = :region)")
     Page<User> findByFilters(String keyword, String region, Pageable pageable);
 }

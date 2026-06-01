@@ -44,8 +44,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<UserResponse> list(String keyword, String region, Pageable pageable) {
-        String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
-        String rg = (region != null && !region.isBlank()) ? region.trim() : null;
+        String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : "";
+        String rg = (region != null && !region.isBlank()) ? region.trim() : "";
         Page<User> page = userRepository.findByFilters(kw, rg, pageable);
         return page.map(UserResponse::from);
     }
