@@ -73,13 +73,13 @@ class UserServiceImplTest {
     void list_noFilter() {
         Pageable pageable = PageRequest.of(0, 20);
         Page<User> page = new PageImpl<>(List.of(testUser), pageable, 1);
-        when(userRepository.findByFilters(isNull(), isNull(), eq(pageable))).thenReturn(page);
+        when(userRepository.findByFilters(eq(""), eq(""), eq(pageable))).thenReturn(page);
 
         Page<UserResponse> result = userService.list(null, null, pageable);
 
         assertEquals(1, result.getTotalElements());
         assertEquals("测试用户", result.getContent().get(0).displayName());
-        verify(userRepository).findByFilters(isNull(), isNull(), eq(pageable));
+        verify(userRepository).findByFilters(eq(""), eq(""), eq(pageable));
     }
 
     @Test
@@ -87,7 +87,7 @@ class UserServiceImplTest {
     void list_withKeyword() {
         Pageable pageable = PageRequest.of(0, 20);
         Page<User> page = new PageImpl<>(List.of(testUser), pageable, 1);
-        when(userRepository.findByFilters(eq("张三"), isNull(), eq(pageable))).thenReturn(page);
+        when(userRepository.findByFilters(eq("张三"), eq(""), eq(pageable))).thenReturn(page);
 
         Page<UserResponse> result = userService.list("张三", null, pageable);
 
@@ -99,7 +99,7 @@ class UserServiceImplTest {
     void list_withRegion() {
         Pageable pageable = PageRequest.of(0, 20);
         Page<User> page = new PageImpl<>(List.of(testUser), pageable, 1);
-        when(userRepository.findByFilters(isNull(), eq("北京"), eq(pageable))).thenReturn(page);
+        when(userRepository.findByFilters(eq(""), eq("北京"), eq(pageable))).thenReturn(page);
 
         Page<UserResponse> result = userService.list(null, "北京", pageable);
 
@@ -111,7 +111,7 @@ class UserServiceImplTest {
     void list_blankKeyword() {
         Pageable pageable = PageRequest.of(0, 20);
         Page<User> page = new PageImpl<>(List.of(), pageable, 0);
-        when(userRepository.findByFilters(isNull(), isNull(), eq(pageable))).thenReturn(page);
+        when(userRepository.findByFilters(eq(""), eq(""), eq(pageable))).thenReturn(page);
 
         Page<UserResponse> result = userService.list("   ", "  ", pageable);
 
