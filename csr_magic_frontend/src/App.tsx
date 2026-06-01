@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import ErrorBoundary from './components/ErrorBoundary';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import PrivateRoute from './components/PrivateRoute';
@@ -26,36 +27,38 @@ export default function App() {
   }, [loadFromStorage]);
 
   return (
-    <Routes>
-      {/* 公开路由 */}
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+    <ErrorBoundary>
+      <Routes>
+        {/* 公开路由 */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
-      {/* 受保护路由 */}
-      <Route element={<PrivateRoute />}>
-        {/* 员工端路由 */}
-        <Route element={<EmployeeLayout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/activities" element={<ActivityListPage />} />
-          <Route path="/activities/:id" element={<ActivityDetailPage />} />
-          <Route path="/notifications" element={<NotificationListPage />} />
-          <Route path="/my" element={<MyProfilePage />} />
-          <Route path="/poster" element={<AIPosterStudioPage />} />
+        {/* 受保护路由 */}
+        <Route element={<PrivateRoute />}>
+          {/* 员工端路由 */}
+          <Route element={<EmployeeLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/activities" element={<ActivityListPage />} />
+            <Route path="/activities/:id" element={<ActivityDetailPage />} />
+            <Route path="/notifications" element={<NotificationListPage />} />
+            <Route path="/my" element={<MyProfilePage />} />
+            <Route path="/poster" element={<AIPosterStudioPage />} />
+          </Route>
+
+          {/* 管理端路由 */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<DashboardPage />} />
+            <Route path="events" element={<EventManagementPage />} />
+            <Route path="activities" element={<ActivityManagementPage />} />
+            <Route path="participations" element={<ParticipationPage />} />
+            <Route path="users" element={<UserManagementPage />} />
+            <Route path="notifications" element={<Navigate to="/admin/participations?state=PENDING" replace />} />
+          </Route>
         </Route>
 
-        {/* 管理端路由 */}
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="events" element={<EventManagementPage />} />
-          <Route path="activities" element={<ActivityManagementPage />} />
-          <Route path="participations" element={<ParticipationPage />} />
-          <Route path="users" element={<UserManagementPage />} />
-          <Route path="notifications" element={<Navigate to="/admin/participations?state=PENDING" replace />} />
-        </Route>
-      </Route>
-
-      {/* 兜底重定向 */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* 兜底重定向 */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </ErrorBoundary>
   );
 }
