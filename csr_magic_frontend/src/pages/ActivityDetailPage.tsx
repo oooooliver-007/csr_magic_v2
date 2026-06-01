@@ -3,7 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronRight, Sparkles, MessageSquare, Loader2 } from 'lucide-react';
 import { activityApi } from '../services/activityApi';
 import { participationApi } from '../services/participationApi';
+import { surveyApi } from '../services/surveyApi';
 import type { ActivityDetail, FamilyMember } from '../types/participation';
+import type { Survey } from '../types/survey';
 import ActivityInfo from '../components/ActivityInfo';
 import ParticipationStatus from '../components/ParticipationStatus';
 import SignupForm from '../components/SignupForm';
@@ -22,6 +24,8 @@ export default function ActivityDetailPage() {
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [withdrawing, setWithdrawing] = useState(false);
   const [showResubmitForm, setShowResubmitForm] = useState(false);
+  const [survey, setSurvey] = useState<Survey | null>(null);
+  const [surveySubmitted, setSurveySubmitted] = useState<boolean | null>(null);
 
   const showToast = useCallback((type: 'success' | 'error', message: string) => {
     setToast({ type, message });
@@ -45,6 +49,35 @@ export default function ActivityDetailPage() {
   useEffect(() => {
     fetchActivity();
   }, [fetchActivity]);
+
+  useEffect(() => {
+    if (!activity) {
+      setSurvey(null);
+      setSurveySubmitted(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await surveyApi.getByActivityId(activity.id);
+        if (cancelled) return;
+        const s = res.data.data;
+        setSurvey(s);
+        try {
+          const sub = await surveyApi.hasUserSubmitted(s.id);
+          if (!cancelled) setSurveySubmitted(sub.data.data);
+        } catch {
+          if (!cancelled) setSurveySubmitted(null);
+        }
+      } catch {
+        if (!cancelled) {
+          setSurvey(null);
+          setSurveySubmitted(null);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [activity]);
 
   const handleSignup = async (formData: Record<string, unknown>, familyMembers: FamilyMember[]) => {
     if (!activity) return;
@@ -169,6 +202,26 @@ export default function ActivityDetailPage() {
               onResubmit={() => setShowResubmitForm(true)}
               onNavigateChat={() => navigate(`/activities/${activity.id}/chat`)}
             />
+            {survey && (
+              <div className="mt-6 pt-6 border-t border-gray-100">
+                <h3 className="text-lg font-bold mb-1">活动问卷</h3>
+                <p className="text-sm text-[#1A2E22]/60 mb-3 line-clamp-2">{survey.title}</p>
+                <div className="flex items-center justify-between">
+                  {surveySubmitted ? (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#2EB87A] bg-[#2EB87A]/10 px-2 py-1 rounded-full">已完成</span>
+                  ) : (
+                    <span className="text-xs text-[#1A2E22]/60">欢迎反馈此次活动</span>
+                  )}
+                  <button
+                    onClick={() => navigate(`/surveys/${survey.id}`)}
+                    className="px-4 py-2 rounded-xl bg-[#2EB87A] text-white text-sm font-medium hover:bg-[#2EB87A]/90"
+                    type="button"
+                  >
+                    {surveySubmitted ? '查看' : '去填写'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
