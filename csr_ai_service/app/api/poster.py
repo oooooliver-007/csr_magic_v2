@@ -2,7 +2,7 @@
 
 import logging
 import asyncio
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header, Depends
 
 from models import (
     GeneratePosterRequest,
@@ -12,6 +12,8 @@ from models import (
 )
 from app.agents.poster_agent import run_poster_generation, get_task_status
 from app.utils.storage import get_poster_bytes
+from app.utils.rate_limit import RateLimiter
+from config import API_AUTH_TOKEN
 from fastapi.responses import Response
 
 logger = logging.getLogger(__name__)
@@ -19,12 +21,22 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/generate")
+def verify_api_key(x_api_key: str = Header(None, alias="X-Api-Key")) -> None:
+    """
+    API 鉴权依赖：验证 X-Api-Key 头是否匹配配置的共享密钥。
+    未配置密钥时（开发环境）跳过鉴权。
+    """
+    if API_AUTH_TOKEN and x_api_key != API_AUTH_TOKEN:
+        raise HTTPException(status_code=401, detail="无效的 API 密钥")
+
+
+@router.post("/generate", dependencies=[Depends(verify_api_key), Depends(RateLimiter(max_requests=5, window_seconds=60))])
 async def generate_poster(request: GeneratePosterRequest) -> ApiResponseModel:
     """
     接收海报生成请求，异步启动生成任务。
 
     立即返回 task_id，前端通过轮询 GET /poster/{task_id} 获取状态。
+    需要 X-Api-Key 头部进行鉴权。
     """
     logger.info(
         "收到海报生成请求: task_id=%s, activity=%s, style=%s",

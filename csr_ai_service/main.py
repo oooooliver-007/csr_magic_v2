@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
-from config import PORT, POSTER_STORAGE_DIR
+from config import PORT, POSTER_STORAGE_DIR, CORS_ORIGINS
 from app.api.poster import router as poster_router
 
 logging.basicConfig(
@@ -17,10 +17,11 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="CSR Magic AI Service", version="1.0.0")
 
-# CORS 配置
+# CORS 配置（从环境变量读取，支持逗号分隔多个来源）
+origins = [origin.strip() for origin in CORS_ORIGINS.split(",") if origin.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:8080"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

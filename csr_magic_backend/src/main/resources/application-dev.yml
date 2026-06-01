@@ -1,0 +1,22 @@
+# ============================================================
+# 本地开发环境配置（spring.profiles.active=dev）
+#
+# 激活方式：运行 set-env.bat（CMD）或 .\set-env.ps1（PowerShell）
+# 或手动：mvn spring-boot:run -Dspring-boot.profiles.active=dev
+# ============================================================
+
+spring:
+  datasource:
+    password: xiapeng123
+
+jwt:
+  secret: K9TmR2Z2T_dgumeWKXfMUvRIS6NpXK8pQXepk-OKU-4=
+
+# 开发环境专属配置
+app:
+  swagger-enabled: true
+
+logging:
+  level:
+    com.csr: DEBUG
+    org.springframework.security: DEBUG

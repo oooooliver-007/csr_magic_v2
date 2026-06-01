@@ -32,6 +32,9 @@ public class AiServiceClient {
     @Value("${ai-service.base-url:http://localhost:8000}")
     private String aiServiceBaseUrl;
 
+    @Value("${ai-service.api-token:}")
+    private String aiServiceApiToken;
+
     public AiServiceClient(AiPosterRepository aiPosterRepository,
                            UserRepository userRepository) {
         this.aiPosterRepository = aiPosterRepository;
@@ -58,6 +61,9 @@ public class AiServiceClient {
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
+            if (aiServiceApiToken != null && !aiServiceApiToken.isBlank()) {
+                headers.set("X-Api-Key", aiServiceApiToken);
+            }
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
             restTemplate.postForEntity(aiServiceBaseUrl + "/poster/generate", entity, String.class);

@@ -22,3 +22,9 @@ BACKEND_BASE_URL: str = os.getenv("BACKEND_BASE_URL", "http://localhost:8080")
 
 # 回调认证令牌（与后端 app.poster-callback-token 一致）
 POSTER_CALLBACK_TOKEN: str = os.getenv("POSTER_CALLBACK_TOKEN", "")
+
+# API 鉴权令牌（后端调用时需携带 X-Api-Key 头）
+API_AUTH_TOKEN: str = os.getenv("API_AUTH_TOKEN", "")
+
+# CORS 允许的来源（逗号分隔）
+CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:8080")

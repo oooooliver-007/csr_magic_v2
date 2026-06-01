@@ -5,6 +5,7 @@ spring:
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/CSR_DB?currentSchema=csr_v2&stringtype=unspecified}
     username: ${DATABASE_USERNAME:postgres}
+    # 生产环境必须通过环境变量 DATABASE_PASSWORD 设置
     password: ${DATABASE_PASSWORD}
 
   jpa:
@@ -26,6 +27,7 @@ server:
 
 # JWT 配置
 jwt:
+  # 生产环境必须通过环境变量 JWT_SECRET 设置（至少 256 位随机值）
   secret: ${JWT_SECRET}
   access-token-expiration: ${JWT_ACCESS_EXPIRATION:3600000}
   refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
@@ -33,6 +35,7 @@ jwt:
 # AI 服务配置
 ai-service:
   base-url: ${AI_SERVICE_URL:http://localhost:8000}
+  api-token: ${AI_SERVICE_API_TOKEN:}
 
 # 应用自定义配置
 app:
@@ -40,8 +43,8 @@ app:
   cors-allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
   # Refresh Token Cookie 的 Secure 标志（HTTPS 环境设为 true）
   cookie-secure: ${COOKIE_SECURE:false}
-  # Swagger UI 是否启用（生产环境建议关闭）
-  swagger-enabled: ${SWAGGER_ENABLED:true}
+  # Swagger UI（生产环境默认关闭，开发 profile 自动开启）
+  swagger-enabled: ${SWAGGER_ENABLED:false}
   # AI 服务回调令牌（与 AI 服务共享，用于服务间认证）
   poster-callback-token: ${POSTER_CALLBACK_TOKEN:}
 

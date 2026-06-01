@@ -1,15 +1,22 @@
-# CSR Magic 后端 — 开发环境变量配置
-# 执行方式：在 csr_magic_backend 目录下运行 PowerShell 并执行：
+# ============================================================
+# CSR Magic 后端 — 本地开发环境一键配置（PowerShell 版本）
+#
+# 激活 dev profile，Spring Boot 自动加载 application-dev.yml
+# 其中的数据库密码和 JWT 密钥仅用于本地开发。
+#
+# 运行方式：在 csr_magic_backend 目录下运行：
 #   .\set-env.ps1
-# 或手动在终端设置后再启动：
-#   $env:JWT_SECRET = "你的密钥"
-#   $env:DATABASE_PASSWORD = "你的数据库密码"
+# 然后启动：mvn spring-boot:run
+# ============================================================
 
-$env:JWT_SECRET = "K9TmR2Z2T_dgumeWKXfMUvRIS6NpXK8pQXepk-OKU-4="
-$env:DATABASE_PASSWORD = "xiapeng123"
+$env:SPRING_PROFILES_ACTIVE = "dev"
 
-Write-Host "环境变量已设置：" -ForegroundColor Green
-Write-Host "  JWT_SECRET        = $env:JWT_SECRET" -ForegroundColor Gray
-Write-Host "  DATABASE_PASSWORD  = $env:DATABASE_PASSWORD" -ForegroundColor Gray
 Write-Host ""
-Write-Host "现在可以启动后端：mvn spring-boot:run" -ForegroundColor Cyan
+Write-Host "  ============================================" -ForegroundColor Green
+Write-Host "   开发环境已就绪（spring.profiles.active=dev）" -ForegroundColor Green
+Write-Host "   数据库: localhost:5432/CSR_DB" -ForegroundColor Gray
+Write-Host "   Swagger: http://localhost:8080/swagger-ui" -ForegroundColor Gray
+Write-Host "  ============================================" -ForegroundColor Green
+Write-Host ""
+Write-Host "启动后端：mvn spring-boot:run" -ForegroundColor Cyan
+Write-Host ""
