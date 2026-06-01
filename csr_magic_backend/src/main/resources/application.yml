@@ -5,7 +5,7 @@ spring:
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/CSR_DB?currentSchema=csr_v2}
     username: ${DATABASE_USERNAME:postgres}
-    password: ${DATABASE_PASSWORD:xiapeng123}
+    password: ${DATABASE_PASSWORD:123456}
 
   jpa:
     hibernate:

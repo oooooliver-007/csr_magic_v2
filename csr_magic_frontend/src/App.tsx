@@ -6,6 +6,9 @@ import PrivateRoute from './components/PrivateRoute';
 import AdminLayout from './components/AdminLayout';
 import EmployeeLayout from './components/EmployeeLayout';
 import EventManagementPage from './pages/admin/EventManagementPage';
+import SurveyManagementPage from './pages/admin/SurveyManagementPage';
+import SurveyFillPage from './pages/SurveyFillPage';
+import MySurveysPage from './pages/MySurveysPage';
 import ActivityManagementPage from './pages/admin/ActivityManagementPage';
 import UserManagementPage from './pages/admin/UserManagementPage';
 import ParticipationPage from './pages/admin/ParticipationPage';
@@ -19,7 +22,7 @@ import AIPosterStudioPage from './pages/AIPosterStudioPage';
 import { useAuthStore } from './stores/authStore';
 
 export default function App() {
-  const loadFromStorage = useAuthStore((s) => s.loadFromStorage);
+  const loadFromStorage = useAuthStore.getState().loadFromStorage;
 
   useEffect(() => {
     loadFromStorage();
@@ -38,6 +41,8 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/activities" element={<ActivityListPage />} />
           <Route path="/activities/:id" element={<ActivityDetailPage />} />
+          <Route path="/my-surveys" element={<MySurveysPage />} />
+          <Route path="/surveys/:id" element={<SurveyFillPage />} />
           <Route path="/notifications" element={<NotificationListPage />} />
           <Route path="/my" element={<MyProfilePage />} />
           <Route path="/poster" element={<AIPosterStudioPage />} />
@@ -48,6 +53,7 @@ export default function App() {
           <Route index element={<DashboardPage />} />
           <Route path="events" element={<EventManagementPage />} />
           <Route path="activities" element={<ActivityManagementPage />} />
+          <Route path="surveys" element={<SurveyManagementPage />} />
           <Route path="participations" element={<ParticipationPage />} />
           <Route path="users" element={<UserManagementPage />} />
           <Route path="notifications" element={<Navigate to="/admin/participations?state=PENDING" replace />} />

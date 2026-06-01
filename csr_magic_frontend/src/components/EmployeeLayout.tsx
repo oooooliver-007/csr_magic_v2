@@ -7,6 +7,7 @@ import NotificationBell from './NotificationBell';
 const navLinks = [
   { to: '/', label: '首页' },
   { to: '/activities', label: '活动' },
+  { to: '/my-surveys', label: '问卷' },
   { to: '/poster', label: '海报工作台' },
   { to: '/my', label: '个人中心' },
 ];
