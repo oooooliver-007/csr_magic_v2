@@ -56,6 +56,13 @@ htmlcov/
 test-results/
 playwright-report/
 
+# Runtime state
+.deepseek/state/
+csr_ai_service/task_store.json
+
+# Root-level lock file (services have their own)
+/package-lock.json
+
 # Misc
 *.tmp
 *.temp
