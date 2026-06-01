@@ -226,7 +226,7 @@ test.describe('通知系统', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    await expect(page.getByText('99+')).toBeVisible();
+    await expect(page.locator('span').filter({ hasText: /99\+/ }).first()).toBeVisible({ timeout: 5000 });
    });
 
   test('点击铃铛展开最近 5 条通知，且不显示第 6 条最早通知', async ({ page }) => {

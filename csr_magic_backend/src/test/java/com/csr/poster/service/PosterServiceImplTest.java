@@ -11,6 +11,7 @@ import com.csr.poster.dto.PosterResponse;
 import com.csr.poster.dto.PosterStatusResponse;
 import com.csr.poster.entity.AiPoster;
 import com.csr.poster.repository.AiPosterRepository;
+import com.csr.poster.service.AiServiceClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,9 @@ class PosterServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private AiServiceClient aiServiceClient;
 
     @InjectMocks
     private PosterServiceImpl posterService;

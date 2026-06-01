@@ -1,5 +1,6 @@
 package com.csr.activity.service;
 
+import com.csr.audit.service.AuditLogService;
 import com.csr.activity.dto.ActivityDetailResponse;
 import com.csr.activity.dto.ActivityResponse;
 import com.csr.activity.dto.CreateActivityRequest;
@@ -32,13 +33,16 @@ public class ActivityServiceImpl implements ActivityService {
     private final ActivityRepository activityRepository;
     private final EventRepository eventRepository;
     private final UserActivityRepository userActivityRepository;
+    private final AuditLogService auditLogService;
 
     public ActivityServiceImpl(ActivityRepository activityRepository,
                                EventRepository eventRepository,
-                               UserActivityRepository userActivityRepository) {
+                               UserActivityRepository userActivityRepository,
+                               AuditLogService auditLogService) {
         this.activityRepository = activityRepository;
         this.eventRepository = eventRepository;
         this.userActivityRepository = userActivityRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Override
@@ -114,6 +118,7 @@ public class ActivityServiceImpl implements ActivityService {
 
         Activity saved = activityRepository.save(activity);
         log.info("创建活动成功，ID: {}, 名称: {}, 所属事件: {}", saved.getId(), saved.getName(), event.getName());
+        auditLogService.log(null, "CREATE", "ACTIVITY", saved.getId(), "创建活动: " + saved.getName());
         return ActivityResponse.from(saved);
     }
 
@@ -170,6 +175,7 @@ public class ActivityServiceImpl implements ActivityService {
 
         Activity saved = activityRepository.save(activity);
         log.info("更新活动成功，ID: {}", saved.getId());
+        auditLogService.log(null, "UPDATE", "ACTIVITY", saved.getId(), "更新活动: " + saved.getName());
         return ActivityResponse.from(saved);
     }
 
@@ -180,6 +186,7 @@ public class ActivityServiceImpl implements ActivityService {
             throw new ActivityNotFoundException(id);
         }
         activityRepository.deleteById(id);
+        auditLogService.log(null, "DELETE", "ACTIVITY", id, "删除活动");
         log.info("删除活动成功，ID: {}", id);
     }
 

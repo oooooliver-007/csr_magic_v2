@@ -1,5 +1,6 @@
 package com.csr.participation.service;
 
+import com.csr.audit.service.AuditLogService;
 import com.csr.activity.entity.Activity;
 import com.csr.activity.entity.TemplateType;
 import com.csr.activity.exception.ActivityNotFoundException;
@@ -51,6 +52,9 @@ class ParticipationServiceImplTest {
     private UserRepository userRepository;
 
     @Mock
+    private AuditLogService auditLogService;
+
+    @Mock
     private NotificationService notificationService;
 
     @InjectMocks
@@ -86,7 +90,7 @@ class ParticipationServiceImplTest {
     @DisplayName("报名：成功创建参与记录")
     void signup_success() {
         SignupRequest request = new SignupRequest(1L, "{\"amount\":100}");
-        when(activityRepository.findById(1L)).thenReturn(Optional.of(testActivity));
+        when(activityRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testActivity));
         when(userActivityRepository.existsByUserIdAndActivityId(100L, 1L)).thenReturn(false);
         when(userActivityRepository.countByActivityId(1L)).thenReturn(5L);
         when(userRepository.findById(100L)).thenReturn(Optional.of(testUser));
@@ -115,7 +119,7 @@ class ParticipationServiceImplTest {
     @DisplayName("报名：活动不存在时抛出 ActivityNotFoundException")
     void signup_activityNotFound() {
         SignupRequest request = new SignupRequest(999L, null);
-        when(activityRepository.findById(999L)).thenReturn(Optional.empty());
+        when(activityRepository.findByIdWithLock(999L)).thenReturn(Optional.empty());
 
         assertThrows(ActivityNotFoundException.class,
             () -> participationService.signup(100L, request));
@@ -126,7 +130,7 @@ class ParticipationServiceImplTest {
     void signup_activityEnded() {
         testActivity.setStatus("ENDED");
         SignupRequest request = new SignupRequest(1L, null);
-        when(activityRepository.findById(1L)).thenReturn(Optional.of(testActivity));
+        when(activityRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testActivity));
 
         BusinessException ex = assertThrows(BusinessException.class,
             () -> participationService.signup(100L, request));
@@ -138,7 +142,7 @@ class ParticipationServiceImplTest {
     @DisplayName("报名：重复报名时抛出 BusinessException")
     void signup_duplicate() {
         SignupRequest request = new SignupRequest(1L, null);
-        when(activityRepository.findById(1L)).thenReturn(Optional.of(testActivity));
+        when(activityRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testActivity));
         when(userActivityRepository.existsByUserIdAndActivityId(100L, 1L)).thenReturn(true);
 
         BusinessException ex = assertThrows(BusinessException.class,
@@ -151,7 +155,7 @@ class ParticipationServiceImplTest {
     @DisplayName("报名：名额已满时抛出 BusinessException")
     void signup_full() {
         SignupRequest request = new SignupRequest(1L, null);
-        when(activityRepository.findById(1L)).thenReturn(Optional.of(testActivity));
+        when(activityRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testActivity));
         when(userActivityRepository.existsByUserIdAndActivityId(100L, 1L)).thenReturn(false);
         when(userActivityRepository.countByActivityId(1L)).thenReturn(10L); // max = 10
 
@@ -234,7 +238,7 @@ class ParticipationServiceImplTest {
         testActivity.setAllowFamily(false);
         SignupRequest request = new SignupRequest(1L, null,
             List.of(new FamilyMemberDto("张三", FamilyRelation.SPOUSE)));
-        when(activityRepository.findById(1L)).thenReturn(Optional.of(testActivity));
+        when(activityRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testActivity));
 
         BusinessException ex = assertThrows(BusinessException.class,
             () -> participationService.signup(100L, request));
@@ -253,7 +257,7 @@ class ParticipationServiceImplTest {
                 new FamilyMemberDto("李四", FamilyRelation.CHILD),
                 new FamilyMemberDto("王五", FamilyRelation.PARENT)
             ));
-        when(activityRepository.findById(1L)).thenReturn(Optional.of(testActivity));
+        when(activityRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testActivity));
 
         BusinessException ex = assertThrows(BusinessException.class,
             () -> participationService.signup(100L, request));
@@ -272,7 +276,7 @@ class ParticipationServiceImplTest {
                 new FamilyMemberDto("张三", FamilyRelation.SPOUSE),
                 new FamilyMemberDto("李四", FamilyRelation.CHILD)
             ));
-        when(activityRepository.findById(1L)).thenReturn(Optional.of(testActivity));
+        when(activityRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testActivity));
         when(userActivityRepository.existsByUserIdAndActivityId(100L, 1L)).thenReturn(false);
         when(userActivityRepository.countByActivityId(1L)).thenReturn(5L);
         when(userActivityRepository.sumOccupiedSlots(1L)).thenReturn(9L);
@@ -293,7 +297,7 @@ class ParticipationServiceImplTest {
                 new FamilyMemberDto("张三", FamilyRelation.SPOUSE),
                 new FamilyMemberDto("李四", FamilyRelation.CHILD)
             ));
-        when(activityRepository.findById(1L)).thenReturn(Optional.of(testActivity));
+        when(activityRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testActivity));
         when(userActivityRepository.existsByUserIdAndActivityId(100L, 1L)).thenReturn(false);
         when(userActivityRepository.countByActivityId(1L)).thenReturn(5L);
         when(userActivityRepository.sumOccupiedSlots(1L)).thenReturn(7L);

@@ -1,5 +1,6 @@
 package com.csr.event.service;
 
+import com.csr.audit.service.AuditLogService;
 import com.csr.event.dto.CreateEventRequest;
 import com.csr.event.dto.EventResponse;
 import com.csr.event.dto.UpdateEventRequest;
@@ -22,9 +23,11 @@ public class EventServiceImpl implements EventService {
     private static final Logger log = LoggerFactory.getLogger(EventServiceImpl.class);
 
     private final EventRepository eventRepository;
+    private final AuditLogService auditLogService;
 
-    public EventServiceImpl(EventRepository eventRepository) {
+    public EventServiceImpl(EventRepository eventRepository, AuditLogService auditLogService) {
         this.eventRepository = eventRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Override
@@ -58,6 +61,7 @@ public class EventServiceImpl implements EventService {
         event.setVisible(request.visible() != null ? request.visible() : true);
 
         Event saved = eventRepository.save(event);
+        auditLogService.log(null, "CREATE", "EVENT", saved.getId(), "创建事件: " + saved.getName());
         log.info("创建事件成功，ID: {}, 名称: {}", saved.getId(), saved.getName());
         return EventResponse.from(saved);
     }
@@ -91,6 +95,7 @@ public class EventServiceImpl implements EventService {
         }
 
         Event saved = eventRepository.save(event);
+        auditLogService.log(null, "UPDATE", "EVENT", saved.getId(), "更新事件: " + saved.getName());
         log.info("更新事件成功，ID: {}", saved.getId());
         return EventResponse.from(saved);
     }
@@ -101,6 +106,7 @@ public class EventServiceImpl implements EventService {
         if (!eventRepository.existsById(id)) {
             throw new EventNotFoundException(id);
         }
+        auditLogService.log(null, "DELETE", "EVENT", id, "删除事件");
         eventRepository.deleteById(id);
         log.info("删除事件成功，ID: {}", id);
     }

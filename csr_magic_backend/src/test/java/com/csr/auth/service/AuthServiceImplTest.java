@@ -204,7 +204,7 @@ class AuthServiceImplTest {
         when(tokenBlacklistRepository.existsByJti("jti-logout")).thenReturn(false);
         when(jwtUtil.getExpirationFromToken(at)).thenReturn(expDate);
 
-        authService.logout(at);
+        authService.logout(at, null);
 
         ArgumentCaptor<TokenBlacklist> captor = ArgumentCaptor.forClass(TokenBlacklist.class);
         verify(tokenBlacklistRepository).save(captor.capture());
@@ -216,7 +216,7 @@ class AuthServiceImplTest {
     void logout_invalidToken() {
         when(jwtUtil.isTokenValid("expired")).thenReturn(false);
 
-        authService.logout("expired");
+        authService.logout("expired", null);
 
         verify(tokenBlacklistRepository, never()).save(any());
     }
@@ -230,7 +230,7 @@ class AuthServiceImplTest {
         when(jwtUtil.getJtiFromToken(at)).thenReturn("jti-dup");
         when(tokenBlacklistRepository.existsByJti("jti-dup")).thenReturn(true);
 
-        authService.logout(at);
+        authService.logout(at, null);
 
         verify(tokenBlacklistRepository, never()).save(any());
     }

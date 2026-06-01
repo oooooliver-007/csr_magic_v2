@@ -1,5 +1,6 @@
 package com.csr.user.service;
 
+import com.csr.audit.service.AuditLogService;
 import com.csr.auth.entity.User;
 import com.csr.auth.repository.UserRepository;
 import com.csr.common.BusinessException;
@@ -39,6 +40,9 @@ class UserServiceImplTest {
 
     @Mock
     private UserActivityRepository userActivityRepository;
+
+    @Mock
+    private AuditLogService auditLogService;
 
     @Mock
     private PasswordEncoder passwordEncoder;

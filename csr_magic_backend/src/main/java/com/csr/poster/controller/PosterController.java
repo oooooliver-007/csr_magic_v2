@@ -1,11 +1,14 @@
 package com.csr.poster.controller;
 
 import com.csr.common.ApiResponse;
+import com.csr.common.RateLimit;
+import com.csr.common.BusinessException;
 import com.csr.poster.dto.GeneratePosterRequest;
 import com.csr.poster.dto.GenerateTaskResponse;
 import com.csr.poster.dto.PosterResponse;
 import com.csr.poster.dto.PosterStatusResponse;
 import com.csr.poster.service.PosterService;
+import org.springframework.beans.factory.annotation.Value;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,11 +24,15 @@ import org.springframework.web.bind.annotation.*;
 public class PosterController {
 
     private final PosterService posterService;
+    
+    @Value("${app.poster-callback-token:}")
+    private String callbackToken;
 
     public PosterController(PosterService posterService) {
         this.posterService = posterService;
     }
 
+    @RateLimit(maxRequests = 5, windowSeconds = 60)
     @PostMapping("/generate")
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<GenerateTaskResponse> generate(@Valid @RequestBody GeneratePosterRequest request) {
@@ -52,6 +59,25 @@ public class PosterController {
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_PNG)
                 .body(imageData);
+    }
+
+    /**
+     * AI 服务回调端点 — 由 AI 服务在生成完成后主动调用。
+     * 通过 X-Callback-Token 头部进行服务间认证。
+     */
+    @PostMapping("/{taskId}/callback")
+    public ApiResponse<Void> callback(
+            @PathVariable String taskId,
+            @RequestHeader("X-Callback-Token") String token,
+            @RequestBody java.util.Map<String, String> body) {
+        if (callbackToken == null || callbackToken.isBlank() || !callbackToken.equals(token)) {
+            throw new BusinessException(403, "无效的回调令牌");
+        }
+        String status = body.getOrDefault("status", "FAILED");
+        String posterUrl = body.getOrDefault("poster_url", null);
+        String errorMessage = body.getOrDefault("error_message", null);
+        posterService.callbackUpdate(taskId, status, posterUrl, errorMessage);
+        return ApiResponse.success(null);
     }
 
     private Long getCurrentUserId() {

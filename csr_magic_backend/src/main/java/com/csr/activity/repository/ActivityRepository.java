@@ -1,13 +1,16 @@
 package com.csr.activity.repository;
 
 import com.csr.activity.entity.Activity;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
 
@@ -19,6 +22,11 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
         ORDER BY cnt DESC
         """, nativeQuery = true)
     List<Object[]> countByTemplateType();
+
+    /** 带悲观写锁的查询，用于报名流程防止名额超卖 */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT a FROM Activity a WHERE a.id = :id")
+    Optional<Activity> findByIdWithLock(@Param("id") Long id);
 
     @Query(value = "SELECT * FROM activity a WHERE "
          + "(:eventId IS NULL OR a.event_id = CAST(:eventId AS BIGINT)) AND "

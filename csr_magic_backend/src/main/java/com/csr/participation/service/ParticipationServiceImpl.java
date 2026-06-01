@@ -3,6 +3,7 @@ package com.csr.participation.service;
 import com.csr.activity.entity.Activity;
 import com.csr.activity.exception.ActivityNotFoundException;
 import com.csr.activity.repository.ActivityRepository;
+import com.csr.audit.service.AuditLogService;
 import com.csr.auth.entity.User;
 import com.csr.auth.repository.UserRepository;
 import com.csr.common.BusinessException;
@@ -37,21 +38,24 @@ public class ParticipationServiceImpl implements ParticipationService {
     private final ActivityRepository activityRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final AuditLogService auditLogService;
 
     public ParticipationServiceImpl(UserActivityRepository userActivityRepository,
                                     ActivityRepository activityRepository,
                                     UserRepository userRepository,
-                                    NotificationService notificationService) {
+                                    NotificationService notificationService,
+                                    AuditLogService auditLogService) {
         this.userActivityRepository = userActivityRepository;
         this.activityRepository = activityRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
+        this.auditLogService = auditLogService;
     }
 
     @Override
     @Transactional
     public ParticipationResponse signup(Long userId, SignupRequest request) {
-        Activity activity = activityRepository.findById(request.activityId())
+        Activity activity = activityRepository.findByIdWithLock(request.activityId())
             .orElseThrow(() -> new ActivityNotFoundException(request.activityId()));
 
         // 检查活动状态
@@ -188,6 +192,9 @@ public class ParticipationServiceImpl implements ParticipationService {
 
         UserActivity saved = userActivityRepository.save(participation);
         log.info("管理员 {} 审核参与记录 {}，操作: {}", adminUserId, participationId, request.action());
+        auditLogService.log(adminUserId, "REVIEW", "PARTICIPATION", participationId,
+                "审核" + (request.action() == ReviewRequest.Action.APPROVE ? "通过" : "驳回")
+                + (request.rejectReason() != null ? "，原因：" + request.rejectReason() : ""));
 
         // 发送站内通知给员工
         String activityName = participation.getActivity().getName();

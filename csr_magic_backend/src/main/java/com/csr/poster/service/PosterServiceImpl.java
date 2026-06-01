@@ -224,4 +224,46 @@ public class PosterServiceImpl implements PosterService {
             aiPosterRepository.save(poster);
         });
     }
+
+    /**
+     * AI 服务回调：更新任务状态并下载海报图片存入 DB。
+     * 与 syncStatusFromAiService 逻辑一致，但由 AI 服务主动触发而非轮询。
+     */
+    @Override
+    @Transactional
+    public void callbackUpdate(String taskId, String status, String posterUrl, String errorMessage) {
+        AiPoster poster = aiPosterRepository.findByTaskId(taskId).orElse(null);
+        if (poster == null) {
+            log.warn("回调收到未知 taskId: {}", taskId);
+            return;
+        }
+
+        // 构建完整 URL
+        String fullUrl = posterUrl;
+        if (posterUrl != null && !posterUrl.isEmpty() && !posterUrl.startsWith("http")) {
+            fullUrl = aiServiceBaseUrl + posterUrl;
+        }
+
+        poster.setStatus(status);
+        poster.setPosterUrl(fullUrl);
+        poster.setErrorMessage(errorMessage);
+
+        // COMPLETED 时下载图片存入 DB
+        if ("COMPLETED".equals(status) && poster.getPosterData() == null) {
+            try {
+                byte[] imageBytes = restTemplate.getForObject(
+                        aiServiceBaseUrl + "/poster/" + taskId + "/image", byte[].class);
+                if (imageBytes != null && imageBytes.length > 0) {
+                    poster.setPosterData(imageBytes);
+                    poster.setPosterUrl("/api/v2/posters/" + taskId + "/image");
+                    log.info("回调：海报图片已存入 DB: taskId={}, size={}", taskId, imageBytes.length);
+                }
+            } catch (Exception e) {
+                log.warn("回调：下载海报图片失败: taskId={}, error={}", taskId, e.getMessage());
+            }
+        }
+
+        aiPosterRepository.save(poster);
+        log.info("回调更新海报状态: taskId={}, status={}", taskId, status);
+    }
 }

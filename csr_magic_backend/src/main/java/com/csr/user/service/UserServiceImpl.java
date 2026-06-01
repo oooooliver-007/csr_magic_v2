@@ -2,6 +2,7 @@ package com.csr.user.service;
 
 import com.csr.auth.entity.User;
 import com.csr.auth.repository.UserRepository;
+import com.csr.audit.service.AuditLogService;
 import com.csr.common.BusinessException;
 import com.csr.participation.entity.UserActivity;
 import com.csr.participation.repository.UserActivityRepository;
@@ -29,13 +30,16 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserActivityRepository userActivityRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditLogService auditLogService;
 
     public UserServiceImpl(UserRepository userRepository,
                            UserActivityRepository userActivityRepository,
-                           PasswordEncoder passwordEncoder) {
+                           PasswordEncoder passwordEncoder,
+                           AuditLogService auditLogService) {
         this.userRepository = userRepository;
         this.userActivityRepository = userActivityRepository;
         this.passwordEncoder = passwordEncoder;
+        this.auditLogService = auditLogService;
     }
 
     @Override
@@ -92,6 +96,7 @@ public class UserServiceImpl implements UserService {
         }
 
         User saved = userRepository.save(user);
+        auditLogService.log(null, "UPDATE", "USER", id, "更新用户信息");
         log.info("更新用户信息: userId={}", id);
         return UserResponse.from(saved);
     }
@@ -102,6 +107,7 @@ public class UserServiceImpl implements UserService {
         if (!userRepository.existsById(id)) {
             throw new BusinessException(404, "用户不存在");
         }
+        auditLogService.log(null, "DELETE", "USER", id, "删除用户");
         userRepository.deleteById(id);
         log.info("删除用户: userId={}", id);
     }
@@ -113,6 +119,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new BusinessException(404, "用户不存在"));
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+        auditLogService.log(null, "UPDATE", "USER", id, "重置密码");
         log.info("重置用户密码: userId={}", id);
     }
 

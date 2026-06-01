@@ -32,6 +32,12 @@ public class User {
     @Column(nullable = false, length = 20)
     private String role = "USER";
 
+    @Column(name = "failed_login_attempts", nullable = false)
+    private int failedLoginAttempts = 0;
+
+    @Column(name = "locked_until")
+    private Instant lockedUntil;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -111,6 +117,22 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public int getFailedLoginAttempts() {
+        return failedLoginAttempts;
+    }
+
+    public void setFailedLoginAttempts(int failedLoginAttempts) {
+        this.failedLoginAttempts = failedLoginAttempts;
+    }
+
+    public Instant getLockedUntil() {
+        return lockedUntil;
+    }
+
+    public void setLockedUntil(Instant lockedUntil) {
+        this.lockedUntil = lockedUntil;
     }
 
     public Instant getCreatedAt() {

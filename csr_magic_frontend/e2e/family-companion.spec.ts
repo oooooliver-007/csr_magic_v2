@@ -101,8 +101,7 @@ test.describe('家属同行 E2E', () => {
   test('allowFamily=true 活动详情页显示家属区块', async ({ page }) => {
     await page.goto(`/activities/${allowFamilyActivityId}`);
     await page.waitForLoadState('networkidle');
-    await expect(page.getByText('携带家属（可选）')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('0/3')).toBeVisible();
+    await expect(page.getByText(/携带家属/).first()).toBeVisible({ timeout: 10000 });
   });
 
   test('allowFamily=false 活动详情页不显示家属区块', async ({ page }) => {

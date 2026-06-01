@@ -1,5 +1,6 @@
 package com.csr.event.service;
 
+import com.csr.audit.service.AuditLogService;
 import com.csr.event.dto.CreateEventRequest;
 import com.csr.event.dto.EventResponse;
 import com.csr.event.dto.UpdateEventRequest;
@@ -32,6 +33,9 @@ class EventServiceImplTest {
 
     @Mock
     private EventRepository eventRepository;
+
+    @Mock
+    private AuditLogService auditLogService;
 
     @InjectMocks
     private EventServiceImpl eventService;

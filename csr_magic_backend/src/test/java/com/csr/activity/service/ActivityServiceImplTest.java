@@ -1,5 +1,6 @@
 package com.csr.activity.service;
 
+import com.csr.audit.service.AuditLogService;
 import com.csr.activity.dto.ActivityDetailResponse;
 import com.csr.activity.dto.ActivityResponse;
 import com.csr.activity.dto.CreateActivityRequest;
@@ -42,6 +43,9 @@ class ActivityServiceImplTest {
 
     @Mock
     private ActivityRepository activityRepository;
+
+    @Mock
+    private AuditLogService auditLogService;
 
     @Mock
     private EventRepository eventRepository;

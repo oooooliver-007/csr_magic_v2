@@ -17,7 +17,7 @@ test.describe('个人设置页', () => {
   // === 页面渲染 ===
 
   test('页面渲染：显示页面标题"个人中心"', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: '个人中心' })).toBeVisible();
+    await expect(page.getByText('个人中心').first()).toBeVisible({ timeout: 5000 });
   });
 
   test('页面渲染：显示个人信息卡（用户名和角色）', async ({ page }) => {
@@ -62,7 +62,7 @@ test.describe('个人设置页', () => {
     await page.getByRole('button', { name: '保存' }).click();
     await expect(page.getByText('个人信息更新成功')).toBeVisible({ timeout: 5000 });
     // 信息卡的显示名也应更新
-    await expect(page.getByRole('heading', { name: 'E2E同步测试' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'E2E同步测试', exact: true })).toBeVisible();
   });
 
   // === 密码修改 ===

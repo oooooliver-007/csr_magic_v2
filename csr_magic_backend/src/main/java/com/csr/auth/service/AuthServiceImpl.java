@@ -13,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+
 @Service
 @Transactional(readOnly = true)
 public class AuthServiceImpl implements AuthService {
@@ -58,12 +60,38 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByUsername(request.username())
                 .orElseThrow(() -> new BusinessException(401, "用户名或密码错误"));
 
+        // 检查账户是否被锁定
+        if (user.getLockedUntil() != null) {
+            if (Instant.now().isBefore(user.getLockedUntil())) {
+                throw new BusinessException(423, "账户已被锁定，请稍后再试");
+            }
+            // 锁定期已过，自动解锁
+            user.setLockedUntil(null);
+            user.setFailedLoginAttempts(0);
+        }
+
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            // 密码错误：增加失败计数
+            int attempts = user.getFailedLoginAttempts() + 1;
+            user.setFailedLoginAttempts(attempts);
+            if (attempts >= 5) {
+                user.setLockedUntil(Instant.now().plusSeconds(15 * 60));
+                log.warn("用户 {} 连续登录失败 {} 次，账户已锁定 15 分钟", user.getUsername(), attempts);
+            }
+            userRepository.save(user);
             throw new BusinessException(401, "用户名或密码错误");
+        }
+
+        // 登录成功：重置失败计数
+        if (user.getFailedLoginAttempts() > 0 || user.getLockedUntil() != null) {
+            user.setFailedLoginAttempts(0);
+            user.setLockedUntil(null);
+            userRepository.save(user);
         }
 
         log.info("用户登录成功: username={}", user.getUsername());
@@ -98,18 +126,29 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public void logout(String accessToken) {
-        if (!jwtUtil.isTokenValid(accessToken)) {
-            return;
+    public void logout(String accessToken, String refreshToken) {
+        // 将 access token 加入黑名单
+        if (jwtUtil.isTokenValid(accessToken)) {
+            String jti = jwtUtil.getJtiFromToken(accessToken);
+            if (jti != null && !tokenBlacklistRepository.existsByJti(jti)) {
+                TokenBlacklist blacklist = new TokenBlacklist();
+                blacklist.setJti(jti);
+                blacklist.setExpiredAt(jwtUtil.getExpirationFromToken(accessToken).toInstant());
+                tokenBlacklistRepository.save(blacklist);
+                log.info("Access Token 已加入黑名单: jti={}", jti);
+            }
         }
 
-        String jti = jwtUtil.getJtiFromToken(accessToken);
-        if (jti != null && !tokenBlacklistRepository.existsByJti(jti)) {
-            TokenBlacklist blacklist = new TokenBlacklist();
-            blacklist.setJti(jti);
-            blacklist.setExpiredAt(jwtUtil.getExpirationFromToken(accessToken).toInstant());
-            tokenBlacklistRepository.save(blacklist);
-            log.info("用户登出，Token 已加入黑名单: jti={}", jti);
+        // 将 refresh token 也加入黑名单，防止登出后继续刷新
+        if (refreshToken != null && jwtUtil.isTokenValid(refreshToken)) {
+            String refreshJti = jwtUtil.getJtiFromToken(refreshToken);
+            if (refreshJti != null && !tokenBlacklistRepository.existsByJti(refreshJti)) {
+                TokenBlacklist blacklist = new TokenBlacklist();
+                blacklist.setJti(refreshJti);
+                blacklist.setExpiredAt(jwtUtil.getExpirationFromToken(refreshToken).toInstant());
+                tokenBlacklistRepository.save(blacklist);
+                log.info("Refresh Token 已加入黑名单: jti={}", refreshJti);
+            }
         }
     }
 }

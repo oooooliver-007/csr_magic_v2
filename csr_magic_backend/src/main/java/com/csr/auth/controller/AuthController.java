@@ -1,11 +1,13 @@
 package com.csr.auth.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import com.csr.auth.dto.AuthResponse;
 import com.csr.auth.dto.LoginRequest;
 import com.csr.auth.dto.RegisterRequest;
 import com.csr.auth.service.AuthService;
 import com.csr.common.ApiResponse;
 import com.csr.common.BusinessException;
+import com.csr.common.RateLimit;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,10 +23,14 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @Value("${app.cookie-secure:false}")
+    private boolean cookieSecure;
+
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
 
+    @RateLimit(maxRequests = 10, windowSeconds = 60)
     @PostMapping("/login")
     public ApiResponse<AuthResponse> login(@Valid @RequestBody LoginRequest request,
                                            HttpServletResponse response) {
@@ -33,6 +39,7 @@ public class AuthController {
         return ApiResponse.success(authResponse);
     }
 
+    @RateLimit(maxRequests = 3, windowSeconds = 60)
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<AuthResponse> register(@Valid @RequestBody RegisterRequest request,
@@ -55,10 +62,15 @@ public class AuthController {
     @PostMapping("/logout")
     public ApiResponse<Map<String, String>> logout(HttpServletRequest request,
                                                    HttpServletResponse response) {
+        // 提取 access token
         String authHeader = request.getHeader("Authorization");
+        String accessToken = null;
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            authService.logout(authHeader.substring(7));
+            accessToken = authHeader.substring(7);
         }
+        // 提取 refresh token（从 cookie 中），一并加入黑名单
+        String refreshToken = extractRefreshToken(request);
+        authService.logout(accessToken, refreshToken);
         clearRefreshTokenCookie(response);
         return ApiResponse.success(Map.of("message", "登出成功"));
     }
@@ -71,7 +83,7 @@ public class AuthController {
     private void setRefreshTokenCookie(HttpServletResponse response, String token) {
         Cookie cookie = new Cookie("refreshToken", token);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false); // 生产环境如使用 HTTPS 应设为 true
+        cookie.setSecure(cookieSecure);
         cookie.setPath("/");
         cookie.setMaxAge(7 * 24 * 60 * 60); // 7 天，与 refresh token 过期时间对齐
         cookie.setAttribute("SameSite", "Lax");
@@ -84,7 +96,7 @@ public class AuthController {
     private void clearRefreshTokenCookie(HttpServletResponse response) {
         Cookie cookie = new Cookie("refreshToken", "");
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);
+        cookie.setSecure(cookieSecure);
         cookie.setPath("/");
         cookie.setMaxAge(0);
         cookie.setAttribute("SameSite", "Lax");

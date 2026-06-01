@@ -8,7 +8,7 @@ test.describe('员工首页', () => {
 
   test('页面渲染：显示欢迎语和统计卡片区域', async ({ page }) => {
     await expect(page.getByRole('heading', { name: /Hi，/ })).toBeVisible();
-    await expect(page.getByText('统计卡片').or(page.getByText('参与活动数')).or(page.locator('.bg-red-50'))).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('参与活动数').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('页面渲染：显示推荐活动区', async ({ page }) => {

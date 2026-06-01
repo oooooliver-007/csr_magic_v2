@@ -1,9 +1,21 @@
-"""Prompt 模板构建 — 根据活动类型+风格构建通义万相 prompt"""
+"""Prompt 模板构建 — 根据活动类型+风格构建通义万相 prompt，含注入过滤"""
 
 import logging
+import re
 from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
+
+# 用户提示词最大长度
+MAX_USER_PROMPT_LENGTH = 500
+
+# 需要从用户输入中移除的危险模式
+UNSAFE_PATTERNS = [
+    r"<script[^>]*>.*?</script>",  # script 标签
+    r"<[^>]+>",                     # 任何 HTML 标签
+    r"javascript\s*:",              # javascript: 协议
+    r"on\w+\s*=",                   # 事件处理器
+]
 
 # 风格 → prompt 片段映射
 STYLE_PROMPTS: Dict[str, str] = {
@@ -25,6 +37,30 @@ ACTIVITY_TYPE_PROMPTS: Dict[str, str] = {
 }
 
 
+def sanitize_user_prompt(user_prompt: str) -> str:
+    """
+    清洗用户自定义提示词：
+    1. 移除 HTML 标签和脚本
+    2. 移除危险协议和事件处理器
+    3. 截断到最大长度
+    """
+    if not user_prompt:
+        return ""
+
+    cleaned = user_prompt.strip()
+
+    # 移除危险模式
+    for pattern in UNSAFE_PATTERNS:
+        cleaned = re.sub(pattern, "", cleaned, flags=re.IGNORECASE | re.DOTALL)
+
+    # 截断到最大长度
+    if len(cleaned) > MAX_USER_PROMPT_LENGTH:
+        cleaned = cleaned[:MAX_USER_PROMPT_LENGTH]
+        logger.warning("用户提示词超长，已截断至 %d 字符", MAX_USER_PROMPT_LENGTH)
+
+    return cleaned.strip()
+
+
 def build_poster_prompt(
     activity_name: str,
     activity_type: str,
@@ -35,6 +71,7 @@ def build_poster_prompt(
     构建海报生成 prompt。
 
     优先级：用户自定义 > 风格模板 + 活动类型模板
+    用户输入经过安全清洗。
     """
     style_fragment = STYLE_PROMPTS.get(style, STYLE_PROMPTS["minimalist"])
     activity_fragment = ACTIVITY_TYPE_PROMPTS.get(
@@ -49,9 +86,10 @@ def build_poster_prompt(
         f"Art style: {style_fragment}. "
     )
 
-    # 用户自定义提示词追加
-    if user_prompt and user_prompt.strip():
-        base += f"Additional instructions: {user_prompt.strip()}. "
+    # 用户自定义提示词（已清洗）
+    safe_prompt = sanitize_user_prompt(user_prompt or "")
+    if safe_prompt:
+        base += f"Additional instructions: {safe_prompt}. "
 
     # 通用质量后缀
     base += (
