@@ -16,8 +16,8 @@ public interface SurveyRepository extends JpaRepository<Survey, Long> {
     boolean existsByActivityId(Long activityId);
 
     @Query("SELECT s FROM Survey s WHERE " +
-           "(:keyword IS NULL OR s.title ILIKE %:keyword%) AND " +
-           "(:status IS NULL OR s.status = :status) " +
+           "(:keyword = '' OR LOWER(s.title) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+           "(:status = '' OR s.status = :status) " +
            "ORDER BY s.createdAt DESC")
     Page<Survey> findByFilters(@Param("keyword") String keyword,
                                @Param("status") String status,

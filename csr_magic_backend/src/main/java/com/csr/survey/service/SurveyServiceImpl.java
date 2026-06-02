@@ -178,7 +178,10 @@ public class SurveyServiceImpl implements SurveyService {
 
     @Override
     public Page<SurveyResponse> list(String keyword, String status, Pageable pageable) {
-        return surveyRepository.findByFilters(keyword, status, pageable)
+        String kw = keyword == null ? "" : keyword;
+        String st = status == null ? "" : status;
+
+        return surveyRepository.findByFilters(kw, st, pageable)
                 .map(survey -> {
                     List<SurveyQuestion> questions = questionRepository.findBySurveyIdOrderBySortOrderAsc(survey.getId());
                     int responseCount = (int) responseRepository.countBySurveyId(survey.getId());
