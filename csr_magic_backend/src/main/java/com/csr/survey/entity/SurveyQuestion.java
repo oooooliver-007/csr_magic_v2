@@ -2,6 +2,8 @@ package com.csr.survey.entity;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "survey_question")
@@ -21,6 +23,7 @@ public class SurveyQuestion {
     private String questionType;
 
     @Column(columnDefinition = "JSONB")
+    @JdbcTypeCode(SqlTypes.JSON)
     private String options;
 
     @Column(nullable = false)

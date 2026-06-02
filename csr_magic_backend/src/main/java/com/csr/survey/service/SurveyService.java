@@ -4,6 +4,8 @@ import com.csr.survey.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 public interface SurveyService {
 
     AiGeneratedSurveyResponse generateWithAi(GenerateSurveyRequest request);
@@ -15,6 +17,10 @@ public interface SurveyService {
     SurveyResponse getById(Long id);
 
     Page<SurveyResponse> list(String keyword, String status, Pageable pageable);
+
+    SurveyResponse update(Long id, UpdateSurveyRequest request);
+
+    SurveyResponse updateStatus(Long id, String status);
 
     void publish(Long id);
 
@@ -29,4 +35,6 @@ public interface SurveyService {
     Page<SurveyResultResponse> getResults(Long surveyId, Pageable pageable);
 
     SurveyStatsResponse getStats(Long surveyId);
+
+    List<QuestionStatsResponse> getQuestionStats(Long surveyId);
 }

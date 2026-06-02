@@ -161,6 +161,10 @@ public class SurveyServiceImpl implements SurveyService {
         Survey survey = surveyRepository.findByActivityId(activityId)
                 .orElseThrow(() -> new BusinessException(404, "问卷不存在"));
 
+        if (!"PUBLISHED".equals(survey.getStatus())) {
+            throw new BusinessException(404, "问卷不存在或未发布");
+        }
+
         return buildSurveyResponse(survey);
     }
 
@@ -183,6 +187,71 @@ public class SurveyServiceImpl implements SurveyService {
                             .collect(Collectors.toList());
                     return SurveyResponse.from(survey, qrs, responseCount);
                 });
+    }
+
+    @Override
+    @Transactional
+    public SurveyResponse update(Long id, UpdateSurveyRequest request) {
+        Survey survey = surveyRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(404, "问卷不存在"));
+
+        if ("CLOSED".equals(survey.getStatus())) {
+            throw new BusinessException(400, "已关闭的问卷不可编辑");
+        }
+
+        if (responseRepository.countBySurveyId(id) > 0) {
+            throw new BusinessException(400, "已有答卷，禁止修改");
+        }
+
+        survey.setTitle(request.title());
+        survey.setDescription(request.description());
+        surveyRepository.save(survey);
+
+        // 替换题目
+        questionRepository.deleteBySurveyId(id);
+        List<SurveyQuestion> questions = new ArrayList<>();
+        for (int i = 0; i < request.questions().size(); i++) {
+            var q = request.questions().get(i);
+            SurveyQuestion question = new SurveyQuestion();
+            question.setSurveyId(id);
+            question.setQuestionText(q.questionText());
+            question.setQuestionType(q.questionType());
+            question.setRequired(q.required() != null ? q.required() : true);
+            question.setSortOrder(q.sortOrder() != null ? q.sortOrder() : i);
+            if (q.options() != null && !q.options().isEmpty()) {
+                try {
+                    question.setOptions(objectMapper.writeValueAsString(q.options()));
+                } catch (JsonProcessingException e) {
+                    log.warn("序列化选项失败: {}", e.getMessage());
+                }
+            }
+            questions.add(question);
+        }
+        questionRepository.saveAll(questions);
+
+        List<SurveyResponse.QuestionResponse> qrs = questions.stream()
+                .map(this::toQuestionResponse)
+                .collect(Collectors.toList());
+        int responseCount = (int) responseRepository.countBySurveyId(id);
+
+        log.info("更新问卷: id={}, 题目数={}", id, questions.size());
+        return SurveyResponse.from(survey, qrs, responseCount);
+    }
+
+    @Override
+    @Transactional
+    public SurveyResponse updateStatus(Long id, String status) {
+        Survey survey = surveyRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(404, "问卷不存在"));
+
+        if (!List.of("DRAFT", "PUBLISHED", "CLOSED").contains(status)) {
+            throw new BusinessException(400, "非法状态");
+        }
+
+        survey.setStatus(status);
+        surveyRepository.save(survey);
+
+        return buildSurveyResponse(survey);
     }
 
     @Override
@@ -330,6 +399,52 @@ public class SurveyServiceImpl implements SurveyService {
                 Math.round(avgSentiment * 100.0) / 100.0,
                 totalQuestions
         );
+    }
+
+    @Override
+    public List<QuestionStatsResponse> getQuestionStats(Long surveyId) {
+        List<SurveyQuestion> questions = questionRepository.findBySurveyIdOrderBySortOrderAsc(surveyId);
+
+        return questions.stream().map(q -> {
+            if ("RATING".equals(q.getQuestionType())) {
+                List<String> values = answerRepository.findAllValuesByQuestion(q.getId());
+                double avg = values.stream()
+                        .map(String::trim)
+                        .filter(v -> !v.isEmpty())
+                        .mapToInt(v -> {
+                            try { return Integer.parseInt(v); } catch (NumberFormatException ignored) { return 0; }
+                        })
+                        .filter(v -> v >= 1 && v <= 5)
+                        .average()
+                        .orElse(0);
+                return new QuestionStatsResponse(q.getId(), q.getQuestionText(), q.getQuestionType(),
+                        Math.round(avg * 100.0) / 100.0, null, null, values.size());
+            }
+
+            if ("CHOICE".equals(q.getQuestionType())) {
+                List<Map<String, Object>> countMaps = answerRepository.countByQuestionGroupValue(q.getId());
+                long total = countMaps.stream()
+                        .map(m -> (Long) m.get("cnt"))
+                        .reduce(0L, Long::sum);
+
+                List<QuestionStatsResponse.OptionRatio> ratios = countMaps.stream()
+                        .map(m -> {
+                            String option = (String) m.get("val");
+                            Long cnt = (Long) m.get("cnt");
+                            double ratio = total > 0 ? Math.round((cnt * 10000.0 / total)) / 100.0 : 0.0;
+                            return new QuestionStatsResponse.OptionRatio(option, cnt, ratio);
+                        })
+                        .toList();
+
+                return new QuestionStatsResponse(q.getId(), q.getQuestionText(), q.getQuestionType(),
+                        null, ratios, null, (int) total);
+            }
+
+            // TEXT 类型：取全部答案列表（可用于前端翻页展示）
+            List<String> texts = answerRepository.findAllValuesByQuestion(q.getId());
+            return new QuestionStatsResponse(q.getId(), q.getQuestionText(), q.getQuestionType(),
+                    null, null, texts, texts.size());
+        }).collect(Collectors.toList());
     }
 
     private SurveyResponse buildSurveyResponse(Survey survey) {

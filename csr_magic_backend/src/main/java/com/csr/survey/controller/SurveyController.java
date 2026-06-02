@@ -11,6 +11,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v2/surveys")
 public class SurveyController {
@@ -47,6 +49,22 @@ public class SurveyController {
     @GetMapping("/{id}")
     public ApiResponse<SurveyResponse> getById(@PathVariable Long id) {
         return ApiResponse.success(surveyService.getById(id));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<SurveyResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateSurveyRequest request) {
+        return ApiResponse.success(surveyService.update(id, request));
+    }
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<SurveyResponse> updateStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateSurveyStatusRequest request) {
+        return ApiResponse.success(surveyService.updateStatus(id, request.status()));
     }
 
     @GetMapping("/by-activity/{activityId}")
@@ -101,5 +119,11 @@ public class SurveyController {
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<SurveyStatsResponse> getStats(@PathVariable Long surveyId) {
         return ApiResponse.success(surveyService.getStats(surveyId));
+    }
+
+    @GetMapping("/{surveyId}/question-stats")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<List<QuestionStatsResponse>> getQuestionStats(@PathVariable Long surveyId) {
+        return ApiResponse.success(surveyService.getQuestionStats(surveyId));
     }
 }
