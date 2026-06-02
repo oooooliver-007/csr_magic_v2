@@ -2,7 +2,7 @@ import apiClient from './apiClient';
 import type { ApiResponse, PageResponse } from '../types/common';
 import type {
   Survey, AiGeneratedSurvey, GenerateSurveyRequest, CreateSurveyRequest,
-  SubmitSurveyRequest, SurveyResult, SurveyStats, SurveyListParams,
+  UpdateSurveyRequest, SubmitSurveyRequest, SurveyResult, SurveyStats, SurveyListParams, QuestionStats,
 } from '../types/survey';
 
 const BASE = '/api/v2/surveys';
@@ -14,6 +14,12 @@ export const surveyApi = {
   create: (data: CreateSurveyRequest) =>
     apiClient.post<ApiResponse<Survey>>(BASE, data),
 
+  update: (id: number, data: UpdateSurveyRequest) =>
+    apiClient.put<ApiResponse<Survey>>(`${BASE}/${id}`, data),
+
+  updateStatus: (id: number, status: string) =>
+    apiClient.patch<ApiResponse<Survey>>(`${BASE}/${id}/status`, { status }),
+
   list: (params: SurveyListParams = {}) =>
     apiClient.get<ApiResponse<PageResponse<Survey>>>(BASE, { params }),
 
@@ -22,6 +28,9 @@ export const surveyApi = {
 
   getByActivityId: (activityId: number) =>
     apiClient.get<ApiResponse<Survey>>(`${BASE}/by-activity/${activityId}`),
+
+  getQuestionStats: (surveyId: number) =>
+    apiClient.get<ApiResponse<QuestionStats[]>>(`${BASE}/${surveyId}/question-stats`),
 
   publish: (id: number) =>
     apiClient.patch<ApiResponse<void>>(`${BASE}/${id}/publish`),

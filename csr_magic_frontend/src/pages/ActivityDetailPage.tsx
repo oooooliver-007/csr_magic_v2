@@ -182,8 +182,19 @@ export default function ActivityDetailPage() {
       )}
 
       <div className="flex flex-col md:flex-row gap-8">
-        {/* 左侧：活动详情信息 */}
-        <ActivityInfo activity={activity} />
+        {/* 左侧：活动详情信息 + 移动端问卷入口 */}
+        <div className="flex-1 space-y-6">
+          <ActivityInfo activity={activity} />
+
+          {survey && (
+            <SurveyEntry
+              className="md:hidden"
+              survey={survey}
+              surveySubmitted={surveySubmitted}
+              onNavigate={() => navigate(`/surveys/${survey.id}`)}
+            />
+          )}
+        </div>
 
         {/* 右侧：粘性报名卡（仅桌面端） */}
         <div className="hidden md:block w-96 shrink-0">
@@ -204,22 +215,11 @@ export default function ActivityDetailPage() {
             />
             {survey && (
               <div className="mt-6 pt-6 border-t border-gray-100">
-                <h3 className="text-lg font-bold mb-1">活动问卷</h3>
-                <p className="text-sm text-[#1A2E22]/60 mb-3 line-clamp-2">{survey.title}</p>
-                <div className="flex items-center justify-between">
-                  {surveySubmitted ? (
-                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#2EB87A] bg-[#2EB87A]/10 px-2 py-1 rounded-full">已完成</span>
-                  ) : (
-                    <span className="text-xs text-[#1A2E22]/60">欢迎反馈此次活动</span>
-                  )}
-                  <button
-                    onClick={() => navigate(`/surveys/${survey.id}`)}
-                    className="px-4 py-2 rounded-xl bg-[#2EB87A] text-white text-sm font-medium hover:bg-[#2EB87A]/90"
-                    type="button"
-                  >
-                    {surveySubmitted ? '查看' : '去填写'}
-                  </button>
-                </div>
+                <SurveyEntry
+                  survey={survey}
+                  surveySubmitted={surveySubmitted}
+                  onNavigate={() => navigate(`/surveys/${survey.id}`)}
+                />
               </div>
             )}
           </div>
@@ -403,6 +403,36 @@ function MobileBottomBar({
         <MessageSquare className="w-4 h-4" />
         AI 对话 ✨
       </button>
+    </div>
+  );
+}
+
+interface SurveyEntryProps {
+  survey: Survey;
+  surveySubmitted: boolean | null;
+  onNavigate: () => void;
+  className?: string;
+}
+
+function SurveyEntry({ survey, surveySubmitted, onNavigate, className = '' }: SurveyEntryProps) {
+  return (
+    <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-4 ${className}`}>
+      <h3 className="text-lg font-bold mb-1">活动问卷</h3>
+      <p className="text-sm text-[#1A2E22]/60 mb-3 line-clamp-2">{survey.title}</p>
+      <div className="flex items-center justify-between">
+        {surveySubmitted ? (
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#2EB87A] bg-[#2EB87A]/10 px-2 py-1 rounded-full">已完成</span>
+        ) : (
+          <span className="text-xs text-[#1A2E22]/60">欢迎反馈此次活动</span>
+        )}
+        <button
+          onClick={onNavigate}
+          className="px-4 py-2 rounded-xl bg-[#2EB87A] text-white text-sm font-medium hover:bg-[#2EB87A]/90"
+          type="button"
+        >
+          {surveySubmitted ? '查看' : '去填写'}
+        </button>
+      </div>
     </div>
   );
 }

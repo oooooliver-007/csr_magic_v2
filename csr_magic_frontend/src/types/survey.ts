@@ -47,6 +47,18 @@ export interface CreateSurveyRequest {
   }[];
 }
 
+export interface UpdateSurveyRequest {
+  title: string;
+  description?: string;
+  questions: {
+    questionText: string;
+    questionType: 'RATING' | 'CHOICE' | 'TEXT';
+    options?: string[];
+    required?: boolean;
+    sortOrder?: number;
+  }[];
+}
+
 export interface SubmitSurveyRequest {
   surveyId: number;
   answers: {
@@ -84,4 +96,20 @@ export interface SurveyListParams {
   size?: number;
   keyword?: string;
   status?: string;
+}
+
+export interface QuestionStats {
+  questionId: number;
+  questionText: string;
+  questionType: 'RATING' | 'CHOICE' | 'TEXT';
+  averageRating?: number;
+  optionRatios?: OptionRatio[] | null;
+  textAnswers?: string[] | null;
+  answerCount: number;
+}
+
+export interface OptionRatio {
+  option: string;
+  count: number;
+  ratio: number; // 百分比 0-100
 }
