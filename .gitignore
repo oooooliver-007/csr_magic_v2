@@ -67,3 +67,6 @@ csr_ai_service/task_store.json
 *.tmp
 *.temp
 .cache/
+
+# TypeScript
+*.tsbuildinfo

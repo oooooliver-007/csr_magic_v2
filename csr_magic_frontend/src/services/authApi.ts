@@ -4,7 +4,7 @@ import type { LoginRequest, RegisterRequest, AuthResponse } from '../types/auth'
 import type { ApiResponse } from '../types/common';
 
 const BASE = '/api/v2/auth';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 // 独立 axios 实例用于 refresh/logout，避免响应拦截器循环
 const refreshClient = axios.create({
