@@ -8,6 +8,7 @@ const menuItems = [
   { path: '/admin/events', label: '事件管理', icon: CalendarDays, end: false },
   { path: '/admin/activities', label: '活动管理', icon: ClipboardList, end: false },
   { path: '/admin/participations', label: '参与审核', icon: Users, end: false },
+  { path: '/admin/surveys', label: '问卷管理', icon: ClipboardList, end: false },
   { path: '/admin/users', label: '用户管理', icon: UserCircle, end: false },
 ] as const;
 
