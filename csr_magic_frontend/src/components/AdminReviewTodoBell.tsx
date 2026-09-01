@@ -103,7 +103,14 @@ export default function AdminReviewTodoBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in-50 zoom-in-95 duration-100">
+        <>
+          {/* 移动端全宽遮罩：点击收起底部 Sheet（桌面端不显示） */}
+          <div
+            className="fixed inset-0 z-40 bg-[#1A2E22]/30 md:hidden"
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="fixed inset-x-0 bottom-0 z-50 flex max-h-[75vh] flex-col rounded-t-2xl bg-white shadow-xl border border-gray-100 py-2 md:absolute md:inset-auto md:right-0 md:top-full md:mt-2 md:max-h-none md:w-96 md:rounded-2xl md:animate-in md:fade-in-50 md:zoom-in-95 md:duration-100">
           <div className="px-4 py-2 border-b border-gray-100 flex items-center justify-between">
             <h3 className="font-bold text-[#1A2E22] text-sm">审批待办</h3>
             {todoCount > 0 && (
@@ -184,7 +191,8 @@ export default function AdminReviewTodoBell() {
               查看全部
             </button>
           </div>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

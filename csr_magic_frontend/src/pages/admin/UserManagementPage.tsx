@@ -176,7 +176,7 @@ export default function UserManagementPage() {
   return (
     <div className="flex h-full gap-6 relative">
       {/* 主内容区 */}
-      <div className={`flex-1 space-y-6 transition-all duration-300 ${selectedUserDetail ? 'mr-[400px]' : ''}`}>
+      <div className={`flex-1 space-y-6 transition-all duration-300 ${selectedUserDetail ? 'md:mr-[400px]' : ''}`}>
         {/* 页面标题 */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>

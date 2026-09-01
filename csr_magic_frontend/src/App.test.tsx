@@ -40,10 +40,16 @@ vi.mock('./pages/NotificationListPage', () => ({ default: () => <div>通知中�
 vi.mock('./pages/AIPosterStudioPage', () => ({ default: () => <div>海报工作台页</div> }));
 vi.mock('./pages/admin/AdminNotificationPage', () => ({ default: () => <div>通知管理页</div> }));
 
-vi.mock('./stores/authStore', () => ({
-  useAuthStore: (selector: (state: { loadFromStorage: () => void }) => unknown) =>
-    selector({ loadFromStorage: vi.fn() }),
-}));
+vi.mock('./stores/authStore', () => {
+  const loadFromStorage = vi.fn();
+  const useAuthStore = (selector: (state: { loadFromStorage: () => void }) => unknown) =>
+    selector({ loadFromStorage });
+  return {
+    useAuthStore: Object.assign(useAuthStore, {
+      getState: () => ({ loadFromStorage }),
+    }),
+  };
+});
 
 describe('App 路由', () => {
   it('访问 /admin/notifications 重定向并渲染管理端参与审核页', async () => {

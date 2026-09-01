@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronRight, Sparkles, MessageSquare, Loader2 } from 'lucide-react';
+import { ChevronRight, Loader2 } from 'lucide-react';
 import { activityApi } from '../services/activityApi';
 import { participationApi } from '../services/participationApi';
 import { surveyApi } from '../services/surveyApi';
@@ -182,9 +182,28 @@ export default function ActivityDetailPage() {
       )}
 
       <div className="flex flex-col md:flex-row gap-8">
-        {/* 左侧：活动详情信息 + 移动端问卷入口 */}
+        {/* 左侧：活动详情信息 + 移动端报名区 + 移动端问卷入口 */}
         <div className="flex-1 space-y-6">
           <ActivityInfo activity={activity} />
+
+          {/* 移动端：内联报名区（底部操作栏「报名」按钮滚动定位至此） */}
+          <div id="mobile-signup" className="md:hidden scroll-mt-20">
+            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+              <RegistrationCard
+                activity={activity}
+                participation={participation}
+                hasParticipation={hasParticipation}
+                isEnded={isEnded}
+                isFull={isFull}
+                showSignupForm={showSignupForm}
+                showResubmitForm={showResubmitForm}
+                withdrawing={withdrawing}
+                onSignup={handleSignup}
+                onWithdraw={handleWithdraw}
+                onResubmit={() => setShowResubmitForm(true)}
+              />
+            </div>
+          </div>
 
           {survey && (
             <SurveyEntry
@@ -211,7 +230,6 @@ export default function ActivityDetailPage() {
               onSignup={handleSignup}
               onWithdraw={handleWithdraw}
               onResubmit={() => setShowResubmitForm(true)}
-              onNavigateChat={() => navigate(`/activities/${activity.id}/chat`)}
             />
             {survey && (
               <div className="mt-6 pt-6 border-t border-gray-100">
@@ -231,7 +249,6 @@ export default function ActivityDetailPage() {
         hasParticipation={hasParticipation}
         isEnded={isEnded}
         isFull={isFull}
-        onNavigateChat={() => navigate(`/activities/${activity.id}/chat`)}
       />
     </div>
   );
@@ -249,7 +266,6 @@ interface RegistrationCardProps {
   onSignup: (formData: Record<string, unknown>, familyMembers: FamilyMember[]) => Promise<void>;
   onWithdraw: () => void;
   onResubmit: () => void;
-  onNavigateChat: () => void;
 }
 
 function RegistrationCard({
@@ -264,7 +280,6 @@ function RegistrationCard({
   onSignup,
   onWithdraw,
   onResubmit,
-  onNavigateChat,
 }: RegistrationCardProps) {
   if (isEnded) {
     return (
@@ -337,21 +352,8 @@ function RegistrationCard({
       {!showSignupForm && !isFull && (
         <p className="text-[#1A2E22]/60 text-sm mb-6">准备好了吗？</p>
       )}
-
-      <div className="space-y-3">
-        <div className="relative flex items-center py-2">
-          <div className="flex-grow border-t border-gray-200"></div>
-          <span className="flex-shrink-0 mx-4 text-[#1A2E22]/40 text-xs uppercase font-bold">Or</span>
-          <div className="flex-grow border-t border-gray-200"></div>
-        </div>
-        <button
-          onClick={onNavigateChat}
-          className="w-full bg-white text-[#2EB87A] border-2 border-[#2EB87A] py-3.5 rounded-xl font-bold hover:bg-[#2EB87A]/5 transition-colors flex items-center justify-center gap-2"
-        >
-          <Sparkles className="w-5 h-5" />
-          AI 对话报名 ✨
-        </button>
-      </div>
+      {/* TODO(ai-chat-registration): AI 对话报名模块未实现，入口暂隐藏。
+          模块完成后再恢复「AI 对话报名」按钮并接入 /activities/:id/chat 路由 */}
     </div>
   );
 }
@@ -360,14 +362,12 @@ interface MobileBottomBarProps {
   hasParticipation: boolean;
   isEnded: boolean;
   isFull: boolean;
-  onNavigateChat: () => void;
 }
 
 function MobileBottomBar({
   hasParticipation,
   isEnded,
   isFull,
-  onNavigateChat,
 }: MobileBottomBarProps) {
   if (isEnded) {
     return (
@@ -391,18 +391,14 @@ function MobileBottomBar({
         disabled={isFull}
         className="flex-1 bg-[#2EB87A] text-white py-3.5 rounded-xl font-bold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         onClick={() => {
-          window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+          // 滚动定位到页面内联报名区（移动端报名表单）
+          document.getElementById('mobile-signup')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }}
       >
-        {isFull ? '名额已满' : '报名'}
+        {isFull ? '名额已满' : '立即报名'}
       </button>
-      <button
-        onClick={onNavigateChat}
-        className="flex-1 bg-white text-[#2EB87A] border-2 border-[#2EB87A] py-3.5 rounded-xl font-bold flex items-center justify-center gap-1.5"
-      >
-        <MessageSquare className="w-4 h-4" />
-        AI 对话 ✨
-      </button>
+      {/* TODO(ai-chat-registration): AI 对话报名模块未实现，入口暂隐藏。
+          模块完成后再恢复「AI 对话」按钮并接入 /activities/:id/chat 路由 */}
     </div>
   );
 }

@@ -124,15 +124,23 @@ export default function NotificationBell({ scope = 'user', viewAllPath }: Notifi
       </button>
 
       {open && (
-        <NotificationDropdown
-          items={items}
-          loading={loading}
-          error={error}
-          unreadCount={unreadCount}
-          onRetry={refreshAll}
-          onViewAll={handleViewAll}
-          onItemClick={handleItemClick}
-        />
+        <>
+          {/* 移动端全宽遮罩：点击收起底部 Sheet（桌面端不显示） */}
+          <div
+            className="fixed inset-0 z-40 bg-[#1A2E22]/30 md:hidden"
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+          />
+          <NotificationDropdown
+            items={items}
+            loading={loading}
+            error={error}
+            unreadCount={unreadCount}
+            onRetry={refreshAll}
+            onViewAll={handleViewAll}
+            onItemClick={handleItemClick}
+          />
+        </>
       )}
     </div>
   );
