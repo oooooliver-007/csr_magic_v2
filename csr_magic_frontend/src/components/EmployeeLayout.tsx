@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Navigate, Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { Menu, Leaf, X, LogOut } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 import NotificationBell from './NotificationBell';
@@ -17,6 +17,12 @@ export default function EmployeeLayout() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
+
+  // 管理员一律进入管理端（与登录落地规则一致）：
+  // 员工端页面对管理员不开放，避免管理员通过历史记录/收藏打开员工端页面时落在用户界面
+  if (user?.role === 'ADMIN') {
+    return <Navigate to="/admin" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-[#F7FAF8] text-[#1A2E22] font-sans">

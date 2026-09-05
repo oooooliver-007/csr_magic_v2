@@ -169,8 +169,8 @@ export default function ActivityManagementPage() {
 
       {/* 筛选栏 */}
       <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4 flex-1 min-w-0">
-          <div className="relative w-64">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4 flex-1 min-w-0">
+          <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1A2E22]/40" />
             <input
               type="text"
@@ -186,7 +186,7 @@ export default function ActivityManagementPage() {
               setFilterEventId(e.target.value ? Number(e.target.value) : undefined);
               setPage(0);
             }}
-            className="px-4 py-2 rounded-xl border border-gray-200 text-sm focus:border-[#2EB87A] focus:outline-none bg-white"
+            className="flex-1 min-w-0 sm:w-auto sm:flex-none px-4 py-2 rounded-xl border border-gray-200 text-sm focus:border-[#2EB87A] focus:outline-none bg-white"
           >
             <option value="">所有事件</option>
             {events.map((event) => (
@@ -199,7 +199,7 @@ export default function ActivityManagementPage() {
               setFilterStatus(e.target.value);
               setPage(0);
             }}
-            className="px-4 py-2 rounded-xl border border-gray-200 text-sm focus:border-[#2EB87A] focus:outline-none bg-white"
+            className="flex-1 min-w-0 sm:w-auto sm:flex-none px-4 py-2 rounded-xl border border-gray-200 text-sm focus:border-[#2EB87A] focus:outline-none bg-white"
           >
             <option value="">所有状态</option>
             <option value="UPCOMING">即将开始</option>
@@ -209,7 +209,7 @@ export default function ActivityManagementPage() {
         </div>
         <button
           onClick={handleCreate}
-          className="bg-[#2EB87A] text-white px-4 py-2 rounded-xl font-medium hover:bg-[#2EB87A]/90 transition-colors flex items-center gap-2 text-sm"
+          className="w-full sm:w-auto justify-center bg-[#2EB87A] text-white px-4 py-2 rounded-xl font-medium hover:bg-[#2EB87A]/90 transition-colors flex items-center gap-2 text-sm"
         >
           <Plus className="w-4 h-4" />
           新建活动

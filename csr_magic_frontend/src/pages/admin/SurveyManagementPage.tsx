@@ -281,19 +281,19 @@ export default function SurveyManagementPage() {
   
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">问卷管理</h1>
           <p className="text-sm text-gray-500 mt-1">管理活动反馈问卷的生成、发布与统计</p>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-[#1A2E22]/60">共 {totalElements} 份问卷</span>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <span className="text-sm text-[#1A2E22]/60 w-full sm:w-auto">共 {totalElements} 份问卷</span>
           <button onClick={() => { setGenOpen(true); setAiResult(null); setGenError(''); setGenAid(''); setActivitySearch(''); setActivityOptions([]); setSelectedActivity(null); }}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 py-2 bg-[#2EB87A] text-white rounded-lg hover:bg-[#2EB87A]/90 transition-colors">
             <Plus size={18} /> AI 生成问卷
           </button>
           <button onClick={() => { setManualOpen(true); setManualError(''); setManualForm({ activityId: '', title: '', description: '', questions: [{ questionText: '', questionType: 'TEXT', optionsText: '', required: true }] }); }}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900">
+            className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 py-2 bg-[#2EB87A] text-white rounded-lg hover:bg-[#2EB87A]/90 transition-colors">
             <Plus size={18} /> 手动创建问卷
           </button>
         </div>
@@ -437,7 +437,7 @@ export default function SurveyManagementPage() {
                   className="w-full px-3 py-2 border rounded-lg mb-3" placeholder="输入活动ID" />
                 {genError && <p className="text-sm text-red-600 mb-3">{genError}</p>}
                 <button onClick={doGen} disabled={genLoading}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                  className="flex items-center gap-2 px-4 py-2 bg-[#2EB87A] text-white rounded-lg hover:bg-[#2EB87A]/90 disabled:opacity-50 transition-colors">
                   {genLoading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
                   AI 生成题目
                 </button>
@@ -610,7 +610,7 @@ export default function SurveyManagementPage() {
                     }
                   }}
                   disabled={manualSaving}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="px-4 py-2 bg-[#2EB87A] text-white rounded-lg hover:bg-[#2EB87A]/90 disabled:opacity-50 transition-colors"
                 >
                   {manualSaving ? '保存中...' : '保存'}
                 </button>
@@ -718,7 +718,7 @@ export default function SurveyManagementPage() {
                 {editError && <p className="text-sm text-red-600">{editError}</p>}
                 <div className="flex justify-end gap-2">
                   <button onClick={() => { setEditOpen(false); setEditForm(null); setEditError(''); }} className="px-4 py-2 border rounded-lg">取消</button>
-                  <button onClick={doEditSave} disabled={editSaving} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                  <button onClick={doEditSave} disabled={editSaving} className="px-4 py-2 bg-[#2EB87A] text-white rounded-lg hover:bg-[#2EB87A]/90 disabled:opacity-50 transition-colors">
                     {editSaving && <Loader2 size={16} className="inline-block mr-2 animate-spin" />}保存
                   </button>
                 </div>
@@ -879,7 +879,7 @@ export default function SurveyManagementPage() {
                   }
                 }}
                 disabled={statusSaving}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                className="px-4 py-2 bg-[#2EB87A] text-white rounded-lg hover:bg-[#2EB87A]/90 disabled:opacity-50 transition-colors"
               >
                 {statusSaving ? '保存中...' : '保存'}
               </button>

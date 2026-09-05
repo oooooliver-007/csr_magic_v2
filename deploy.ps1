@@ -16,6 +16,7 @@ param(
 )
 
 # ---------- 配置 ----------
+$ProjectRoot = $PSScriptRoot
 $Server   = "root@8.133.240.77"
 $FrontendDist = "csr_magic_frontend/dist"
 $FrontendRemote = "/opt/csr/frontend"
@@ -29,32 +30,39 @@ $AiSvc       = "csr-ai"
 # ---------- 函数 ----------
 function Deploy-Frontend {
     Write-Host "`n[1/3] 构建前端..." -ForegroundColor Cyan
-    Push-Location csr_magic_frontend
+    Push-Location (Join-Path $ProjectRoot "csr_magic_frontend")
     try {
         npm run build
-        if ($LASTEXITCODE -ne 0) { throw "构建失败" }
+        if ($LASTEXITCODE -ne 0) { throw "前端构建失败" }
     } finally { Pop-Location }
 
-    Write-Host "[2/3] 上传前端 (tar 打包直传)..." -ForegroundColor Cyan
-    Push-Location csr_magic_frontend
-    try {
-        tar czf - dist | ssh $Server "cd $FrontendRemote && rm -rf dist && tar xzf -"
-    } finally { Pop-Location }
+    Write-Host "[2/3] 打包并上传前端 (tar -> scp)..." -ForegroundColor Cyan
+    $tgz = Join-Path $env:TEMP "csr-dist.tgz"
+    tar czf $tgz -C (Join-Path $ProjectRoot "csr_magic_frontend") dist
+    if ($LASTEXITCODE -ne 0) { throw "前端打包失败" }
+    scp $tgz "${Server}:/tmp/csr-dist.tgz"
+    if ($LASTEXITCODE -ne 0) { throw "前端上传失败" }
+    ssh $Server "cd $FrontendRemote && rm -rf dist && tar xzf /tmp/csr-dist.tgz && rm -f /tmp/csr-dist.tgz"
+    if ($LASTEXITCODE -ne 0) { throw "前端远端解压失败" }
 
-    Write-Host "前端部署完成 (nginx 自动生效, 无需重启)" -ForegroundColor Green
+    Write-Host "[3/3] 前端部署完成 (nginx 自动生效, 无需重启)" -ForegroundColor Green
 }
 
 function Deploy-Backend {
     Write-Host "`n[1/3] 构建后端 (跳过测试)..." -ForegroundColor Cyan
-    Push-Location csr_magic_backend
+    Push-Location (Join-Path $ProjectRoot "csr_magic_backend")
     try {
         mvn package -DskipTests -q
-        if ($LASTEXITCODE -ne 0) { throw "构建失败" }
+        if ($LASTEXITCODE -ne 0) { throw "后端构建失败" }
     } finally { Pop-Location }
 
     Write-Host "[2/3] 上传 JAR + 重启服务..." -ForegroundColor Cyan
-    scp $BackendJar "${Server}:${BackendRemote}/"
+    $jarPath = Join-Path $ProjectRoot $BackendJar
+    if (-not (Test-Path $jarPath)) { throw "未找到构建产物: $jarPath" }
+    scp $jarPath "${Server}:${BackendRemote}/"
+    if ($LASTEXITCODE -ne 0) { throw "后端 JAR 上传失败" }
     ssh $Server "chown csr:csr $BackendRemote/*.jar && systemctl restart $BackendSvc"
+    if ($LASTEXITCODE -ne 0) { throw "后端重启失败" }
 
     Write-Host "[3/3] 等待服务就绪..." -ForegroundColor Cyan
     Start-Sleep -Seconds 5
@@ -63,41 +71,52 @@ function Deploy-Backend {
 }
 
 function Deploy-Ai {
-    Write-Host "`n[1/3] 上传 AI 服务源码 (tar 打包直传)..." -ForegroundColor Cyan
-    Push-Location $ProjectRoot
-    try {
-        tar czf - `
-            --exclude='__pycache__' --exclude='*.pyc' --exclude='.env' `
-            --exclude='task_store.json' --exclude='static/posters' --exclude='tests' `
-            csr_ai_service `
-        | ssh $Server @"
-            # 备份要保留的运行时文件
-            cp -r $AiRemote/venv /tmp/ai-venv 2>/dev/null
-            cp $AiRemote/.env /tmp/ai-env.bak 2>/dev/null
-            cp $AiRemote/task_store.json /tmp/ai-task.bak 2>/dev/null
-            cp -r $AiRemote/static/posters /tmp/ai-posters 2>/dev/null
-            # 清空并解压
-            rm -rf $AiRemote && mkdir -p $AiRemote
-            tar xzf - --strip-components=1 -C $AiRemote
-            # 恢复保留项
-            mv /tmp/ai-venv $AiRemote/venv 2>/dev/null
-            mv /tmp/ai-env.bak $AiRemote/.env 2>/dev/null
-            mv /tmp/ai-task.bak $AiRemote/task_store.json 2>/dev/null
-            mkdir -p $AiRemote/static/posters
-            mv /tmp/ai-posters/* $AiRemote/static/posters/ 2>/dev/null
-            rm -rf /tmp/ai-posters
-            # 修正权限（root 上传的文件要改回 csr 用户）
-            chown -R csr:csr $AiRemote
+    Write-Host "`n[1/5] 打包 AI 服务源码 (tar)..." -ForegroundColor Cyan
+    $tgz = Join-Path $env:TEMP "csr-ai.tgz"
+    tar czf $tgz `
+        --exclude=.venv --exclude=__pycache__ --exclude=*.pyc --exclude=.env `
+        --exclude=task_store.json --exclude=static/posters --exclude=tests `
+        -C $ProjectRoot csr_ai_service
+    if ($LASTEXITCODE -ne 0) { throw "AI 服务打包失败" }
+
+    Write-Host "[2/5] 上传 AI 服务源码 (scp)..." -ForegroundColor Cyan
+    scp $tgz "${Server}:/tmp/csr-ai.tgz"
+    if ($LASTEXITCODE -ne 0) { throw "AI 服务上传失败" }
+
+    Write-Host "[3/5] 远端解压 + 保留运行时文件 (venv/.env/任务状态/海报)..." -ForegroundColor Cyan
+    # venv 用同盘 mv 备份 (rename 原子可靠, 避免 /tmp 跨文件系统问题)
+    ssh $Server @"
+        set -e
+        rm -rf /opt/csr/venv-keep
+        mv $AiRemote/venv /opt/csr/venv-keep 2>/dev/null || true
+        cp $AiRemote/.env /opt/csr/.env-keep 2>/dev/null || true
+        cp $AiRemote/task_store.json /opt/csr/task-keep.json 2>/dev/null || true
+        rm -rf /opt/csr/posters-keep
+        mkdir -p /opt/csr/posters-keep
+        cp -r $AiRemote/static/posters/. /opt/csr/posters-keep/ 2>/dev/null || true
+        rm -rf $AiRemote && mkdir -p $AiRemote
+        tar xzf /tmp/csr-ai.tgz --strip-components=1 -C $AiRemote && rm -f /tmp/csr-ai.tgz
+        mv /opt/csr/venv-keep $AiRemote/venv 2>/dev/null || true
+        cp /opt/csr/.env-keep $AiRemote/.env 2>/dev/null || true
+        cp /opt/csr/task-keep.json $AiRemote/task_store.json 2>/dev/null || true
+        mkdir -p $AiRemote/static/posters
+        cp -r /opt/csr/posters-keep/. $AiRemote/static/posters/ 2>/dev/null || true
+        rm -rf /opt/csr/posters-keep /opt/csr/.env-keep /opt/csr/task-keep.json
+        # 修正权限（root 上传的文件要改回 csr 用户）
+        chown -R csr:csr $AiRemote
+        # 解压完整性校验
+        test -f $AiRemote/requirements.txt || { echo "解压后缺少 requirements.txt" >&2; exit 1; }
+        test -f $AiRemote/main.py        || { echo "解压后缺少 main.py" >&2; exit 1; }
 "@
-    } finally { Pop-Location }
+    if ($LASTEXITCODE -ne 0) { throw "AI 服务远端解压/恢复失败" }
 
-    Write-Host "[2/4] 安装 Python 依赖..." -ForegroundColor Cyan
+    Write-Host "[4/5] 安装 Python 依赖..." -ForegroundColor Cyan
     ssh $Server "test -d $AiRemote/venv || python3 -m venv $AiRemote/venv; $AiRemote/venv/bin/pip install -r $AiRemote/requirements.txt -q"
+    if ($LASTEXITCODE -ne 0) { throw "AI 服务依赖安装失败" }
 
-    Write-Host "[3/4] 重启 AI 服务..." -ForegroundColor Cyan
+    Write-Host "[5/5] 重启 AI 服务..." -ForegroundColor Cyan
     ssh $Server "systemctl restart $AiSvc"
-
-    Write-Host "[4/4] 等待服务就绪..." -ForegroundColor Cyan
+    if ($LASTEXITCODE -ne 0) { throw "AI 服务重启失败" }
     Start-Sleep -Seconds 3
     $status = ssh $Server "systemctl is-active $AiSvc"
     Write-Host "AI 服务状态: $status" -ForegroundColor $(if ($status -eq "active") { "Green" } else { "Red" })
