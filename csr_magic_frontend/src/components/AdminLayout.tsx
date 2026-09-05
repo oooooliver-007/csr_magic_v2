@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, Navigate } from 'react-router-dom';
 import { BarChart3, CalendarDays, ClipboardList, Users, UserCircle, LogOut, Menu, X } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 import AdminReviewTodoBell from './AdminReviewTodoBell';
@@ -18,6 +18,11 @@ export default function AdminLayout() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // 角色门禁：非 ADMIN 用户不可进入管理端（BUG-10 代码侧修复）
+  if (user && user.role !== 'ADMIN') {
+    return <Navigate to="/" replace />;
+  }
 
   const currentPage = menuItems.find((item) =>
     item.end ? location.pathname === item.path : location.pathname.startsWith(item.path)

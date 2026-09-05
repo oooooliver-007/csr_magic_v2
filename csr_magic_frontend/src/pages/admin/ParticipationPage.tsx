@@ -11,6 +11,7 @@ import type { Activity } from '../../types/activity';
 import type { Event } from '../../types/event';
 import type { UserInfo } from '../../types/user';
 import { FAMILY_RELATION_LABELS } from '../../constants/familyRelation';
+import { getAvatarInitial } from '../../utils/avatar';
 
 /** 状态徽章配色 */
 const STATE_BADGE: Record<string, { label: string; cls: string }> = {
@@ -188,8 +189,7 @@ export default function ParticipationPage() {
 
   /* ─── 用户头像首字母 ─── */
   const getInitials = (name: string | null) => {
-    if (!name) return '?';
-    return name.charAt(0).toUpperCase();
+    return getAvatarInitial(name, '?').toUpperCase();
   };
 
   /* ─── 分页可审核数（用于批量按钮统计） ─── */

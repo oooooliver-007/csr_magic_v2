@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import SignupForm from './SignupForm';
 import type { Activity } from '../types/activity';
 
@@ -68,5 +69,49 @@ describe('SignupForm 家属同行', () => {
     expect(screen.getByDisplayValue('张三')).toBeInTheDocument();
     expect(screen.getByDisplayValue('李四')).toBeInTheDocument();
     expect(screen.getByText('2/3')).toBeInTheDocument();
+  });
+
+  it('空姓名家属行提交被拦截并展示错误，不静默丢弃（BUG-07）', async () => {
+    const activity: Activity = { ...baseActivity, allowFamily: true, maxFamilyPerUser: 3 };
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(
+      <SignupForm
+        templateType="BASIC"
+        formSchemaJson={null}
+        onSubmit={onSubmit}
+        activity={activity}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: '添加家属' }));
+    await user.click(screen.getByRole('button', { name: '提交报名' }));
+
+    expect(await screen.findByText(/家属姓名不能为空/)).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('填写家属姓名后正常提交且家属信息完整传递（BUG-07 修复后行为）', async () => {
+    const activity: Activity = { ...baseActivity, allowFamily: true, maxFamilyPerUser: 3 };
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(
+      <SignupForm
+        templateType="BASIC"
+        formSchemaJson={null}
+        onSubmit={onSubmit}
+        activity={activity}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: '添加家属' }));
+    await user.type(screen.getByPlaceholderText('家属姓名'), '张三');
+    await user.click(screen.getByRole('button', { name: '提交报名' }));
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    const call = vi.mocked(onSubmit).mock.calls[0];
+    expect(call).toBeDefined();
+    const [, familyMembers] = call!;
+    expect(familyMembers).toEqual([{ name: '张三', relation: 'SPOUSE' }]);
   });
 });

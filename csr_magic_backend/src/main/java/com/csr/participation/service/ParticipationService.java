@@ -2,6 +2,7 @@ package com.csr.participation.service;
 
 import com.csr.participation.dto.MyParticipationResponse;
 import com.csr.participation.dto.ParticipationResponse;
+import com.csr.participation.dto.ResubmitRequest;
 import com.csr.participation.dto.ReviewRequest;
 import com.csr.participation.dto.SignupRequest;
 import com.csr.participation.entity.ParticipationState;
@@ -12,6 +13,11 @@ import java.time.Instant;
 public interface ParticipationService {
 
     ParticipationResponse signup(Long userId, SignupRequest request);
+
+    /**
+     * 驳回后重新提交报名（REJECTED → RE_SUBMITTED），更新报名内容并重新校验名额
+     */
+    ParticipationResponse resubmit(Long userId, Long participationId, ResubmitRequest request);
 
     void withdraw(Long participationId, Long userId);
 

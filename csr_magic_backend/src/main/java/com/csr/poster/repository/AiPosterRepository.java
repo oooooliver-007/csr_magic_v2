@@ -15,4 +15,7 @@ public interface AiPosterRepository extends JpaRepository<AiPoster, Long> {
     Page<AiPoster> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
 
     List<AiPoster> findByStatusIn(List<String> statuses);
+
+    /** 按活动统计 AI 海报记录数（活动删除前置校验用） */
+    long countByActivityId(Long activityId);
 }

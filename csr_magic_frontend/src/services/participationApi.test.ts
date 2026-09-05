@@ -95,4 +95,20 @@ describe('participationApi', () => {
     });
     expect(result).toEqual(mockResponse);
   });
+
+  it('resubmit 调用 PATCH /api/v2/participations/:id/resubmit（BUG-13）', async () => {
+    const mockResponse = { data: { code: 200, data: { id: 8, state: 'RE_SUBMITTED' } } };
+    vi.mocked(apiClient.patch).mockResolvedValue(mockResponse);
+
+    const result = await participationApi.resubmit(8, {
+      formData: '{"amount":100}',
+      familyMembers: [{ name: '张三', relation: 'SPOUSE' }],
+    });
+
+    expect(apiClient.patch).toHaveBeenCalledWith('/api/v2/participations/8/resubmit', {
+      formData: '{"amount":100}',
+      familyMembers: [{ name: '张三', relation: 'SPOUSE' }],
+    });
+    expect(result).toEqual(mockResponse);
+  });
 });

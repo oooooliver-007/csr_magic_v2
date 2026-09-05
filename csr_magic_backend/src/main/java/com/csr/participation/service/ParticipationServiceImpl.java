@@ -11,6 +11,7 @@ import com.csr.participation.dto.FamilyMemberDto;
 import com.csr.participation.dto.FamilyMemberJson;
 import com.csr.participation.dto.MyParticipationResponse;
 import com.csr.participation.dto.ParticipationResponse;
+import com.csr.participation.dto.ResubmitRequest;
 import com.csr.participation.dto.ReviewRequest;
 import com.csr.participation.dto.SignupRequest;
 import com.csr.participation.entity.ParticipationState;
@@ -114,6 +115,59 @@ public class ParticipationServiceImpl implements ParticipationService {
             "您已成功提交活动「" + activity.getName() + "」的报名申请，请等待审核"
         );
         log.info("用户 {} 报名活动 {} 成功，参与记录 ID: {}", userId, request.activityId(), saved.getId());
+        return ParticipationResponse.from(saved);
+    }
+
+    @Override
+    @Transactional
+    public ParticipationResponse resubmit(Long userId, Long participationId, ResubmitRequest request) {
+        UserActivity participation = userActivityRepository.findById(participationId)
+            .orElseThrow(() -> new ParticipationNotFoundException(participationId));
+
+        if (!participation.getUser().getId().equals(userId)) {
+            throw new BusinessException(403, "无权操作此参与记录");
+        }
+
+        // 仅 REJECTED 状态可重提，其他状态（PENDING/APPROVED/RE_SUBMITTED）拒绝
+        if (participation.getState() != ParticipationState.REJECTED) {
+            throw new BusinessException(400, "当前状态不可重新提交");
+        }
+
+        Activity activity = activityRepository.findByIdWithLock(participation.getActivity().getId())
+            .orElseThrow(() -> new ActivityNotFoundException(participation.getActivity().getId()));
+
+        // 检查活动状态
+        if ("ENDED".equals(activity.getStatus())) {
+            throw new BusinessException(400, "活动已结束，无法重新提交");
+        }
+
+        // 家属校验
+        List<FamilyMemberDto> familyMembers = request.familyMembers() != null ? request.familyMembers() : List.of();
+        if (!familyMembers.isEmpty()) {
+            if (!activity.isAllowFamily()) {
+                throw new BusinessException(400, "本活动不允许携带家属");
+            }
+            if (activity.getMaxFamilyPerUser() != null && familyMembers.size() > activity.getMaxFamilyPerUser()) {
+                throw new BusinessException(400, "超出家属人数限制，最多携带 " + activity.getMaxFamilyPerUser() + " 名家属");
+            }
+        }
+
+        // 合并名额校验（本人 1 + 家属数）
+        if (activity.getMaxParticipants() != null) {
+            long occupied = userActivityRepository.sumOccupiedSlots(activity.getId());
+            long totalAfterResubmit = occupied + 1 + familyMembers.size();
+            if (totalAfterResubmit > activity.getMaxParticipants()) {
+                throw new BusinessException(400, "剩余名额不足以容纳您和家属");
+            }
+        }
+
+        // 更新报名内容，状态进入「已重提」；保留 rejectReason 供员工对照修改，由下一次审核覆盖
+        participation.setState(ParticipationState.RE_SUBMITTED);
+        participation.setFormData(request.formData());
+        participation.setFamilyMembers(FamilyMemberJson.stringify(familyMembers));
+
+        UserActivity saved = userActivityRepository.save(participation);
+        log.info("用户 {} 重新提交报名，参与记录 ID: {}", userId, participationId);
         return ParticipationResponse.from(saved);
     }
 

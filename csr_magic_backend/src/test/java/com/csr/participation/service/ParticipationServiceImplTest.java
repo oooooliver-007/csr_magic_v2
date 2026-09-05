@@ -12,6 +12,7 @@ import com.csr.event.entity.Event;
 import com.csr.notification.service.NotificationService;
 import com.csr.participation.dto.FamilyMemberDto;
 import com.csr.participation.dto.ParticipationResponse;
+import com.csr.participation.dto.ResubmitRequest;
 import com.csr.participation.dto.SignupRequest;
 import com.csr.participation.entity.FamilyRelation;
 import com.csr.participation.entity.ParticipationState;
@@ -338,5 +339,119 @@ class ParticipationServiceImplTest {
         assertEquals(1, response.getTotalElements());
         assertEquals("PENDING", response.getContent().get(0).state());
         verify(userActivityRepository).findReviewTodos(pageable);
+    }
+
+    // === 驳回后重新提交测试（BUG-13） ===
+
+    private UserActivity rejectedParticipation() {
+        UserActivity ua = new UserActivity();
+        ua.setId(7L);
+        ua.setUser(testUser);
+        ua.setActivity(testActivity);
+        ua.setState(ParticipationState.REJECTED);
+        ua.setRejectReason("信息不完整");
+        ua.setFormData("{\"amount\":50}");
+        ReflectionTestUtils.setField(ua, "createdAt", Instant.parse("2026-05-01T10:00:00Z"));
+        return ua;
+    }
+
+    @Test
+    @DisplayName("重提：REJECTED 状态成功转为 RE_SUBMITTED 并更新内容")
+    void resubmit_success() {
+        UserActivity ua = rejectedParticipation();
+        ResubmitRequest request = new ResubmitRequest(
+            "{\"amount\":200}",
+            List.of(new FamilyMemberDto("张三", FamilyRelation.SPOUSE))
+        );
+        testActivity.setAllowFamily(true);
+        testActivity.setMaxFamilyPerUser(2);
+
+        when(userActivityRepository.findById(7L)).thenReturn(Optional.of(ua));
+        when(activityRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testActivity));
+        when(userActivityRepository.sumOccupiedSlots(1L)).thenReturn(2L); // 2+1+1=4 <= 10
+        when(userActivityRepository.save(any(UserActivity.class))).thenAnswer(inv -> {
+            UserActivity saved = inv.getArgument(0);
+            ReflectionTestUtils.setField(saved, "createdAt", Instant.parse("2026-05-01T10:00:00Z"));
+            return saved;
+        });
+
+        ParticipationResponse response = participationService.resubmit(100L, 7L, request);
+
+        assertNotNull(response);
+        assertEquals("RE_SUBMITTED", response.state());
+        // 报名内容已更新
+        assertEquals("{\"amount\":200}", ua.getFormData());
+        assertNotNull(ua.getFamilyMembers());
+        assertEquals(1, response.familyMembers().size());
+        // 原驳回原因保留供对照
+        assertEquals("信息不完整", ua.getRejectReason());
+        verify(userActivityRepository).save(ua);
+    }
+
+    @Test
+    @DisplayName("重提：非 REJECTED 状态抛出 BusinessException")
+    void resubmit_notAllowed() {
+        UserActivity ua = rejectedParticipation();
+        ua.setState(ParticipationState.PENDING);
+        ResubmitRequest request = new ResubmitRequest(null, null);
+        when(userActivityRepository.findById(7L)).thenReturn(Optional.of(ua));
+
+        BusinessException ex = assertThrows(BusinessException.class,
+            () -> participationService.resubmit(100L, 7L, request));
+        assertEquals(400, ex.getCode());
+        assertTrue(ex.getMessage().contains("不可重新提交"));
+        verify(userActivityRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("重提：他人记录时抛出 BusinessException")
+    void resubmit_unauthorized() {
+        User otherUser = new User();
+        otherUser.setId(200L);
+        UserActivity ua = rejectedParticipation();
+        ua.setUser(otherUser);
+        ResubmitRequest request = new ResubmitRequest(null, null);
+        when(userActivityRepository.findById(7L)).thenReturn(Optional.of(ua));
+
+        BusinessException ex = assertThrows(BusinessException.class,
+            () -> participationService.resubmit(100L, 7L, request));
+        assertEquals(403, ex.getCode());
+    }
+
+    @Test
+    @DisplayName("重提：活动名额不足时抛出 BusinessException")
+    void resubmit_full() {
+        UserActivity ua = rejectedParticipation();
+        ResubmitRequest request = new ResubmitRequest(
+            "{\"amount\":100}",
+            List.of(new FamilyMemberDto("张三", FamilyRelation.SPOUSE))
+        );
+        testActivity.setAllowFamily(true);
+        testActivity.setMaxFamilyPerUser(2);
+
+        when(userActivityRepository.findById(7L)).thenReturn(Optional.of(ua));
+        when(activityRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testActivity));
+        when(userActivityRepository.sumOccupiedSlots(1L)).thenReturn(9L); // 9+1+1=11 > 10
+
+        BusinessException ex = assertThrows(BusinessException.class,
+            () -> participationService.resubmit(100L, 7L, request));
+        assertEquals(400, ex.getCode());
+        assertTrue(ex.getMessage().contains("剩余名额"));
+        verify(userActivityRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("重提：活动已结束时抛出 BusinessException")
+    void resubmit_activityEnded() {
+        UserActivity ua = rejectedParticipation();
+        testActivity.setStatus("ENDED");
+        ResubmitRequest request = new ResubmitRequest(null, null);
+        when(userActivityRepository.findById(7L)).thenReturn(Optional.of(ua));
+        when(activityRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testActivity));
+
+        BusinessException ex = assertThrows(BusinessException.class,
+            () -> participationService.resubmit(100L, 7L, request));
+        assertEquals(400, ex.getCode());
+        assertTrue(ex.getMessage().contains("已结束"));
     }
 }

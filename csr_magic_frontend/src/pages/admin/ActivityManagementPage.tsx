@@ -29,6 +29,8 @@ export default function ActivityManagementPage() {
 
   // 删除确认
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Toast
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -109,13 +111,20 @@ export default function ActivityManagementPage() {
   };
 
   const handleDelete = async (id: number) => {
+    setDeleteError(null);
+    setDeleting(true);
     try {
       await activityApi.delete(id);
       showToast('删除成功');
       setDeleteConfirmId(null);
       fetchActivities();
     } catch (error) {
-      showToast('删除失败', 'error');
+      // BUG-11：删除失败时展示后端明确错误（如「该活动下还有 N 条报名记录…」），模态保持打开
+      const msg = (error as { response?: { data?: { message?: string } } })?.response?.data?.message ?? '删除失败，请重试';
+      setDeleteError(msg);
+      showToast(msg, 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -295,7 +304,7 @@ export default function ActivityManagementPage() {
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => setDeleteConfirmId(activity.id)}
+                            onClick={() => { setDeleteError(null); setDeleteConfirmId(activity.id); }}
                             className="p-1.5 text-[#1A2E22]/40 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
                             title="删除"
                           >
@@ -449,24 +458,30 @@ export default function ActivityManagementPage() {
         <>
           <div
             className="fixed inset-0 bg-[#1A2E22]/20 backdrop-blur-sm z-40"
-            onClick={() => setDeleteConfirmId(null)}
+            onClick={() => { setDeleteConfirmId(null); setDeleteError(null); }}
           />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full space-y-4">
               <h3 className="text-lg font-bold text-[#1A2E22]">确认删除</h3>
               <p className="text-sm text-[#1A2E22]/70">确定要删除该活动吗？此操作不可撤销。</p>
+              {deleteError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600" role="alert">
+                  {deleteError}
+                </div>
+              )}
               <div className="flex gap-3">
                 <button
-                  onClick={() => setDeleteConfirmId(null)}
+                  onClick={() => { setDeleteConfirmId(null); setDeleteError(null); }}
                   className="flex-1 py-2.5 rounded-xl border border-gray-200 font-medium text-[#1A2E22] hover:bg-gray-50 transition-colors text-sm"
                 >
                   取消
                 </button>
                 <button
                   onClick={() => handleDelete(deleteConfirmId)}
-                  className="flex-1 py-2.5 rounded-xl bg-red-500 font-medium text-white hover:bg-red-600 transition-colors text-sm"
+                  disabled={deleting}
+                  className="flex-1 py-2.5 rounded-xl bg-red-500 font-medium text-white hover:bg-red-600 transition-colors text-sm disabled:opacity-50"
                 >
-                  确认删除
+                  {deleting ? '删除中...' : '确认删除'}
                 </button>
               </div>
             </div>

@@ -41,13 +41,17 @@ vi.mock('./pages/AIPosterStudioPage', () => ({ default: () => <div>海报工作�
 vi.mock('./pages/admin/AdminNotificationPage', () => ({ default: () => <div>通知管理页</div> }));
 
 vi.mock('./stores/authStore', () => {
+  const mockState: { isAuthenticated: boolean } = { isAuthenticated: false };
   const loadFromStorage = vi.fn();
-  const useAuthStore = (selector: (state: { loadFromStorage: () => void }) => unknown) =>
-    selector({ loadFromStorage });
+  const useAuthStore = (selector: (state: { loadFromStorage: () => void; isAuthenticated: boolean }) => unknown) =>
+    selector({ loadFromStorage, isAuthenticated: mockState.isAuthenticated });
   return {
     useAuthStore: Object.assign(useAuthStore, {
-      getState: () => ({ loadFromStorage }),
+      getState: () => ({ loadFromStorage, isAuthenticated: mockState.isAuthenticated }),
     }),
+    __setAuthenticated: (value: boolean) => {
+      mockState.isAuthenticated = value;
+    },
   };
 });
 
@@ -64,5 +68,45 @@ describe('App 路由', () => {
     });
     expect(screen.getByText('参与审核页')).toBeInTheDocument();
     expect(screen.queryByText('员工端布局')).not.toBeInTheDocument();
+  });
+
+  it('已登录用户访问 /register 被重定向首页，不渲染注册页（BUG-04 回归）', async () => {
+    const store = (await import('./stores/authStore')) as unknown as {
+      __setAuthenticated: (value: boolean) => void;
+    };
+    store.__setAuthenticated(true);
+
+    render(
+      <MemoryRouter initialEntries={['/register']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('首页')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('注册页')).not.toBeInTheDocument();
+
+    store.__setAuthenticated(false);
+  });
+
+  it('已登录用户访问 /login 被重定向首页（同源一致化）', async () => {
+    const store = (await import('./stores/authStore')) as unknown as {
+      __setAuthenticated: (value: boolean) => void;
+    };
+    store.__setAuthenticated(true);
+
+    render(
+      <MemoryRouter initialEntries={['/login']}>
+        <App />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('首页')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('登录页')).not.toBeInTheDocument();
+
+    store.__setAuthenticated(false);
   });
 });

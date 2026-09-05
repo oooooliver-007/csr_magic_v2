@@ -7,6 +7,8 @@ interface FamilyMembersInputProps {
   onChange: (members: FamilyMember[]) => void;
   maxCount: number | null;
   disabled?: boolean;
+  /** 存在空姓名家属行时置为 true，用于行级红框与提示文案（BUG-07） */
+  error?: boolean;
 }
 
 export default function FamilyMembersInput({
@@ -14,6 +16,7 @@ export default function FamilyMembersInput({
   onChange,
   maxCount,
   disabled = false,
+  error = false,
 }: FamilyMembersInputProps) {
   const effectiveMax = maxCount ?? 10;
   const currentCount = value.filter((m) => m.name.trim() !== '').length;
@@ -61,7 +64,10 @@ export default function FamilyMembersInput({
               onChange={(e) => handleNameChange(index, e.target.value)}
               disabled={disabled}
               placeholder="家属姓名"
-              className="flex-1 min-w-0 px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#2EB87A] disabled:bg-gray-50 disabled:text-gray-400"
+              aria-invalid={error && member.name.trim() === ''}
+              className={`flex-1 min-w-0 px-3 py-2 rounded-xl border text-sm focus:outline-none focus:border-[#2EB87A] disabled:bg-gray-50 disabled:text-gray-400 ${
+                error && member.name.trim() === '' ? 'border-red-300 bg-red-50/30' : 'border-gray-200'
+              }`}
             />
             <select
               value={member.relation}
@@ -100,6 +106,12 @@ export default function FamilyMembersInput({
           <Plus className="w-4 h-4" />
           添加家属
         </button>
+      )}
+
+      {error && (
+        <p className="text-xs text-red-500" role="alert">
+          家属姓名不能为空，请填写姓名或删除空行
+        </p>
       )}
     </div>
   );

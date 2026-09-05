@@ -1,6 +1,8 @@
 package com.csr.event.service;
 
 import com.csr.audit.service.AuditLogService;
+import com.csr.activity.repository.ActivityRepository;
+import com.csr.common.BusinessException;
 import com.csr.event.dto.CreateEventRequest;
 import com.csr.event.dto.EventResponse;
 import com.csr.event.dto.UpdateEventRequest;
@@ -33,6 +35,9 @@ class EventServiceImplTest {
 
     @Mock
     private EventRepository eventRepository;
+
+    @Mock
+    private ActivityRepository activityRepository;
 
     @Mock
     private AuditLogService auditLogService;
@@ -203,10 +208,24 @@ class EventServiceImplTest {
     @DisplayName("删除事件：存在时成功删除")
     void delete_success() {
         when(eventRepository.existsById(1L)).thenReturn(true);
+        when(activityRepository.countByEventId(1L)).thenReturn(0L);
 
         eventService.delete(1L);
 
         verify(eventRepository).deleteById(1L);
+    }
+
+    @Test
+    @DisplayName("删除事件：存在活动时拒绝并给出明确报错")
+    void delete_withActivities() {
+        when(eventRepository.existsById(1L)).thenReturn(true);
+        when(activityRepository.countByEventId(1L)).thenReturn(2L);
+
+        BusinessException ex = assertThrows(BusinessException.class,
+            () -> eventService.delete(1L));
+        assertEquals(400, ex.getCode());
+        assertTrue(ex.getMessage().contains("2 个活动"));
+        verify(eventRepository, never()).deleteById(anyLong());
     }
 
     @Test

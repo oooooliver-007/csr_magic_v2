@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserCircle, Settings } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
+import { getAvatarInitial } from '../utils/avatar';
 
 interface UserAvatarDropdownProps {
   /** 是否显示角色标签 */
@@ -33,7 +34,7 @@ export default function UserAvatarDropdown({ showRole = false, size = 'md' }: Us
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const avatarInitial = user?.displayName?.charAt(0) ?? user?.username?.charAt(0) ?? 'U';
+  const avatarInitial = getAvatarInitial(user?.displayName) || getAvatarInitial(user?.username);
 
   return (
     <div className="relative" ref={dropdownRef}>

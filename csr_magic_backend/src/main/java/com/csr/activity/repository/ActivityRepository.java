@@ -45,4 +45,7 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
             @Param("templateType") String templateType,
             @Param("keyword") String keyword,
             Pageable pageable);
+
+    /** 按事件统计活动数（事件删除前置校验用） */
+    long countByEventId(Long eventId);
 }

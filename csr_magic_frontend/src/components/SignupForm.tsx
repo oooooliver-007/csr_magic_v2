@@ -54,6 +54,16 @@ export default function SignupForm({
     });
   }, []);
 
+  const handleFamilyChange = useCallback((members: FamilyMember[]) => {
+    setFamilyMembers(members);
+    setErrors((prev) => {
+      if (!prev.familyMembers) return prev;
+      const next = { ...prev };
+      delete next.familyMembers;
+      return next;
+    });
+  }, []);
+
   const validate = useCallback((): boolean => {
     const newErrors: Record<string, string> = {};
     for (const field of schema) {
@@ -67,9 +77,13 @@ export default function SignupForm({
         }
       }
     }
+    // 家属行姓名必填：空行必须报错，禁止静默丢弃后提交（BUG-07）
+    if (familyMembers.some((m) => m.name.trim() === '')) {
+      newErrors.familyMembers = '家属姓名不能为空';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [schema, values]);
+  }, [schema, values, familyMembers]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,8 +91,7 @@ export default function SignupForm({
 
     setSubmitting(true);
     try {
-      const validMembers = familyMembers.filter((m) => m.name.trim() !== '');
-      await onSubmit(values, validMembers);
+      await onSubmit(values, familyMembers);
     } finally {
       setSubmitting(false);
     }
@@ -106,9 +119,10 @@ export default function SignupForm({
       {activity?.allowFamily && (
         <FamilyMembersInput
           value={familyMembers}
-          onChange={setFamilyMembers}
+          onChange={handleFamilyChange}
           maxCount={activity.maxFamilyPerUser}
           disabled={disabled || submitting}
+          error={!!errors.familyMembers}
         />
       )}
 

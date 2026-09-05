@@ -24,6 +24,10 @@ export default function AIPosterStudioPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [shareToast, setShareToast] = useState<string | null>(null);
+
+  // 生成任务 ref 锁：杜绝同一 tick 内快速双击创建两个任务（P05 / 观察 7）
+  const generatingRef = useRef(false);
 
   // 画廊刷新
   const [galleryRefreshKey, setGalleryRefreshKey] = useState(0);
@@ -108,8 +112,9 @@ export default function AIPosterStudioPage() {
   );
 
   const handleGenerate = async () => {
-    if (!selectedActivityId || isGenerating) return;
+    if (!selectedActivityId || generatingRef.current) return;
 
+    generatingRef.current = true;
     setIsGenerating(true);
     setErrorMessage(null);
     setGeneratedImageUrl(null);
@@ -126,6 +131,8 @@ export default function AIPosterStudioPage() {
       setIsGenerating(false);
       setErrorMessage('提交失败，请重试');
       console.error('海报生成请求失败:', err);
+    } finally {
+      generatingRef.current = false;
     }
   };
 
@@ -136,6 +143,45 @@ export default function AIPosterStudioPage() {
     link.download = 'csr-poster.png';
     link.target = '_blank';
     link.click();
+  };
+
+  const showShareToast = useCallback((message: string) => {
+    setShareToast(message);
+    window.setTimeout(() => setShareToast(null), 3000);
+  }, []);
+
+  /**
+   * 分享到动态（BUG-12）：优先 Web Share API（携带海报图片），
+   * 用户取消（AbortError）静默；不支持/失败降级复制链接并 toast。
+   */
+  const handleShare = async () => {
+    if (!generatedImageUrl) return;
+    const shareUrl = new URL(generatedImageUrl, window.location.origin).href;
+
+    if (typeof navigator.share === 'function') {
+      try {
+        const blob = await fetch(generatedImageUrl).then((r) => r.blob());
+        const file = new File([blob], 'csr-poster.png', { type: blob.type || 'image/png' });
+        await navigator.share({
+          files: [file],
+          title: 'CSR Magic 活动海报',
+          text: '我参加 CSR 公益活动并获得了一张 AI 海报！',
+        });
+        return; // 系统分享面板已反馈结果
+      } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') {
+          return; // 用户取消分享，静默处理
+        }
+        // 其余错误降级为复制链接
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      showShareToast('海报链接已复制');
+    } catch {
+      showShareToast('分享失败，请稍后重试');
+    }
   };
 
   const selectedActivity = activities.find((a) => a.activityId === selectedActivityId);
@@ -240,7 +286,7 @@ export default function AIPosterStudioPage() {
             </button>
 
             {isGenerating && (
-              <p className="text-center text-[#1A2E22]/50 text-xs mt-3">
+              <p className="text-center text-[#1A2E22]/50 text-xs mt-3" aria-live="polite" role="status">
                 AI 正在为你创作专属海报，请稍等约 20 秒...
               </p>
             )}
@@ -280,19 +326,29 @@ export default function AIPosterStudioPage() {
 
           {/* 下载/分享按钮 */}
           {generatedImageUrl && (
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={handleDownload}
-                className="flex-1 py-3 bg-gray-100 text-[#1A2E22] rounded-xl font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
-              >
-                <Download className="w-4 h-4" />
-                下载
-              </button>
-              <button className="flex-1 py-3 bg-[#FFB347] text-white rounded-xl font-bold hover:bg-[#FFB347]/90 transition-colors flex items-center justify-center gap-2 shadow-sm">
-                <Share2 className="w-4 h-4" />
-                分享到动态
-              </button>
-            </div>
+            <>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={handleDownload}
+                  className="flex-1 py-3 bg-gray-100 text-[#1A2E22] rounded-xl font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  下载
+                </button>
+                <button
+                  onClick={handleShare}
+                  className="flex-1 py-3 bg-[#FFB347] text-white rounded-xl font-bold hover:bg-[#FFB347]/90 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <Share2 className="w-4 h-4" />
+                  分享到动态
+                </button>
+              </div>
+              {shareToast && (
+                <p className="mt-3 text-center text-sm font-medium text-[#2EB87A]" role="status" aria-live="polite">
+                  {shareToast}
+                </p>
+              )}
+            </>
           )}
         </div>
       </div>

@@ -1,0 +1,2347 @@
+npm warn Unknown user config "msvs_version". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+ RUN  v4.1.8 D:/Javaprojects/csr_magic_v2/csr_magic_frontend
+
+ ❯ src/App.adminSession.test.tsx (3 tests | 1 failed) 1077ms
+     ✓ 管理员登录态下整页访问管理端深链接直接渲染，不跳登录（深链接会话恢复） 49ms
+     × 普通用户访问 /admin 被重定向员工端首页（角色门禁） 1015ms
+     ✓ 无有效会话访问管理端深链接跳转登录页 11ms
+ ❯ src/pages/admin/ActivityManagementPage.test.tsx (2 tests | 1 failed) 1344ms
+     × 删除含报名记录的活动失败时展示后端明确文案且模态不关闭（BUG-11） 1220ms
+     ✓ 删除无关联记录的活动成功并关闭模态（回归） 122ms
+ ❯ src/pages/ActivityDetailPage.test.tsx (4 tests | 2 failed) 2541ms
+     × 退出活动弹出自定义确认框，确认后调用退出接口（BUG-02） 1174ms
+     × 取消退出时不调用接口且关闭确认框（BUG-02） 1066ms
+     ✓ 驳回状态「修改后重新提交」走 resubmit 而非 signup（BUG-13） 203ms
+     ✓ 正常报名仍走 signup 接口（回归） 95ms
+ ❯ src/pages/RegisterPage.test.tsx (3 tests | 2 failed) 2987ms
+     × 重复用户名（409）时展示后端错误信息，不做静默失败（BUG-03 回归） 1368ms
+     × 不选性别可正常注册成功（BUG-05 回归：性别为可选字段） 1286ms
+     ✓ 选择「男」时提交 gender=MALE 枚举值（BUG-09 口径统一）  330ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/App.adminSession.test.tsx > 管理端会话与访问控制（BUG-10 代码侧 + admin-session 规格） > 普通用户访问 /admin 被重定向员工端首页（角色门禁）
+TestingLibraryElementError: Found multiple elements with the text: 首页
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+<a
+  aria-current="page"
+  class="font-medium transition-colors text-[#2EB87A]"
+  data-discover="true"
+  href="/"
+>
+  首页
+</a>
+
+Ignored nodes: comments, script, style
+<div>
+  首页
+</div>
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen bg-[#F7FAF8] text-[#1A2E22] font-sans"
+    >
+      <nav
+        class="bg-white shadow-sm sticky top-0 z-50"
+      >
+        <div
+          class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        >
+          <div
+            class="flex justify-between h-16"
+          >
+            <div
+              class="flex items-center gap-2"
+            >
+              <button
+                class="md:hidden p-2 -ml-2 text-[#1A2E22]/60 hover:text-[#1A2E22]"
+              >
+                <svg
+                  class="lucide lucide-menu w-6 h-6"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <line
+                    x1="4"
+                    x2="20"
+                    y1="12"
+                    y2="12"
+                  />
+                  <line
+                    x1="4"
+                    x2="20"
+                    y1="6"
+                    y2="6"
+                  />
+                  <line
+                    x1="4"
+                    x2="20"
+                    y1="18"
+                    y2="18"
+                  />
+                </svg>
+              </button>
+              <div
+                class="flex items-center gap-2 cursor-pointer"
+              >
+                <div
+                  class="w-8 h-8 bg-[#2EB87A]/10 rounded-xl flex items-center justify-center"
+                >
+                  <svg
+                    class="lucide lucide-leaf w-5 h-5 text-[#2EB87A]"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"
+                    />
+                    <path
+                      d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"
+                    />
+                  </svg>
+                </div>
+                <span
+                  class="font-bold text-lg hidden sm:block"
+                >
+                  CSR Hub
+                </span>
+              </div>
+            </div>
+            <div
+              class="hidden md:flex items-center gap-8"
+            >
+              <a
+                aria-current="page"
+                class="font-medium transition-colors text-[#2EB87A]"
+                data-discover="true"
+                href="/"
+              >
+                首页
+              </a>
+              <a
+                class="font-medium transition-colors text-[#1A2E22]/60 hover:text-[#1A2E22]"
+                data-discover="true"
+                href="/activities"
+              >
+                活动
+              </a>
+              <a
+                class="font-medium transition-colors text-[#1A2E22]/60 hover:text-[#1A2E22]"
+                data-discover="true"
+                href="/poster"
+              >
+                海报工作台
+              </a>
+              <a
+                class="font-medium transition-colors text-[#1A2E22]/60 hover:text-[#1A2E22]"
+                data-discover="true"
+                href="/my"
+              >
+                个人中心
+              </a>
+            </div>
+            <div
+              class="flex items-center gap-3"
+            >
+              <div
+                class="w-9 h-9 rounded-full bg-gradient-to-tr from-[#2EB87A] to-[#FFB347] p-[2px]"
+              >
+                <div
+                  class="w-full h-full rounded-full bg-white flex items-center justify-center text-sm font-bold text-[#2EB87A]"
+                >
+                  用
+                </div>
+              </div>
+              <button
+                class="p-2 text-[#1A2E22]/40 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                title="退出登录"
+                type="button"
+              >
+                <svg
+                  class="lucide lucide-log-out w-4 h-4"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+                  />
+                  <polyline
+                    points="16 17 21 12 16 7"
+                  />
+                  <line
+                    x1="21"
+                    x2="9"
+                    y1="12"
+                    y2="12"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+      <main
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8"
+      >
+        <div>
+          首页
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <div
+        class="min-h-screen bg-[#F7FAF8] text-[#1A2E22] font-sans"
+      >
+        <nav
+          class="bg-white shadow-sm sticky top-0 z-50"
+        >
+          <div
+            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+          >
+            <div
+              class="flex justify-between h-16"
+            >
+              <div
+                class="flex items-center gap-2"
+              >
+                <button
+                  class="md:hidden p-2 -ml-2 text-[#1A2E22]/60 hover:text-[#1A2E22]"
+                >
+                  <svg
+                    class="lucide lucide-menu w-6 h-6"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <line
+                      x1="4"
+                      x2="20"
+                      y1="12"
+                      y2="12"
+                    />
+                    <line
+                      x1="4"
+                      x2="20"
+                      y1="6"
+                      y2="6"
+                    />
+                    <line
+                      x1="4"
+                      x2="20"
+                      y1="18"
+                      y2="18"
+                    />
+                  </svg>
+                </button>
+                <div
+                  class="flex items-center gap-2 cursor-pointer"
+                >
+                  <div
+                    class="w-8 h-8 bg-[#2EB87A]/10 rounded-xl flex items-center justify-center"
+                  >
+                    <svg
+                      class="lucide lucide-leaf w-5 h-5 text-[#2EB87A]"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"
+                      />
+                      <path
+                        d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"
+                      />
+                    </svg>
+                  </div>
+                  <span
+                    class="font-bold text-lg hidden sm:block"
+                  >
+                    CSR Hub
+                  </span>
+                </div>
+              </div>
+              <div
+                class="hidden md:flex items-center gap-8"
+              >
+                <a
+                  aria-current="page"
+                  class="font-medium transition-colors text-[#2EB87A]"
+                  data-discover="true"
+                  href="/"
+                >
+                  首页
+                </a>
+                <a
+                  class="font-medium transition-colors text-[#1A2E22]/60 hover:text-[#1A2E22]"
+                  data-discover="true"
+                  href="/activities"
+                >
+                  活动
+                </a>
+                <a
+                  class="font-medium transition-colors text-[#1A2E22]/60 hover:text-[#1A2E22]"
+                  data-discover="true"
+                  href="/poster"
+                >
+                  海报工作台
+                </a>
+                <a
+                  class="font-medium transition-colors text-[#1A2E22]/60 hover:text-[#1A2E22]"
+                  data-discover="true"
+                  href="/my"
+                >
+                  个人中心
+                </a>
+              </div>
+              <div
+                class="flex items-center gap-3"
+              >
+                <div
+                  class="w-9 h-9 rounded-full bg-gradient-to-tr from-[#2EB87A] to-[#FFB347] p-[2px]"
+                >
+                  <div
+                    class="w-full h-full rounded-full bg-white flex items-center justify-center text-sm font-bold text-[#2EB87A]"
+                  >
+                    用
+                  </div>
+                </div>
+                <button
+                  class="p-2 text-[#1A2E22]/40 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  title="退出登录"
+                  type="button"
+                >
+                  <svg
+                    class="lucide lucide-log-out w-4 h-4"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+                    />
+                    <polyline
+                      points="16 17 21 12 16 7"
+                    />
+                    <line
+                      x1="21"
+                      x2="9"
+                      y1="12"
+                      y2="12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </nav>
+        <main
+          class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8"
+        >
+          <div>
+            首页
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>
+ ❯ Proxy.waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ src/App.adminSession.test.tsx:74:11
+     72|     __setAuth(true, 'USER');
+     73|     renderAt('/admin/participations');
+     74|     await waitFor(() => expect(screen.getByText('首页')).toBeInTheDocume…
+       |           ^
+     75|     expect(screen.queryByText('参与审核页')).not.toBeInTheDocument();
+     76|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  src/pages/ActivityDetailPage.test.tsx > ActivityDetailPage 退出确认与驳回重提 > 退出活动弹出自定义确认框，确认后调用退出接口（BUG-02）
+TestingLibraryElementError: Found multiple elements with the text: 确认退出
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+<h3
+  class="text-lg font-bold text-[#1A2E22]"
+  id="withdraw-confirm-title"
+>
+  确认退出
+</h3>
+
+Ignored nodes: comments, script, style
+<button
+  class="flex-1 py-2.5 rounded-xl bg-red-500 font-medium text-white hover:bg-red-600 transition-colors text-sm disabled:opacity-50"
+  type="button"
+>
+  确认退出
+</button>
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="pb-24 md:pb-0"
+    >
+      <div
+        class="-mx-4 sm:-mx-6 lg:-mx-8 -mt-8 mb-8 relative h-64 md:h-96"
+      >
+        <div
+          class="w-full h-full bg-gradient-to-r from-[#2EB87A] to-[#249663] rounded-b-3xl shadow-sm flex items-center justify-center"
+        >
+          <span
+            class="text-white/60 text-lg"
+          >
+            暂无封面
+          </span>
+        </div>
+        <button
+          class="absolute top-6 left-6 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors"
+        >
+          <svg
+            class="lucide lucide-chevron-right w-6 h-6 rotate-180 text-[#1A2E22]"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m9 18 6-6-6-6"
+            />
+          </svg>
+        </button>
+      </div>
+      <div
+        class="flex flex-col md:flex-row gap-8"
+      >
+        <div
+          class="flex-1 space-y-6"
+        >
+          <div
+            class="flex-1 space-y-8"
+          >
+            <div>
+              <div
+                class="flex flex-wrap gap-2 mb-4"
+              >
+                <span
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-500/10 text-gray-600 "
+                >
+                  <span>
+                    📋
+                  </span>
+                  <span>
+                    基础
+                  </span>
+                </span>
+                <span
+                  class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600"
+                >
+                  测试事件
+                </span>
+                <span
+                  class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-600"
+                >
+                  即将开始
+                </span>
+              </div>
+              <h1
+                class="text-3xl md:text-4xl font-bold mb-4 leading-tight"
+              >
+                春季植树活动
+              </h1>
+            </div>
+            <div
+              class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+            >
+              <div
+                class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3"
+              >
+                <div
+                  class="w-10 h-10 bg-[#2EB87A]/10 rounded-xl flex items-center justify-center shrink-0"
+                >
+                  <svg
+                    class="lucide lucide-calendar w-5 h-5 text-[#2EB87A]"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M8 2v4"
+                    />
+                    <path
+                      d="M16 2v4"
+                    />
+                    <rect
+                      height="18"
+                      rx="2"
+                      width="18"
+                      x="3"
+                      y="4"
+                    />
+                    <path
+                      d="M3 10h18"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p
+                    class="font-bold text-sm"
+                  >
+                    开始时间
+                  </p>
+                  <p
+                    class="text-[#1A2E22]/60 text-sm mt-0.5"
+                  >
+                    待定
+                  </p>
+                </div>
+              </div>
+              <div
+                class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3"
+              >
+                <div
+                  class="w-10 h-10 bg-[#2EB87A]/10 rounded-xl flex items-center justify-center shrink-0"
+                >
+                  <svg
+                    class="lucide lucide-clock w-5 h-5 text-[#2EB87A]"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      [...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="pb-24 md:pb-0"
+    >
+      <div
+        class="-mx-4 sm:-mx-6 lg:-mx-8 -mt-8 mb-8 relative h-64 md:h-96"
+      >
+        <div
+          class="w-full h-full bg-gradient-to-r from-[#2EB87A] to-[#249663] rounded-b-3xl shadow-sm flex items-center justify-center"
+        >
+          <span
+            class="text-white/60 text-lg"
+          >
+            暂无封面
+          </span>
+        </div>
+        <button
+          class="absolute top-6 left-6 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors"
+        >
+          <svg
+            class="lucide lucide-chevron-right w-6 h-6 rotate-180 text-[#1A2E22]"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m9 18 6-6-6-6"
+            />
+          </svg>
+        </button>
+      </div>
+      <div
+        class="flex flex-col md:flex-row gap-8"
+      >
+        <div
+          class="flex-1 space-y-6"
+        >
+          <div
+            class="flex-1 space-y-8"
+          >
+            <div>
+              <div
+                class="flex flex-wrap gap-2 mb-4"
+              >
+                <span
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-500/10 text-gray-600 "
+                >
+                  <span>
+                    📋
+                  </span>
+                  <span>
+                    基础
+                  </span>
+                </span>
+                <span
+                  class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600"
+                >
+                  测试事件
+                </span>
+                <span
+                  class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-600"
+                >
+                  即将开始
+                </span>
+              </div>
+              <h1
+                class="text-3xl md:text-4xl font-bold mb-4 leading-tight"
+              >
+                春季植树活动
+              </h1>
+            </div>
+            <div
+              class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+            >
+              <div
+                class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3"
+              >
+                <div
+                  class="w-10 h-10 bg-[#2EB87A]/10 rounded-xl flex items-center justify-center shrink-0"
+                >
+                  <svg
+                    class="lucide lucide-calendar w-5 h-5 text-[#2EB87A]"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M8 2v4"
+                    />
+                    <path
+                      d="M16 2v4"
+                    />
+                    <rect
+                      height="18"
+                      rx="2"
+                      width="18"
+                      x="3"
+                      y="4"
+                    />
+                    <path
+                      d="M3 10h18"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p
+                    class="font-bold text-sm"
+                  >
+                    开始时间
+                  </p>
+                  <p
+                    class="text-[#1A2E22]/60 text-sm mt-0.5"
+                  >
+                    待定
+                  </p>
+                </div>
+              </div>
+              <div
+                class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3"
+              >
+                <div
+                  class="w-10 h-10 bg-[#2EB87A]/10 rounded-xl flex items-center justify-center shrink-0"
+                >
+                  <svg
+                    class="lucide lucide-clock w-5 h-5 text-[#2EB87A]"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      [...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/pages/ActivityDetailPage.test.tsx:88:18
+     86|
+     87|     await user.click(screen.getAllByRole('button', { name: '退出活动' })[0…
+     88|     await screen.findByText('确认退出');
+       |                  ^
+     89|     await user.click(screen.getByRole('button', { name: '确认退出' }));
+     90|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  src/pages/ActivityDetailPage.test.tsx > ActivityDetailPage 退出确认与驳回重提 > 取消退出时不调用接口且关闭确认框（BUG-02）
+TestingLibraryElementError: Found multiple elements with the text: 确认退出
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+<h3
+  class="text-lg font-bold text-[#1A2E22]"
+  id="withdraw-confirm-title"
+>
+  确认退出
+</h3>
+
+Ignored nodes: comments, script, style
+<button
+  class="flex-1 py-2.5 rounded-xl bg-red-500 font-medium text-white hover:bg-red-600 transition-colors text-sm disabled:opacity-50"
+  type="button"
+>
+  确认退出
+</button>
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="pb-24 md:pb-0"
+    >
+      <div
+        class="-mx-4 sm:-mx-6 lg:-mx-8 -mt-8 mb-8 relative h-64 md:h-96"
+      >
+        <div
+          class="w-full h-full bg-gradient-to-r from-[#2EB87A] to-[#249663] rounded-b-3xl shadow-sm flex items-center justify-center"
+        >
+          <span
+            class="text-white/60 text-lg"
+          >
+            暂无封面
+          </span>
+        </div>
+        <button
+          class="absolute top-6 left-6 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors"
+        >
+          <svg
+            class="lucide lucide-chevron-right w-6 h-6 rotate-180 text-[#1A2E22]"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m9 18 6-6-6-6"
+            />
+          </svg>
+        </button>
+      </div>
+      <div
+        class="flex flex-col md:flex-row gap-8"
+      >
+        <div
+          class="flex-1 space-y-6"
+        >
+          <div
+            class="flex-1 space-y-8"
+          >
+            <div>
+              <div
+                class="flex flex-wrap gap-2 mb-4"
+              >
+                <span
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-500/10 text-gray-600 "
+                >
+                  <span>
+                    📋
+                  </span>
+                  <span>
+                    基础
+                  </span>
+                </span>
+                <span
+                  class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600"
+                >
+                  测试事件
+                </span>
+                <span
+                  class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-600"
+                >
+                  即将开始
+                </span>
+              </div>
+              <h1
+                class="text-3xl md:text-4xl font-bold mb-4 leading-tight"
+              >
+                春季植树活动
+              </h1>
+            </div>
+            <div
+              class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+            >
+              <div
+                class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3"
+              >
+                <div
+                  class="w-10 h-10 bg-[#2EB87A]/10 rounded-xl flex items-center justify-center shrink-0"
+                >
+                  <svg
+                    class="lucide lucide-calendar w-5 h-5 text-[#2EB87A]"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M8 2v4"
+                    />
+                    <path
+                      d="M16 2v4"
+                    />
+                    <rect
+                      height="18"
+                      rx="2"
+                      width="18"
+                      x="3"
+                      y="4"
+                    />
+                    <path
+                      d="M3 10h18"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p
+                    class="font-bold text-sm"
+                  >
+                    开始时间
+                  </p>
+                  <p
+                    class="text-[#1A2E22]/60 text-sm mt-0.5"
+                  >
+                    待定
+                  </p>
+                </div>
+              </div>
+              <div
+                class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3"
+              >
+                <div
+                  class="w-10 h-10 bg-[#2EB87A]/10 rounded-xl flex items-center justify-center shrink-0"
+                >
+                  <svg
+                    class="lucide lucide-clock w-5 h-5 text-[#2EB87A]"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      [...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="pb-24 md:pb-0"
+    >
+      <div
+        class="-mx-4 sm:-mx-6 lg:-mx-8 -mt-8 mb-8 relative h-64 md:h-96"
+      >
+        <div
+          class="w-full h-full bg-gradient-to-r from-[#2EB87A] to-[#249663] rounded-b-3xl shadow-sm flex items-center justify-center"
+        >
+          <span
+            class="text-white/60 text-lg"
+          >
+            暂无封面
+          </span>
+        </div>
+        <button
+          class="absolute top-6 left-6 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:bg-white transition-colors"
+        >
+          <svg
+            class="lucide lucide-chevron-right w-6 h-6 rotate-180 text-[#1A2E22]"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m9 18 6-6-6-6"
+            />
+          </svg>
+        </button>
+      </div>
+      <div
+        class="flex flex-col md:flex-row gap-8"
+      >
+        <div
+          class="flex-1 space-y-6"
+        >
+          <div
+            class="flex-1 space-y-8"
+          >
+            <div>
+              <div
+                class="flex flex-wrap gap-2 mb-4"
+              >
+                <span
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-500/10 text-gray-600 "
+                >
+                  <span>
+                    📋
+                  </span>
+                  <span>
+                    基础
+                  </span>
+                </span>
+                <span
+                  class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600"
+                >
+                  测试事件
+                </span>
+                <span
+                  class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-600"
+                >
+                  即将开始
+                </span>
+              </div>
+              <h1
+                class="text-3xl md:text-4xl font-bold mb-4 leading-tight"
+              >
+                春季植树活动
+              </h1>
+            </div>
+            <div
+              class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+            >
+              <div
+                class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3"
+              >
+                <div
+                  class="w-10 h-10 bg-[#2EB87A]/10 rounded-xl flex items-center justify-center shrink-0"
+                >
+                  <svg
+                    class="lucide lucide-calendar w-5 h-5 text-[#2EB87A]"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M8 2v4"
+                    />
+                    <path
+                      d="M16 2v4"
+                    />
+                    <rect
+                      height="18"
+                      rx="2"
+                      width="18"
+                      x="3"
+                      y="4"
+                    />
+                    <path
+                      d="M3 10h18"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p
+                    class="font-bold text-sm"
+                  >
+                    开始时间
+                  </p>
+                  <p
+                    class="text-[#1A2E22]/60 text-sm mt-0.5"
+                  >
+                    待定
+                  </p>
+                </div>
+              </div>
+              <div
+                class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3"
+              >
+                <div
+                  class="w-10 h-10 bg-[#2EB87A]/10 rounded-xl flex items-center justify-center shrink-0"
+                >
+                  <svg
+                    class="lucide lucide-clock w-5 h-5 text-[#2EB87A]"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      [...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/pages/ActivityDetailPage.test.tsx:101:18
+     99|
+    100|     await user.click(screen.getAllByRole('button', { name: '退出活动' })[0…
+    101|     await screen.findByText('确认退出');
+       |                  ^
+    102|     await user.click(screen.getByRole('button', { name: '取消' }));
+    103|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  src/pages/RegisterPage.test.tsx > RegisterPage 注册回归 > 重复用户名（409）时展示后端错误信息，不做静默失败（BUG-03 回归）
+TestingLibraryElementError: Unable to find an element with the text: 用户名已存在. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen bg-[#F7FAF8] flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-white p-8 rounded-2xl shadow-sm max-w-md w-full"
+      >
+        <div
+          class="text-center mb-8"
+        >
+          <div
+            class="w-16 h-16 bg-[#2EB87A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6"
+          >
+            <svg
+              class="lucide lucide-leaf w-8 h-8 text-[#2EB87A]"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"
+              />
+              <path
+                d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"
+              />
+            </svg>
+          </div>
+          <h1
+            class="text-2xl font-bold text-[#1A2E22] mb-2"
+          >
+            创建账号
+          </h1>
+          <p
+            class="text-[#1A2E22]/60 leading-relaxed"
+          >
+            加入 CSR Magic，开始参与公益活动
+          </p>
+        </div>
+        <form
+          class="space-y-4"
+        >
+          <div>
+            <label
+              class="block text-sm font-medium text-[#1A2E22] mb-1.5"
+              for="displayName"
+            >
+              姓名 
+              <span
+                class="text-red-500"
+              >
+                *
+              </span>
+            </label>
+            <input
+              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2EB87A]/30 focus:border-[#2EB87A] transition-colors"
+              id="displayName"
+              name="displayName"
+              placeholder="请输入真实姓名"
+              type="text"
+            />
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-[#1A2E22] mb-1.5"
+              for="username"
+            >
+              用户名 
+              <span
+                class="text-red-500"
+              >
+                *
+              </span>
+            </label>
+            <input
+              autocomplete="username"
+              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2EB87A]/30 focus:border-[#2EB87A] transition-colors"
+              id="username"
+              name="username"
+              placeholder="请输入用户名"
+              type="text"
+            />
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-[#1A2E22] mb-1.5"
+              for="password"
+            >
+              密码 
+              <span
+                class="text-red-500"
+              >
+                *
+              </span>
+            </label>
+            <div
+              class="relative"
+            >
+              <input
+                autocomplete="new-password"
+                class="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2EB87A]/30 focus:border-[#2EB87A] transition-colors"
+                id="password"
+                name="password"
+                placeholder="至少6位"
+                type="password"
+              />
+              <button
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                type="button"
+              >
+                <svg
+                  class="lucide lucide-eye w-5 h-5"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
+                  />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="3"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-[#1A2E22] mb-1.5"
+              for="region"
+            >
+              所在地区
+            </label>
+            <select
+              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2EB87A]/30 focus:border-[#2EB87A] transition-colors bg-white"
+              id="region"
+              name="region"
+            >
+              <option
+                value=""
+              >
+                请选择地区
+              </option>
+              <option
+                value="北京"
+              >
+                北京
+              </option>
+              <option
+                value="上海"
+              >
+                上海
+              </option>
+              <option
+                value="广州"
+              >
+                广州
+              </option>
+              <option
+                value="深圳"
+              >
+                深圳
+              </option>
+              <option
+                value="杭州"
+              >
+                杭州
+              </option>
+              <option
+                value="成都"
+              >
+                成都
+              </option>
+              <option
+                value="武汉"
+              >
+                武汉
+              </option>
+              <option
+                value="南京"
+              >
+                南京
+              </option>
+              <option
+                value="西安"
+              >
+                西安
+              </option>
+              <option
+                value="重庆"
+              >
+                重庆
+              </option>
+            </select>
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-[#1A2E22] mb-1.5"
+            >
+              性别
+            </label>
+            <div
+              class="flex gap-4"
+            >
+              <label
+                class="flex items-center gap-2 cursor-pointer"
+              >
+                <input
+                  class="w-4 h-4 text-[#2EB87A] focus:ring-[#2EB87A]"
+                  name="gender"
+                  type="radio"
+                  value="MALE"
+                />
+                <span
+                  class="text-sm text-[#1A2E22]"
+                >
+                  男
+                </span>
+              </label>
+              <label
+                class="flex items-center gap-2 cursor-pointer"
+              >
+                <input
+                  class="w-4 h-4 text-[#2EB87A] focus:ring-[#2EB87A]"
+                  name="gender"
+                  type="radio"
+                  value="FEMALE"
+                />
+                <span
+                  class="text-sm text-[#1A2E22]"
+                >
+                  女
+                </span>
+              </label>
+            </div>
+          </div>
+          <button
+            class="w-full bg-[#2EB87A] text-white py-3.5 rounded-xl font-medium hover:bg-[#2EB87A]/90 transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+            type="submit"
+          >
+            注册
+          </button>
+        </form>
+        <p
+          class="mt-6 text-center text-sm text-[#1A2E22]/60"
+        >
+          已有账号？
+           
+          <a
+            class="text-[#2EB87A] font-medium hover:underline"
+            data-discover="true"
+            href="/login"
+          >
+            去登录
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="min-h-screen bg-[#F7FAF8] flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-white p-8 rounded-2xl shadow-sm max-w-md w-full"
+      >
+        <div
+          class="text-center mb-8"
+        >
+          <div
+            class="w-16 h-16 bg-[#2EB87A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6"
+          >
+            <svg
+              class="lucide lucide-leaf w-8 h-8 text-[#2EB87A]"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"
+              />
+              <path
+                d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"
+              />
+            </svg>
+          </div>
+          <h1
+            class="text-2xl font-bold text-[#1A2E22] mb-2"
+          >
+            创建账号
+          </h1>
+          <p
+            class="text-[#1A2E22]/60 leading-relaxed"
+          >
+            加入 CSR Magic，开始参与公益活动
+          </p>
+        </div>
+        <form
+          class="space-y-4"
+        >
+          <div>
+            <label
+              class="block text-sm font-medium text-[#1A2E22] mb-1.5"
+              for="displayName"
+            >
+              姓名 
+              <span
+                class="text-red-500"
+              >
+                *
+              </span>
+            </label>
+            <input
+              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2EB87A]/30 focus:border-[#2EB87A] transition-colors"
+              id="displayName"
+              name="displayName"
+              placeholder="请输入真实姓名"
+              type="text"
+            />
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-[#1A2E22] mb-1.5"
+              for="username"
+            >
+              用户名 
+              <span
+                class="text-red-500"
+              >
+                *
+              </span>
+            </label>
+            <input
+              autocomplete="username"
+              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2EB87A]/30 focus:border-[#2EB87A] transition-colors"
+              id="username"
+              name="username"
+              placeholder="请输入用户名"
+              type="text"
+            />
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-[#1A2E22] mb-1.5"
+              for="password"
+            >
+              密码 
+              <span
+                class="text-red-500"
+              >
+                *
+              </span>
+            </label>
+            <div
+              class="relative"
+            >
+              <input
+                autocomplete="new-password"
+                class="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2EB87A]/30 focus:border-[#2EB87A] transition-colors"
+                id="password"
+                name="password"
+                placeholder="至少6位"
+                type="password"
+              />
+              <button
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                type="button"
+              >
+                <svg
+                  class="lucide lucide-eye w-5 h-5"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
+                  />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="3"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-[#1A2E22] mb-1.5"
+              for="region"
+            >
+              所在地区
+            </label>
+            <select
+              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2EB87A]/30 focus:border-[#2EB87A] transition-colors bg-white"
+              id="region"
+              name="region"
+            >
+              <option
+                value=""
+              >
+                请选择地区
+              </option>
+              <option
+                value="北京"
+              >
+                北京
+              </option>
+              <option
+                value="上海"
+              >
+                上海
+              </option>
+              <option
+                value="广州"
+              >
+                广州
+              </option>
+              <option
+                value="深圳"
+              >
+                深圳
+              </option>
+              <option
+                value="杭州"
+              >
+                杭州
+              </option>
+              <option
+                value="成都"
+              >
+                成都
+              </option>
+              <option
+                value="武汉"
+              >
+                武汉
+              </option>
+              <option
+                value="南京"
+              >
+                南京
+              </option>
+              <option
+                value="西安"
+              >
+                西安
+              </option>
+              <option
+                value="重庆"
+              >
+                重庆
+              </option>
+            </select>
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-[#1A2E22] mb-1.5"
+            >
+              性别
+            </label>
+            <div
+              class="flex gap-4"
+            >
+              <label
+                class="flex items-center gap-2 cursor-pointer"
+              >
+                <input
+                  class="w-4 h-4 text-[#2EB87A] focus:ring-[#2EB87A]"
+                  name="gender"
+                  type="radio"
+                  value="MALE"
+                />
+                <span
+                  class="text-sm text-[#1A2E22]"
+                >
+                  男
+                </span>
+              </label>
+              <label
+                class="flex items-center gap-2 cursor-pointer"
+              >
+                <input
+                  class="w-4 h-4 text-[#2EB87A] focus:ring-[#2EB87A]"
+                  name="gender"
+                  type="radio"
+                  value="FEMALE"
+                />
+                <span
+                  class="text-sm text-[#1A2E22]"
+                >
+                  女
+                </span>
+              </label>
+            </div>
+          </div>
+          <button
+            class="w-full bg-[#2EB87A] text-white py-3.5 rounded-xl font-medium hover:bg-[#2EB87A]/90 transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+            type="submit"
+          >
+            注册
+          </button>
+        </form>
+        <p
+          class="mt-6 text-center text-sm text-[#1A2E22]/60"
+        >
+          已有账号？
+           
+          <a
+            class="text-[#2EB87A] font-medium hover:underline"
+            data-discover="true"
+            href="/login"
+          >
+            去登录
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/pages/RegisterPage.test.tsx:43:25
+     41|     await userEvent.click(screen.getByRole('button', { name: '注册' }));
+     42|
+     43|     expect(await screen.findByText('用户名已存在')).toBeInTheDocument();
+       |                         ^
+     44|     expect(authApi.register).toHaveBeenCalledTimes(1);
+     45|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  src/pages/RegisterPage.test.tsx > RegisterPage 注册回归 > 不选性别可正常注册成功（BUG-05 回归：性别为可选字段）
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <div
+        class="min-h-screen bg-[#F7FAF8] flex items-center justify-center p-4"
+      >
+        <div
+          class="bg-white p-8 rounded-2xl shadow-sm max-w-md w-full"
+        >
+          <div
+            class="text-center mb-8"
+          >
+            <div
+              class="w-16 h-16 bg-[#2EB87A]/10 rounded-2xl flex items-center justify-center mx-auto mb-6"
+            >
+              <svg
+                class="lucide lucide-leaf w-8 h-8 text-[#2EB87A]"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"
+                />
+                <path
+                  d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"
+                />
+              </svg>
+            </div>
+            <h1
+              class="text-2xl font-bold text-[#1A2E22] mb-2"
+            >
+              创建账号
+            </h1>
+            <p
+              class="text-[#1A2E22]/60 leading-relaxed"
+            >
+              加入 CSR Magic，开始参与公益活动
+            </p>
+          </div>
+          <form
+            class="space-y-4"
+          >
+            <div>
+              <label
+                class="block text-sm font-medium text-[#1A2E22] mb-1.5"
+                for="displayName"
+              >
+                姓名 
+                <span
+                  class="text-red-500"
+                >
+                  *
+                </span>
+              </label>
+              <input
+                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2EB87A]/30 focus:border-[#2EB87A] transition-colors"
+                id="displayName"
+                name="displayName"
+                placeholder="请输入真实姓名"
+                type="text"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-sm font-medium text-[#1A2E22] mb-1.5"
+                for="username"
+              >
+                用户名 
+                <span
+                  class="text-red-500"
+                >
+                  *
+                </span>
+              </label>
+              <input
+                autocomplete="username"
+                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2EB87A]/30 focus:border-[#2EB87A] transition-colors"
+                id="username"
+                name="username"
+                placeholder="请输入用户名"
+                type="text"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-sm font-medium text-[#1A2E22] mb-1.5"
+                for="password"
+              >
+                密码 
+                <span
+                  class="text-red-500"
+                >
+                  *
+                </span>
+              </label>
+              <div
+                class="relative"
+              >
+                <input
+                  autocomplete="new-password"
+                  class="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2EB87A]/30 focus:border-[#2EB87A] transition-colors"
+                  id="password"
+                  name="password"
+                  placeholder="至少6位"
+                  type="password"
+                />
+                <button
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  type="button"
+                >
+                  <svg
+                    class="lucide lucide-eye w-5 h-5"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
+                    />
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="3"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div>
+              <label
+                class="block text-sm font-medium text-[#1A2E22] mb-1.5"
+                for="region"
+              >
+                所在地区
+              </label>
+              <select
+                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2EB87A]/30 focus:border-[#2EB87A] transition-colors bg-white"
+                id="region"
+                name="region"
+              >
+                <option
+                  value=""
+                >
+                  请选择地区
+                </option>
+                <option
+                  value="北京"
+                >
+                  北京
+                </option>
+                <option
+                  value="上海"
+                >
+                  上海
+                </option>
+                <option
+                  value="广州"
+                >
+                  广州
+                </option>
+                <option
+                  value="深圳"
+                >
+                  深圳
+                </option>
+                <option
+                  value="杭州"
+                >
+                  杭州
+                </option>
+                <option
+                  value="成都"
+                >
+                  成都
+                </option>
+                <option
+                  value="武汉"
+                >
+                  武汉
+                </option>
+                <option
+                  value="南京"
+                >
+                  南京
+                </option>
+                <option
+                  value="西安"
+                >
+                  西安
+                </option>
+                <option
+                  value="重庆"
+                >
+                  重庆
+                </option>
+              </select>
+            </div>
+            <div>
+              <label
+                class="block text-sm font-medium text-[#1A2E22] mb-1.5"
+              >
+                性别
+              </label>
+              <div
+                class="flex gap-4"
+              >
+                <label
+                  class="flex items-center gap-2 cursor-pointer"
+                >
+                  <input
+                    class="w-4 h-4 text-[#2EB87A] focus:ring-[#2EB87A]"
+                    name="gender"
+                    type="radio"
+                    value="MALE"
+                  />
+                  <span
+                    class="text-sm text-[#1A2E22]"
+                  >
+                    男
+                  </span>
+                </label>
+                <label
+                  class="flex items-center gap-2 cursor-pointer"
+                >
+                  <input
+                    class="w-4 h-4 text-[#2EB87A] focus:ring-[#2EB87A]"
+                    name="gender"
+                    type="radio"
+                    value="FEMALE"
+                  />
+                  <span
+                    class="text-sm text-[#1A2E22]"
+                  >
+                    女
+                  </span>
+                </label>
+              </div>
+            </div>
+            <button
+              class="w-full bg-[#2EB87A] text-white py-3.5 rounded-xl font-medium hover:bg-[#2EB87A]/90 transition-colors shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+              type="submit"
+            >
+              注册
+            </button>
+          </form>
+          <p
+            class="mt-6 text-center text-sm text-[#1A2E22]/60"
+          >
+            已有账号？
+             
+            <a
+              class="text-[#2EB87A] font-medium hover:underline"
+              data-discover="true"
+              href="/login"
+            >
+              去登录
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+ ❯ src/pages/RegisterPage.test.tsx:57:32
+     55|
+     56|     await waitFor(() => {
+     57|       expect(authApi.register).toHaveBeenCalledTimes(1);
+       |                                ^
+     58|     });
+     59|     const payload = vi.mocked(authApi.register).mock.calls[0][0];
+ ❯ runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  src/pages/admin/ActivityManagementPage.test.tsx > ActivityManagementPage 删除活动 > 删除含报名记录的活动失败时展示后端明确文案且模态不关闭（BUG-11）
+TestingLibraryElementError: Found multiple elements with the text: 该活动下还有 2 条报名记录，请先处理后再删除
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+<div
+  class="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600"
+  role="alert"
+>
+  该活动下还有 2 条报名记录，请先处理后再删除
+</div>
+
+Ignored nodes: comments, script, style
+<div
+  class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white transition-all bg-red-500"
+>
+  该活动下还有 2 条报名记录，请先处理后再删除
+</div>
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="space-y-6 relative"
+    >
+      <div
+        class="flex items-center justify-between"
+      >
+        <h1
+          class="text-2xl font-bold"
+        >
+          活动管理
+        </h1>
+        <span
+          class="text-sm text-[#1A2E22]/60"
+        >
+          共 
+          1
+           个活动
+        </span>
+      </div>
+      <div
+        class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-wrap items-center justify-between gap-4"
+      >
+        <div
+          class="flex items-center gap-4 flex-1 min-w-0"
+        >
+          <div
+            class="relative w-64"
+          >
+            <svg
+              class="lucide lucide-search absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1A2E22]/40"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="11"
+                cy="11"
+                r="8"
+              />
+              <path
+                d="m21 21-4.3-4.3"
+              />
+            </svg>
+            <input
+              class="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 focus:border-[#2EB87A] focus:outline-none text-sm"
+              placeholder="搜索活动名称..."
+              type="text"
+              value=""
+            />
+          </div>
+          <select
+            class="px-4 py-2 rounded-xl border border-gray-200 text-sm focus:border-[#2EB87A] focus:outline-none bg-white"
+          >
+            <option
+              value=""
+            >
+              所有事件
+            </option>
+          </select>
+          <select
+            class="px-4 py-2 rounded-xl border border-gray-200 text-sm focus:border-[#2EB87A] focus:outline-none bg-white"
+          >
+            <option
+              value=""
+            >
+              所有状态
+            </option>
+            <option
+              value="UPCOMING"
+            >
+              即将开始
+            </option>
+            <option
+              value="ONGOING"
+            >
+              进行中
+            </option>
+            <option
+              value="ENDED"
+            >
+              已结束
+            </option>
+          </select>
+        </div>
+        <button
+          class="bg-[#2EB87A] text-white px-4 py-2 rounded-xl font-medium hover:bg-[#2EB87A]/90 transition-colors flex items-center gap-2 text-sm"
+        >
+          <svg
+            class="lucide lucide-plus w-4 h-4"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M5 12h14"
+            />
+            <path
+              d="M12 5v14"
+            />
+          </svg>
+          新建活动
+        </button>
+      </div>
+      <div
+        class="hidden md:block bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+      >
+        <div
+          class="overflow-x-auto"
+        >
+          <table
+            class="w-full text-left border-collapse"
+          >
+            <thead>
+              <tr
+                class="bg-gray-50/50 text-xs uppercase tracking-wider text-[#1A2E22]/50 border-b border-gray-100"
+              >
+                <th
+                  class="px-6 py-4 font-medium"
+                >
+                  活动名称
+                </th>
+                <th
+                  class="px-6 py-4 font-medium"
+                >
+                  所属事件
+                </th>
+                <th
+                  class="px-6 py-4 font-medium"
+                >
+                  类型
+                </th>
+                <th
+                  class="px-6 py-4 font-medium"
+                >
+                  时间
+                </th>
+                <th
+                  class="px-6 py-4 font-medium"
+                >
+                  参与人数
+                </th>
+                <th
+                  class="px-6 py-4 font-medium"
+                >
+                  状态
+                </th>
+                <th
+                  class="px-6 py-4 font-medium text-right"
+                >
+                  操作
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              class="divide-y divide-gray-100"
+            >
+              <tr
+                class="hover:bg-gray-50/50 transition-colors"
+              >
+                <td[...
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="space-y-6 relative"
+    >
+      <div
+        class="flex items-center justify-between"
+      >
+        <h1
+          class="text-2xl font-bold"
+        >
+          活动管理
+        </h1>
+        <span
+          class="text-sm text-[#1A2E22]/60"
+        >
+          共 
+          1
+           个活动
+        </span>
+      </div>
+      <div
+        class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-wrap items-center justify-between gap-4"
+      >
+        <div
+          class="flex items-center gap-4 flex-1 min-w-0"
+        >
+          <div
+            class="relative w-64"
+          >
+            <svg
+              class="lucide lucide-search absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1A2E22]/40"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="11"
+                cy="11"
+                r="8"
+              />
+              <path
+                d="m21 21-4.3-4.3"
+              />
+            </svg>
+            <input
+              class="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 focus:border-[#2EB87A] focus:outline-none text-sm"
+              placeholder="搜索活动名称..."
+              type="text"
+              value=""
+            />
+          </div>
+          <select
+            class="px-4 py-2 rounded-xl border border-gray-200 text-sm focus:border-[#2EB87A] focus:outline-none bg-white"
+          >
+            <option
+              value=""
+            >
+              所有事件
+            </option>
+          </select>
+          <select
+            class="px-4 py-2 rounded-xl border border-gray-200 text-sm focus:border-[#2EB87A] focus:outline-none bg-white"
+          >
+            <option
+              value=""
+            >
+              所有状态
+            </option>
+            <option
+              value="UPCOMING"
+            >
+              即将开始
+            </option>
+            <option
+              value="ONGOING"
+            >
+              进行中
+            </option>
+            <option
+              value="ENDED"
+            >
+              已结束
+            </option>
+          </select>
+        </div>
+        <button
+          class="bg-[#2EB87A] text-white px-4 py-2 rounded-xl font-medium hover:bg-[#2EB87A]/90 transition-colors flex items-center gap-2 text-sm"
+        >
+          <svg
+            class="lucide lucide-plus w-4 h-4"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M5 12h14"
+            />
+            <path
+              d="M12 5v14"
+            />
+          </svg>
+          新建活动
+        </button>
+      </div>
+      <div
+        class="hidden md:block bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+      >
+        <div
+          class="overflow-x-auto"
+        >
+          <table
+            class="w-full text-left border-collapse"
+          >
+            <thead>
+              <tr
+                class="bg-gray-50/50 text-xs uppercase tracking-wider text-[#1A2E22]/50 border-b border-gray-100"
+              >
+                <th
+                  class="px-6 py-4 font-medium"
+                >
+                  活动名称
+                </th>
+                <th
+                  class="px-6 py-4 font-medium"
+                >
+                  所属事件
+                </th>
+                <th
+                  class="px-6 py-4 font-medium"
+                >
+                  类型
+                </th>
+                <th
+                  class="px-6 py-4 font-medium"
+                >
+                  时间
+                </th>
+                <th
+                  class="px-6 py-4 font-medium"
+                >
+                  参与人数
+                </th>
+                <th
+                  class="px-6 py-4 font-medium"
+                >
+                  状态
+                </th>
+                <th
+                  class="px-6 py-4 font-medium text-right"
+                >
+                  操作
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              class="divide-y divide-gray-100"
+            >
+              <tr
+                class="hover:bg-gray-50/50 transition-colors"
+              >
+                <td[...
+ ❯ waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/pages/admin/ActivityManagementPage.test.tsx:69:25
+     67|     await user.click(screen.getByRole('button', { name: '确认删除' }));
+     68|
+     69|     expect(await screen.findByText(backendMsg)).toBeInTheDocument();
+       |                         ^
+     70|     // 模态保持打开且确认按钮仍在
+     71|     expect(screen.getByRole('button', { name: '确认删除' })).toBeInTheDocu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+
+ Test Files  4 failed (4)
+      Tests  6 failed | 6 passed (12)
+   Start at  13:08:36
+   Duration  4.51s (transform 533ms, setup 514ms, import 1.76s, tests 7.95s, environment 3.33s)
+

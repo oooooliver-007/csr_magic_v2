@@ -24,6 +24,7 @@ export default function ActivityDetailPage() {
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [withdrawing, setWithdrawing] = useState(false);
   const [showResubmitForm, setShowResubmitForm] = useState(false);
+  const [withdrawConfirmOpen, setWithdrawConfirmOpen] = useState(false);
   const [survey, setSurvey] = useState<Survey | null>(null);
   const [surveySubmitted, setSurveySubmitted] = useState<boolean | null>(null);
 
@@ -81,14 +82,21 @@ export default function ActivityDetailPage() {
 
   const handleSignup = async (formData: Record<string, unknown>, familyMembers: FamilyMember[]) => {
     if (!activity) return;
+    // 驳回后「修改后重新提交」走重提接口，其余走正常报名
+    const isResubmit = showResubmitForm && activity.currentUserParticipation?.state === 'REJECTED';
     try {
-      await participationApi.signup({
-        activityId: activity.id,
+      const payload = {
         formData: JSON.stringify(formData),
         familyMembers: familyMembers.length > 0 ? familyMembers : undefined,
-      });
+      };
+      if (isResubmit && activity.currentUserParticipation) {
+        await participationApi.resubmit(activity.currentUserParticipation.id, payload);
+      } else {
+        await participationApi.signup({ activityId: activity.id, ...payload });
+      }
+      setShowResubmitForm(false);
       await fetchActivity();
-      showToast('success', '报名提交成功，请等待审核');
+      showToast('success', isResubmit ? '重新提交成功，请等待审核' : '报名提交成功，请等待审核');
     } catch (err: unknown) {
       const message = extractErrorMessage(err);
       throw new Error(message);
@@ -97,8 +105,6 @@ export default function ActivityDetailPage() {
 
   const handleWithdraw = async () => {
     if (!activity?.currentUserParticipation) return;
-    const confirmed = window.confirm('确认退出该活动吗？仅待审核状态可退出。');
-    if (!confirmed) return;
     try {
       setWithdrawing(true);
       await participationApi.withdraw(activity.currentUserParticipation.id);
@@ -199,7 +205,7 @@ export default function ActivityDetailPage() {
                 showResubmitForm={showResubmitForm}
                 withdrawing={withdrawing}
                 onSignup={handleSignup}
-                onWithdraw={handleWithdraw}
+                onWithdraw={() => setWithdrawConfirmOpen(true)}
                 onResubmit={() => setShowResubmitForm(true)}
               />
             </div>
@@ -228,7 +234,7 @@ export default function ActivityDetailPage() {
               showResubmitForm={showResubmitForm}
               withdrawing={withdrawing}
               onSignup={handleSignup}
-              onWithdraw={handleWithdraw}
+              onWithdraw={() => setWithdrawConfirmOpen(true)}
               onResubmit={() => setShowResubmitForm(true)}
             />
             {survey && (
@@ -250,6 +256,18 @@ export default function ActivityDetailPage() {
         isEnded={isEnded}
         isFull={isFull}
       />
+
+      {/* 退出活动二次确认（自定义模态框，替代原生 confirm） */}
+      {withdrawConfirmOpen && (
+        <WithdrawConfirmModal
+          withdrawing={withdrawing}
+          onCancel={() => setWithdrawConfirmOpen(false)}
+          onConfirm={() => {
+            setWithdrawConfirmOpen(false);
+            handleWithdraw();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -439,4 +457,45 @@ function extractErrorMessage(err: unknown): string {
     return axiosErr.response?.data?.message ?? '操作失败';
   }
   return '操作失败';
+}
+
+interface WithdrawConfirmModalProps {
+  withdrawing: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+/**
+ * 退出活动二次确认框（站内自定义模态框，替代浏览器原生 confirm）
+ */
+function WithdrawConfirmModal({ withdrawing, onConfirm, onCancel }: WithdrawConfirmModalProps) {
+  return (
+    <>
+      <div className="fixed inset-0 bg-[#1A2E22]/20 backdrop-blur-sm z-40" onClick={onCancel} aria-hidden="true" />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full space-y-4" role="alertdialog" aria-modal="true" aria-labelledby="withdraw-confirm-title">
+          <h3 id="withdraw-confirm-title" className="text-lg font-bold text-[#1A2E22]">确认退出</h3>
+          <p className="text-sm text-[#1A2E22]/70">确定要退出该活动吗？仅待审核状态可退出。</p>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={withdrawing}
+              className="flex-1 py-2.5 rounded-xl border border-gray-200 font-medium text-[#1A2E22] hover:bg-gray-50 transition-colors text-sm disabled:opacity-50"
+            >
+              取消
+            </button>
+            <button
+              type="button"
+              onClick={onConfirm}
+              disabled={withdrawing}
+              className="flex-1 py-2.5 rounded-xl bg-red-500 font-medium text-white hover:bg-red-600 transition-colors text-sm disabled:opacity-50"
+            >
+              {withdrawing ? '退出中...' : '确认退出'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
 }
