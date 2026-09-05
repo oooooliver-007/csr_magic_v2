@@ -14,6 +14,11 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+    // Windows 下编辑器/工具的「临时文件 + 重命名」原子写会触发 chokidar
+    // 对被锁临时文件的 EBUSY 并使 dev server 崩溃，这里忽略这些临时产物
+    watch: {
+      ignored: ['**/*.tmp', '**/*.tmpdir/**', '**/*.tmp/**'],
+    },
   },
   test: {
     globals: true,

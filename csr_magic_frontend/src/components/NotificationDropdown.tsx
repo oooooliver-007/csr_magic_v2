@@ -24,7 +24,10 @@ export default function NotificationDropdown({
   const EmptyIcon = getNotificationEmptyIcon();
 
   return (
-    <div data-testid="notification-dropdown" className="absolute right-0 top-full mt-3 w-[360px] max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-100 bg-white shadow-xl overflow-hidden">
+    <div
+      data-testid="notification-dropdown"
+      className="fixed inset-x-0 bottom-0 z-50 flex max-h-[75vh] flex-col rounded-t-2xl border border-gray-100 bg-white shadow-xl md:absolute md:inset-auto md:right-0 md:top-full md:mt-3 md:max-h-none md:w-[360px] md:max-w-[calc(100vw-2rem)] md:rounded-2xl md:overflow-hidden"
+    >
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div>
           <h3 className="text-sm font-bold text-[#1A2E22]">通知</h3>
@@ -72,7 +75,7 @@ export default function NotificationDropdown({
       )}
 
       {!loading && !error && items.length > 0 && (
-        <div className="max-h-[420px] overflow-y-auto p-2">
+        <div className="max-h-[420px] min-h-0 flex-1 overflow-y-auto p-2">
           <div className="space-y-2">
             {items.map((notification) => {
               const meta = getNotificationMeta(notification.type);

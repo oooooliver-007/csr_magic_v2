@@ -26,6 +26,13 @@ const GENDER_OPTIONS = [
   { value: 'FEMALE', label: '女' },
 ];
 
+/** 兼容存量数据：早期注册接口保存的是「男/女」中文值，统一映射为枚举值 */
+function normalizeGender(gender: string | null | undefined): string {
+  if (gender === '男') return 'MALE';
+  if (gender === '女') return 'FEMALE';
+  return gender ?? '';
+}
+
 const REGION_OPTIONS = [
   { value: '', label: '请选择地区' },
   { value: '北京', label: '北京' },
@@ -54,7 +61,7 @@ export default function ProfileInfoForm({ user, onUpdateSuccess }: ProfileInfoFo
     defaultValues: {
       displayName: user.displayName ?? '',
       realName: user.realName ?? '',
-      gender: user.gender ?? '',
+      gender: normalizeGender(user.gender),
       region: user.region ?? '',
     },
   });
@@ -63,7 +70,7 @@ export default function ProfileInfoForm({ user, onUpdateSuccess }: ProfileInfoFo
     reset({
       displayName: user.displayName ?? '',
       realName: user.realName ?? '',
-      gender: user.gender ?? '',
+      gender: normalizeGender(user.gender),
       region: user.region ?? '',
     });
   }, [user, reset]);

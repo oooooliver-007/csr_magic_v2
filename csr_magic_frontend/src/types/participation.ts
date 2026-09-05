@@ -30,6 +30,11 @@ export interface SignupRequest {
   familyMembers?: FamilyMember[];
 }
 
+export interface ResubmitRequest {
+  formData?: string;
+  familyMembers?: FamilyMember[];
+}
+
 export type ReviewAction = 'APPROVE' | 'REJECT';
 
 export interface ReviewRequest {

@@ -17,6 +17,7 @@ import com.csr.event.repository.EventRepository;
 import com.csr.participation.entity.ParticipationState;
 import com.csr.participation.entity.UserActivity;
 import com.csr.participation.repository.UserActivityRepository;
+import com.csr.poster.repository.AiPosterRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,6 +54,9 @@ class ActivityServiceImplTest {
     @Mock
     private UserActivityRepository userActivityRepository;
 
+    @Mock
+    private AiPosterRepository aiPosterRepository;
+
     @InjectMocks
     private ActivityServiceImpl activityService;
 
@@ -87,12 +91,44 @@ class ActivityServiceImplTest {
         Pageable pageable = PageRequest.of(0, 20);
         Page<Activity> page = new PageImpl<>(List.of(testActivity), pageable, 1);
         when(activityRepository.findByFilters(isNull(), isNull(), isNull(), isNull(), eq(pageable))).thenReturn(page);
+        when(userActivityRepository.sumOccupiedSlotsGroupedByActivity()).thenReturn(
+            List.<Object[]>of(new Object[]{1L, 4L})
+        );
 
         Page<ActivityResponse> result = activityService.list(null, null, null, null, pageable);
 
         assertEquals(1, result.getTotalElements());
         assertEquals("春季植树活动", result.getContent().get(0).name());
+        assertEquals(4L, result.getContent().get(0).currentParticipants());
+        assertEquals(4L, result.getContent().get(0).currentOccupiedSlots());
         verify(activityRepository).findByFilters(isNull(), isNull(), isNull(), isNull(), eq(pageable));
+    }
+
+    @Test
+    @DisplayName("获取活动列表：占用名额按活动分组回填，无记录的活动为 0")
+    void list_fillsOccupiedSlotsPerActivity() {
+        Activity activity2 = new Activity();
+        activity2.setId(2L);
+        activity2.setEvent(testEvent);
+        activity2.setName("第二次活动");
+        activity2.setTemplateType(TemplateType.BASIC);
+        activity2.setStatus("UPCOMING");
+        ReflectionTestUtils.setField(activity2, "createdAt", Instant.parse("2026-04-02T00:00:00Z"));
+
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<Activity> page = new PageImpl<>(List.of(testActivity, activity2), pageable, 2);
+        when(activityRepository.findByFilters(isNull(), isNull(), isNull(), isNull(), eq(pageable))).thenReturn(page);
+        // 活动 1 有 3 条记录、其中 1 条带 1 名家属 → 占用 4 名额；活动 2 无记录
+        when(userActivityRepository.sumOccupiedSlotsGroupedByActivity()).thenReturn(
+            List.<Object[]>of(new Object[]{1L, 4L})
+        );
+
+        Page<ActivityResponse> result = activityService.list(null, null, null, null, pageable);
+
+        assertEquals(4L, result.getContent().get(0).currentParticipants());
+        assertEquals(4L, result.getContent().get(0).currentOccupiedSlots());
+        assertEquals(0L, result.getContent().get(1).currentParticipants());
+        assertEquals(0L, result.getContent().get(1).currentOccupiedSlots());
     }
 
     @Test
@@ -271,10 +307,55 @@ class ActivityServiceImplTest {
     @DisplayName("删除活动：存在时成功删除")
     void delete_success() {
         when(activityRepository.existsById(1L)).thenReturn(true);
+        when(userActivityRepository.countByActivityId(1L)).thenReturn(0L);
+        when(aiPosterRepository.countByActivityId(1L)).thenReturn(0L);
 
         activityService.delete(1L);
 
         verify(activityRepository).deleteById(1L);
+    }
+
+    @Test
+    @DisplayName("删除活动：存在报名记录时拒绝并给出明确报错")
+    void delete_withParticipations() {
+        when(activityRepository.existsById(1L)).thenReturn(true);
+        when(userActivityRepository.countByActivityId(1L)).thenReturn(3L);
+        when(aiPosterRepository.countByActivityId(1L)).thenReturn(0L);
+
+        BusinessException ex = assertThrows(BusinessException.class,
+            () -> activityService.delete(1L));
+        assertEquals(400, ex.getCode());
+        assertTrue(ex.getMessage().contains("3 条报名记录"));
+        verify(activityRepository, never()).deleteById(anyLong());
+    }
+
+    @Test
+    @DisplayName("删除活动：存在 AI 海报记录时拒绝并给出明确报错")
+    void delete_withPosters() {
+        when(activityRepository.existsById(1L)).thenReturn(true);
+        when(userActivityRepository.countByActivityId(1L)).thenReturn(0L);
+        when(aiPosterRepository.countByActivityId(1L)).thenReturn(2L);
+
+        BusinessException ex = assertThrows(BusinessException.class,
+            () -> activityService.delete(1L));
+        assertEquals(400, ex.getCode());
+        assertTrue(ex.getMessage().contains("2 张海报记录"));
+        verify(activityRepository, never()).deleteById(anyLong());
+    }
+
+    @Test
+    @DisplayName("删除活动：报名与海报记录同时存在时两者都说明")
+    void delete_withBothRecords() {
+        when(activityRepository.existsById(1L)).thenReturn(true);
+        when(userActivityRepository.countByActivityId(1L)).thenReturn(1L);
+        when(aiPosterRepository.countByActivityId(1L)).thenReturn(1L);
+
+        BusinessException ex = assertThrows(BusinessException.class,
+            () -> activityService.delete(1L));
+        assertEquals(400, ex.getCode());
+        assertTrue(ex.getMessage().contains("1 条报名记录"));
+        assertTrue(ex.getMessage().contains("1 张海报记录"));
+        verify(activityRepository, never()).deleteById(anyLong());
     }
 
     @Test
@@ -440,7 +521,7 @@ class ActivityServiceImplTest {
     @DisplayName("getDetail：存在活动且用户未参与时返回 participation 为 null")
     void getDetail_noParticipation() {
         when(activityRepository.findById(1L)).thenReturn(Optional.of(testActivity));
-        when(userActivityRepository.countByActivityId(1L)).thenReturn(5L);
+        when(userActivityRepository.sumOccupiedSlots(1L)).thenReturn(5L);
         when(userActivityRepository.findByUserIdAndActivityId(100L, 1L)).thenReturn(Optional.empty());
 
         ActivityDetailResponse response = activityService.getDetail(1L, 100L);
@@ -448,6 +529,7 @@ class ActivityServiceImplTest {
         assertEquals(1L, response.id());
         assertEquals("春季植树活动", response.name());
         assertEquals(5L, response.currentParticipants());
+        assertEquals(5L, response.currentOccupiedSlots());
         assertNull(response.currentUserParticipation());
     }
 
@@ -465,13 +547,14 @@ class ActivityServiceImplTest {
         ReflectionTestUtils.setField(ua, "createdAt", Instant.parse("2026-04-10T00:00:00Z"));
 
         when(activityRepository.findById(1L)).thenReturn(Optional.of(testActivity));
-        when(userActivityRepository.countByActivityId(1L)).thenReturn(10L);
+        when(userActivityRepository.sumOccupiedSlots(1L)).thenReturn(10L);
         when(userActivityRepository.findByUserIdAndActivityId(100L, 1L)).thenReturn(Optional.of(ua));
 
         ActivityDetailResponse response = activityService.getDetail(1L, 100L);
 
         assertEquals(1L, response.id());
         assertEquals(10L, response.currentParticipants());
+        assertEquals(10L, response.currentOccupiedSlots());
         assertNotNull(response.currentUserParticipation());
         assertEquals("PENDING", response.currentUserParticipation().state());
         assertEquals(100L, response.currentUserParticipation().userId());
@@ -481,7 +564,7 @@ class ActivityServiceImplTest {
     @DisplayName("getDetail：currentUserId 为 null 时不查询参与状态")
     void getDetail_nullUser() {
         when(activityRepository.findById(1L)).thenReturn(Optional.of(testActivity));
-        when(userActivityRepository.countByActivityId(1L)).thenReturn(0L);
+        when(userActivityRepository.sumOccupiedSlots(1L)).thenReturn(0L);
 
         ActivityDetailResponse response = activityService.getDetail(1L, null);
 

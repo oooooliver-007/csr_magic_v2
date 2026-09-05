@@ -1,5 +1,6 @@
 import { CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
 import type { Participation } from '../types/participation';
+import { FAMILY_RELATION_LABELS } from '../constants/familyRelation';
 
 interface ParticipationStatusProps {
   participation: Participation;
@@ -73,6 +74,21 @@ export default function ParticipationStatus({
       {/* 已提交的表单数据（只读展示） */}
       {participation.formData && (
         <FormDataDisplay formData={participation.formData} />
+      )}
+
+      {/* 携带家属回显（BUG-08：已提交信息需体现家属） */}
+      {participation.familyMembers && participation.familyMembers.length > 0 && (
+        <div className="bg-white p-3 rounded-xl space-y-2">
+          <p className="text-xs font-medium text-[#1A2E22]/40 uppercase">携带家属</p>
+          {participation.familyMembers.map((member, index) => (
+            <div key={index} className="flex justify-between text-sm">
+              <span className="text-[#1A2E22]/60">{member.name}</span>
+              <span className="font-medium text-[#1A2E22]">
+                {FAMILY_RELATION_LABELS[member.relation] ?? member.relation}
+              </span>
+            </div>
+          ))}
+        </div>
       )}
 
       {/* 操作按钮 */}

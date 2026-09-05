@@ -3,6 +3,7 @@ package com.csr.participation.controller;
 import com.csr.common.ApiResponse;
 import com.csr.participation.dto.MyParticipationResponse;
 import com.csr.participation.dto.ParticipationResponse;
+import com.csr.participation.dto.ResubmitRequest;
 import com.csr.participation.dto.ReviewRequest;
 import com.csr.participation.dto.SignupRequest;
 import com.csr.participation.entity.ParticipationState;
@@ -34,6 +35,17 @@ public class ParticipationController {
     public ApiResponse<ParticipationResponse> signup(@Valid @RequestBody SignupRequest request) {
         Long userId = getCurrentUserId();
         return ApiResponse.success(participationService.signup(userId, request));
+    }
+
+    /**
+     * 驳回后重新提交报名（REJECTED → RE_SUBMITTED）
+     */
+    @PatchMapping("/{id}/resubmit")
+    public ApiResponse<ParticipationResponse> resubmit(
+            @PathVariable Long id,
+            @Valid @RequestBody ResubmitRequest request) {
+        Long userId = getCurrentUserId();
+        return ApiResponse.success(participationService.resubmit(userId, id, request));
     }
 
     @PostMapping("/{id}/withdraw")

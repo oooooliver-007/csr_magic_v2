@@ -173,7 +173,7 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
       />
 
       {/* 抽屉 */}
-      <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-2xl z-50 flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
+      <div className="fixed inset-y-0 right-0 w-full md:w-96 bg-white shadow-2xl z-50 flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
         {/* 头部 */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <h2 className="text-xl font-bold">{isEdit ? '编辑活动' : '新建活动'}</h2>

@@ -1,4 +1,5 @@
 import type { TopParticipantItem } from '../../types/dashboard';
+import { getAvatarInitial } from '../../utils/avatar';
 
 interface TopParticipantsListProps {
   data: TopParticipantItem[];
@@ -39,7 +40,7 @@ export default function TopParticipantsList({ data }: TopParticipantsListProps) 
                 <td className="px-6 py-3">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-[#2EB87A]/10 flex items-center justify-center text-[#2EB87A] font-bold text-sm">
-                      {emp.displayName?.charAt(0) ?? '?'}
+                      {getAvatarInitial(emp.displayName, '?')}
                     </div>
                     <span className="font-medium">{emp.displayName ?? '未知用户'}</span>
                   </div>

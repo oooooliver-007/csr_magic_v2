@@ -15,6 +15,7 @@ import com.csr.event.exception.EventNotFoundException;
 import com.csr.event.repository.EventRepository;
 import com.csr.participation.dto.ParticipationResponse;
 import com.csr.participation.repository.UserActivityRepository;
+import com.csr.poster.repository.AiPosterRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -33,15 +37,18 @@ public class ActivityServiceImpl implements ActivityService {
     private final ActivityRepository activityRepository;
     private final EventRepository eventRepository;
     private final UserActivityRepository userActivityRepository;
+    private final AiPosterRepository aiPosterRepository;
     private final AuditLogService auditLogService;
 
     public ActivityServiceImpl(ActivityRepository activityRepository,
                                EventRepository eventRepository,
                                UserActivityRepository userActivityRepository,
+                               AiPosterRepository aiPosterRepository,
                                AuditLogService auditLogService) {
         this.activityRepository = activityRepository;
         this.eventRepository = eventRepository;
         this.userActivityRepository = userActivityRepository;
+        this.aiPosterRepository = aiPosterRepository;
         this.auditLogService = auditLogService;
     }
 
@@ -59,7 +66,18 @@ public class ActivityServiceImpl implements ActivityService {
             }
         }
         Page<Activity> page = activityRepository.findByFilters(eventId, effectiveStatus, effectiveTemplateType, effectiveKeyword, pageable);
-        return page.map(ActivityResponse::from);
+
+        // 一次查询构建「活动ID → 占用名额」映射，统一填充分配名额口径（含家属），避免 N+1
+        Map<Long, Long> occupiedSlots = userActivityRepository.sumOccupiedSlotsGroupedByActivity().stream()
+            .collect(Collectors.toMap(
+                row -> (Long) row[0],
+                row -> ((Number) row[1]).longValue()
+            ));
+
+        return page.map(activity -> {
+            long slots = occupiedSlots.getOrDefault(activity.getId(), 0L);
+            return ActivityResponse.from(activity, slots, slots);
+        });
     }
 
     @Override
@@ -74,7 +92,8 @@ public class ActivityServiceImpl implements ActivityService {
         Activity activity = activityRepository.findById(id)
             .orElseThrow(() -> new ActivityNotFoundException(id));
 
-        long participantCount = userActivityRepository.countByActivityId(id);
+        // 统一以「占用名额」（本人 1 + 家属数）为参与人数口径
+        long occupiedSlots = userActivityRepository.sumOccupiedSlots(id);
 
         ParticipationResponse participation = null;
         if (currentUserId != null) {
@@ -83,7 +102,7 @@ public class ActivityServiceImpl implements ActivityService {
                 .orElse(null);
         }
 
-        return ActivityDetailResponse.from(activity, participantCount, participation);
+        return ActivityDetailResponse.from(activity, occupiedSlots, occupiedSlots, participation);
     }
 
     @Override
@@ -185,6 +204,25 @@ public class ActivityServiceImpl implements ActivityService {
         if (!activityRepository.existsById(id)) {
             throw new ActivityNotFoundException(id);
         }
+
+        // 删除前预检关联记录（报名记录 + AI 海报记录），存在时给出明确报错而非外键 500
+        long participationCount = userActivityRepository.countByActivityId(id);
+        long posterCount = aiPosterRepository.countByActivityId(id);
+        if (participationCount > 0 || posterCount > 0) {
+            StringBuilder detail = new StringBuilder("该活动下还有 ");
+            if (participationCount > 0) {
+                detail.append(participationCount).append(" 条报名记录");
+            }
+            if (posterCount > 0) {
+                if (participationCount > 0) {
+                    detail.append("、");
+                }
+                detail.append(posterCount).append(" 张海报记录");
+            }
+            detail.append("，请先处理后再删除");
+            throw new BusinessException(400, detail.toString());
+        }
+
         activityRepository.deleteById(id);
         auditLogService.log(null, "DELETE", "ACTIVITY", id, "删除活动");
         log.info("删除活动成功，ID: {}", id);

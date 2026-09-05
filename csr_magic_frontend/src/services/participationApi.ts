@@ -2,6 +2,7 @@ import apiClient from './apiClient';
 import type {
   Participation,
   SignupRequest,
+  ResubmitRequest,
   MyParticipation,
   ReviewRequest,
   ParticipationListParams,
@@ -16,6 +17,10 @@ export const participationApi = {
 
   withdraw: (id: number) =>
     apiClient.post<ApiResponse<void>>(`${BASE}/${id}/withdraw`),
+
+  /** 驳回后重新提交报名（REJECTED → RE_SUBMITTED） */
+  resubmit: (id: number, data: ResubmitRequest) =>
+    apiClient.patch<ApiResponse<Participation>>(`${BASE}/${id}/resubmit`, data),
 
   getMyParticipations: (params: { page?: number; size?: number } = {}) =>
     apiClient.get<ApiResponse<PageResponse<MyParticipation>>>(`${BASE}/my`, { params }),

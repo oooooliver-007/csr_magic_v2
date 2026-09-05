@@ -1,6 +1,8 @@
 package com.csr.event.service;
 
 import com.csr.audit.service.AuditLogService;
+import com.csr.activity.repository.ActivityRepository;
+import com.csr.common.BusinessException;
 import com.csr.event.dto.CreateEventRequest;
 import com.csr.event.dto.EventResponse;
 import com.csr.event.dto.UpdateEventRequest;
@@ -23,10 +25,13 @@ public class EventServiceImpl implements EventService {
     private static final Logger log = LoggerFactory.getLogger(EventServiceImpl.class);
 
     private final EventRepository eventRepository;
+    private final ActivityRepository activityRepository;
     private final AuditLogService auditLogService;
 
-    public EventServiceImpl(EventRepository eventRepository, AuditLogService auditLogService) {
+    public EventServiceImpl(EventRepository eventRepository, ActivityRepository activityRepository,
+                            AuditLogService auditLogService) {
         this.eventRepository = eventRepository;
+        this.activityRepository = activityRepository;
         this.auditLogService = auditLogService;
     }
 
@@ -105,6 +110,11 @@ public class EventServiceImpl implements EventService {
     public void delete(Long id) {
         if (!eventRepository.existsById(id)) {
             throw new EventNotFoundException(id);
+        }
+        // 删除前预检事件下活动数，存在活动时给出明确报错而非外键 500（与活动删除预检同族）
+        long activityCount = activityRepository.countByEventId(id);
+        if (activityCount > 0) {
+            throw new BusinessException(400, "该事件下还有 " + activityCount + " 个活动，请先处理后再删除");
         }
         auditLogService.log(null, "DELETE", "EVENT", id, "删除事件");
         eventRepository.deleteById(id);

@@ -75,7 +75,7 @@ export default function UserDetailPanel({
   };
 
   return (
-    <div className="absolute top-0 right-0 w-[400px] h-full bg-white rounded-2xl border border-gray-100 shadow-xl flex flex-col z-10 animate-in slide-in-from-right-8">
+    <div className="fixed inset-0 z-40 md:absolute md:inset-auto md:top-0 md:right-0 md:w-[400px] md:h-full bg-white md:rounded-2xl md:border md:border-gray-100 md:shadow-xl flex flex-col md:animate-in md:slide-in-from-right-8 overflow-hidden">
       {/* 头部 */}
       <div className="p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10 rounded-t-2xl">
         <h2 className="text-lg font-bold text-[#1A2E22]">用户详情</h2>

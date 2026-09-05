@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -18,9 +18,13 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const setAuth = useAuthStore((s) => s.setAuth);
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState('');
+
+  // 深链接来源（PrivateRoute 记录）：登录成功后返回原目标页
+  const from = (location.state as { from?: string } | null)?.from;
 
   const {
     register,
@@ -37,12 +41,14 @@ export default function LoginPage() {
       const { accessToken, user } = res.data.data;
       setAuth(accessToken, user);
 
-      // 根据角色跳转
-      if (user.role === 'ADMIN') {
-        navigate('/admin', { replace: true });
-      } else {
-        navigate('/', { replace: true });
-      }
+      // 深链接返回规则：
+      // - 管理员：仅当来源是管理端深链接（/admin 开头）时返回来源页，其余一律进入管理端
+      //   （避免从根路径或员工页被踢到登录页后，登录又落回员工端）
+      // - 员工：返回来源页（若有），否则首页
+      const target = user.role === 'ADMIN'
+        ? (from && from.startsWith('/admin') ? from : '/admin')
+        : (from || '/');
+      navigate(target, { replace: true });
     } catch (err) {
       const axiosErr = err as AxiosError<ApiResponse<null>>;
       const msg = axiosErr.response?.data?.message || '登录失败，请重试';

@@ -19,7 +19,13 @@ const registerSchema = z.object({
   username: z.string().min(1, '用户名不能为空').max(50, '用户名最长50字符'),
   password: z.string().min(6, '密码至少6位'),
   region: z.string().optional(),
-  gender: z.string().optional(),
+  // BUG-05 根因修复：react-hook-form 对未勾选的 radio 组取值为 null（非 undefined），
+  // z.string().optional() 拒绝 null 且性别无错误展示位 → 表单静默失败。
+  // 这里把 null/false/'' 归一化为 undefined，使「不选性别」可正常注册。
+  gender: z.preprocess(
+    (v) => (v === null || v === false || v === '' ? undefined : v),
+    z.string().optional()
+  ),
 });
 
 type RegisterForm = z.infer<typeof registerSchema>;
@@ -162,15 +168,15 @@ export default function RegisterPage() {
               性别
             </label>
             <div className="flex gap-4">
-              {(['男', '女'] as const).map((g) => (
-                <label key={g} className="flex items-center gap-2 cursor-pointer">
+              {([{ value: 'MALE', label: '男' }, { value: 'FEMALE', label: '女' }] as const).map((opt) => (
+                <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="radio"
-                    value={g}
+                    value={opt.value}
                     className="w-4 h-4 text-[#2EB87A] focus:ring-[#2EB87A]"
                     {...register('gender')}
                   />
-                  <span className="text-sm text-[#1A2E22]">{g}</span>
+                  <span className="text-sm text-[#1A2E22]">{opt.label}</span>
                 </label>
               ))}
             </div>

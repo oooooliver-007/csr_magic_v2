@@ -52,6 +52,12 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    // 未携带 Authorization 头 → 匿名请求（如登录/注册）的 401 不是 Token 过期，
+    // 直接透传给调用方展示后端错误信息（如「用户名或密码错误」），避免被刷新流程吞掉
+    if (!originalRequest.headers?.Authorization) {
+      return Promise.reject(error);
+    }
+
     // 如果正在刷新，将请求加入队列等待
     if (isRefreshing) {
       return new Promise<string>((resolve, reject) => {
