@@ -4,6 +4,8 @@ import { Menu, Leaf, X, LogOut } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 import NotificationBell from './NotificationBell';
 import { getAvatarInitial } from '../utils/avatar';
+import ChatFab from './ChatFab';
+import ChatDrawer from './ChatDrawer';
 
 const navLinks = [
   { to: '/', label: '首页' },
@@ -14,6 +16,7 @@ const navLinks = [
 
 export default function EmployeeLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
@@ -119,6 +122,10 @@ export default function EmployeeLayout() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
         <Outlet />
       </main>
+
+      {/* AI 对话悬浮按钮 + 抽屉 */}
+      <ChatFab onClick={() => setChatOpen(true)} />
+      <ChatDrawer open={chatOpen} onClose={() => setChatOpen(false)} />
     </div>
   );
 }
