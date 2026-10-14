@@ -8,6 +8,9 @@ load_dotenv()
 # DashScope API
 DASHSCOPE_API_KEY: str = os.getenv("DASHSCOPE_API_KEY", "")
 
+# 对话模型（AI 对话报名）
+CHAT_MODEL: str = os.getenv("CHAT_MODEL", "qwen-flash")
+
 # 图像生成模型
 IMAGE_MODEL: str = os.getenv("IMAGE_MODEL", "wan2.7-image-pro")
 
