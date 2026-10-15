@@ -13,12 +13,12 @@ from typing import Optional
 
 import httpx
 
-from config import DASHSCOPE_API_KEY
+from config import CHAT_MODEL, DASHSCOPE_API_KEY
 
 logger = logging.getLogger(__name__)
 
 DASHSCOPE_API = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
-QWEN_MODEL = "qwen-turbo"
+QWEN_MODEL = CHAT_MODEL
 
 
 async def _call_qwen(messages: list[dict]) -> str:
