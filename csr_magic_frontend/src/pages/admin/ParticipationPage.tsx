@@ -608,7 +608,7 @@ export default function ParticipationPage() {
       )}
 
       {toast && (
-        <div className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white ${toast.type === 'success' ? 'bg-[#2EB87A]' : 'bg-red-500'}`}>
+        <div className={`fixed bottom-6 right-6 z-[60] px-4 py-3 rounded-xl shadow-lg text-sm font-medium text-white ${toast.type === 'success' ? 'bg-[#2EB87A]' : 'bg-red-500'}`}>
           {toast.message}
         </div>
       )}

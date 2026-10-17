@@ -35,6 +35,19 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Long
 
     Page<UserActivity> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
 
+    /**
+     * AI 对话：某用户全部报名记录（JOIN FETCH activity，避免 open-in-view=false 下 Lazy 初始化异常）
+     */
+    @Query("SELECT ua FROM UserActivity ua JOIN FETCH ua.activity "
+        + "WHERE ua.user.id = :userId ORDER BY ua.createdAt DESC")
+    List<UserActivity> findByUserId(@Param("userId") Long userId);
+
+    /**
+     * AI 对话：按 id 取报名并预取 activity（取消报名场景）
+     */
+    @Query("SELECT ua FROM UserActivity ua JOIN FETCH ua.activity WHERE ua.id = :id")
+    Optional<UserActivity> findByIdWithActivity(@Param("id") Long id);
+
     @Query(value = "SELECT ua FROM UserActivity ua "
         + "JOIN FETCH ua.user "
         + "JOIN FETCH ua.activity "

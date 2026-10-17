@@ -12,9 +12,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * 事件目录：读接口对任意已认证用户开放（员工端活动筛选需要「所属事件」下拉），
+ * 写接口仍限管理员（见各方法上的 @PreAuthorize）。
+ */
 @RestController
 @RequestMapping("/api/v2/events")
-@PreAuthorize("hasRole('ADMIN')")
 public class EventController {
 
     private final EventService eventService;
@@ -37,11 +40,13 @@ public class EventController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<EventResponse> create(@Valid @RequestBody CreateEventRequest request) {
         return ApiResponse.success(eventService.create(request));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<EventResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody UpdateEventRequest request) {
@@ -49,6 +54,7 @@ public class EventController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         eventService.delete(id);
         return ApiResponse.success(null);
