@@ -39,7 +39,7 @@ export default function ActivityCard({ activity }: ActivityCardProps) {
           <img
             src={activity.coverImage}
             alt={activity.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-top"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-[#1A2E22]/20">

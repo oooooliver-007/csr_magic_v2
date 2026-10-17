@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X, Upload, Trash2 } from 'lucide-react';
 import { eventApi } from '../../services/eventApi';
 import type { Event } from '../../types/event';
+import { compressImage, ImageCompressError } from '../../utils/imageCompress';
 
 const eventSchema = z.object({
   name: z.string().min(1, '事件名称不能为空').max(200, '事件名称不能超过200字'),
@@ -50,6 +51,7 @@ export default function EventFormDrawer({ open, event, onClose, onSuccess, showT
   });
 
   const coverImage = watch('coverImage');
+  const [coverProcessing, setCoverProcessing] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -77,20 +79,22 @@ export default function EventFormDrawer({ open, event, onClose, onSuccess, showT
     }
   }, [open, event, reset]);
 
-  const handleCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    // 允许重复选择同一文件
+    e.target.value = '';
     if (!file) return;
 
-    if (file.size > 500 * 1024) {
-      showToast('封面图不能超过500KB', 'error');
-      return;
+    setCoverProcessing(true);
+    try {
+      const { dataUrl } = await compressImage(file);
+      setValue('coverImage', dataUrl);
+    } catch (error) {
+      const message = error instanceof ImageCompressError ? error.message : '封面图处理失败，请重试';
+      showToast(message, 'error');
+    } finally {
+      setCoverProcessing(false);
     }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      setValue('coverImage', reader.result as string);
-    };
-    reader.readAsDataURL(file);
   };
 
   const onSubmit = async (data: EventFormData) => {
@@ -129,7 +133,7 @@ export default function EventFormDrawer({ open, event, onClose, onSuccess, showT
       />
 
       {/* 抽屉 */}
-      <div className="fixed inset-y-0 right-0 w-full md:w-96 bg-white shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300">
+      <div className="fixed inset-y-0 right-0 w-full md:w-96 bg-white shadow-2xl z-50 flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
         {/* 头部 */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <h2 className="text-xl font-bold">{isEdit ? '编辑事件' : '新建事件'}</h2>
@@ -142,8 +146,8 @@ export default function EventFormDrawer({ open, event, onClose, onSuccess, showT
         </div>
 
         {/* 表单 */}
-        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col">
-          <div className="flex-1 overflow-y-auto p-6 space-y-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 overflow-y-auto p-6 space-y-5 min-h-0">
             {/* 事件名称 */}
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-[#1A2E22]">
@@ -226,12 +230,15 @@ export default function EventFormDrawer({ open, event, onClose, onSuccess, showT
                   <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mb-2">
                     <Upload className="w-5 h-5 text-gray-400" />
                   </div>
-                  <p className="text-sm font-medium text-[#1A2E22]">点击上传封面图</p>
-                  <p className="text-xs text-[#1A2E22]/50 mt-1">支持 JPG、PNG（≤500KB）</p>
+                  <p className="text-sm font-medium text-[#1A2E22]">
+                    {coverProcessing ? '图片处理中...' : '点击上传封面图'}
+                  </p>
+                  <p className="text-xs text-[#1A2E22]/50 mt-1">支持 JPG、PNG（自动压缩至 ≤400KB）</p>
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/gif,image/webp"
                     className="hidden"
+                    disabled={coverProcessing}
                     onChange={handleCoverUpload}
                   />
                 </label>

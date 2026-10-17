@@ -59,7 +59,7 @@ export default function ActivityViewDrawer({ open, activity, onClose, onEdit }: 
       />
 
       {/* 抽屉 */}
-      <div className="fixed inset-y-0 right-0 w-full md:w-96 bg-white shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300">
+      <div className="fixed inset-y-0 right-0 w-full md:w-96 bg-white shadow-2xl z-50 flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
         {/* 头部 */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <h2 className="text-xl font-bold">活动详情</h2>
@@ -72,7 +72,7 @@ export default function ActivityViewDrawer({ open, activity, onClose, onEdit }: 
         </div>
 
         {/* 内容 */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-5">
+        <div className="flex-1 overflow-y-auto p-6 space-y-5 min-h-0">
           {/* 封面图 */}
           {activity.coverImage && (
             <div className="rounded-xl overflow-hidden border border-gray-100">

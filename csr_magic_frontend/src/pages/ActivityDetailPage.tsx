@@ -159,7 +159,7 @@ export default function ActivityDetailPage() {
           <img
             src={activity.coverImage}
             alt={activity.name}
-            className="w-full h-full object-cover rounded-b-3xl shadow-sm"
+            className="w-full h-full object-cover object-top rounded-b-3xl shadow-sm"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-r from-[#2EB87A] to-[#249663] rounded-b-3xl shadow-sm flex items-center justify-center">

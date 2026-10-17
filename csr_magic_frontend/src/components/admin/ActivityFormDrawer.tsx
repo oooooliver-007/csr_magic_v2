@@ -8,6 +8,7 @@ import type { Activity, TemplateType, FormFieldSchema } from '../../types/activi
 import type { Event } from '../../types/event';
 import TemplateSelector from './TemplateSelector';
 import { getFormSchemaByType, TEMPLATE_TYPE_LABELS } from '../../constants/templateSchemas';
+import { compressImage, ImageCompressError } from '../../utils/imageCompress';
 
 const activitySchema = z.object({
   eventId: z.number({ required_error: '请选择所属事件' }).min(1, '请选择所属事件'),
@@ -64,6 +65,7 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
   const [customSchema, setCustomSchema] = useState<FormFieldSchema[]>([]);
   const [allowFamily, setAllowFamily] = useState(false);
   const [maxFamilyPerUser, setMaxFamilyPerUser] = useState<number | null>(null);
+  const [coverProcessing, setCoverProcessing] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -108,20 +110,22 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
     }
   }, [open, activity, reset]);
 
-  const handleCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    // 允许重复选择同一文件
+    e.target.value = '';
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      showToast('封面图不能超过5MB', 'error');
-      return;
+    setCoverProcessing(true);
+    try {
+      const { dataUrl } = await compressImage(file);
+      setValue('coverImage', dataUrl);
+    } catch (error) {
+      const message = error instanceof ImageCompressError ? error.message : '封面图处理失败，请重试';
+      showToast(message, 'error');
+    } finally {
+      setCoverProcessing(false);
     }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      setValue('coverImage', reader.result as string);
-    };
-    reader.readAsDataURL(file);
   };
 
   const onSubmit = async (data: ActivityFormData) => {
@@ -347,12 +351,15 @@ export default function ActivityFormDrawer({ open, activity, events, onClose, on
                   <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mb-2">
                     <Upload className="w-5 h-5 text-gray-400" />
                   </div>
-                  <p className="text-sm font-medium text-[#1A2E22]">点击上传封面图</p>
-                  <p className="text-xs text-[#1A2E22]/50 mt-1">支持 JPG、PNG（≤5MB）</p>
+                  <p className="text-sm font-medium text-[#1A2E22]">
+                    {coverProcessing ? '图片处理中...' : '点击上传封面图'}
+                  </p>
+                  <p className="text-xs text-[#1A2E22]/50 mt-1">支持 JPG、PNG（自动压缩至 ≤400KB）</p>
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/gif,image/webp"
                     className="hidden"
+                    disabled={coverProcessing}
                     onChange={handleCoverUpload}
                   />
                 </label>
