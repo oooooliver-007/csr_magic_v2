@@ -45,6 +45,7 @@ depends_on:
 - **Controller**：UserController 增加 GET /users/me/stats 端点
 - **Service**：UserService — getMyStats（聚合查询参与数、志愿时长、捐赠总额）
 - **Repository**：UserActivityRepository — 聚合查询
+- **累计志愿时长口径（2026-10-28 修正）**：优先汇总报名表单里填报的「服务时长(小时)」（`user_activity.form_data->>'hours'`，仅统计 `^[0-9]+(\.[0-9]+)?$` 的合法数字）；只有历史报名未填时长时，才回退为活动起止时间窗 `(end_time - start_time)`。**不要**再用活动时间窗作为主口径——跨半年的活动会把整段时间算成每名志愿者的服务时长（曾导致 5400h 异常）。
 
 ## 实现步骤清单（Implementation Checklist）
 1. [x] 后端：UserService 增加 getMyStats 方法

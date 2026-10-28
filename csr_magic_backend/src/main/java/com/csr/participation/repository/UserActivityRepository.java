@@ -99,17 +99,29 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Long
         Pageable pageable
     );
 
+    /**
+     * 累计志愿时长：优先按报名时填报的「服务时长(小时)」（form_data.hours）汇总；
+     * 历史报名未填时长时才回退为活动起止时间窗（旧口径）。
+     * 旧口径会把活动整体时间窗（例如跨半年的活动）当成每名志愿者的服务时长，
+     * 导致「江边净滩活动」这类活动出现 5400h 的异常值。
+     */
     @Query(value = """
         SELECT COALESCE(SUM(
-            EXTRACT(EPOCH FROM (a.end_time - a.start_time)) / 3600.0
+            CASE
+                WHEN ua.form_data IS NOT NULL
+                 AND ua.form_data::text != 'null'
+                 AND (ua.form_data->>'hours') ~ '^[0-9]+(\\.[0-9]+)?$'
+                THEN (ua.form_data->>'hours')::numeric
+                WHEN a.start_time IS NOT NULL AND a.end_time IS NOT NULL
+                THEN EXTRACT(EPOCH FROM (a.end_time - a.start_time)) / 3600.0
+                ELSE 0
+            END
         ), 0)
         FROM csr_v2.user_activity ua
         JOIN csr_v2.activity a ON ua.activity_id = a.id
         WHERE ua.user_id = :userId
           AND ua.state = 'APPROVED'
           AND a.template_type = 'VOLUNTEER'
-          AND a.start_time IS NOT NULL
-          AND a.end_time IS NOT NULL
         """, nativeQuery = true)
     double sumVolunteerHoursByUserId(@Param("userId") Long userId);
 
