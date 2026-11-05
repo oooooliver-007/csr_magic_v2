@@ -7,17 +7,23 @@ import com.csr.participation.dto.ResubmitRequest;
 import com.csr.participation.dto.ReviewRequest;
 import com.csr.participation.dto.SignupRequest;
 import com.csr.participation.entity.ParticipationState;
+import com.csr.participation.service.ParticipationExportService;
 import com.csr.participation.service.ParticipationService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 
 @RestController
@@ -25,9 +31,12 @@ import java.time.Instant;
 public class ParticipationController {
 
     private final ParticipationService participationService;
+    private final ParticipationExportService participationExportService;
 
-    public ParticipationController(ParticipationService participationService) {
+    public ParticipationController(ParticipationService participationService,
+                                   ParticipationExportService participationExportService) {
         this.participationService = participationService;
+        this.participationExportService = participationExportService;
     }
 
     @PostMapping("/signup")
@@ -98,6 +107,28 @@ public class ParticipationController {
             @Valid @RequestBody ReviewRequest request) {
         Long adminUserId = getCurrentUserId();
         return ApiResponse.success(participationService.review(id, adminUserId, request));
+    }
+
+    /**
+     * 导出某活动的全部报名人员信息（.xlsx）
+     */
+    @GetMapping("/export")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<byte[]> exportParticipants(@RequestParam Long activityId) {
+        ParticipationExportService.ExportFile file =
+            participationExportService.exportParticipants(activityId);
+
+        ContentDisposition disposition = ContentDisposition.attachment()
+            .filename(file.filename(), StandardCharsets.UTF_8)
+            .build();
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+            .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+            .header("X-Export-Count", String.valueOf(file.rowCount()))
+            .contentLength(file.content().length)
+            .body(file.content());
     }
 
     private Long getCurrentUserId() {

@@ -48,6 +48,17 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Long
     @Query("SELECT ua FROM UserActivity ua JOIN FETCH ua.activity WHERE ua.id = :id")
     Optional<UserActivity> findByIdWithActivity(@Param("id") Long id);
 
+    /**
+     * 导出某活动的全部报名人员（JOIN FETCH 用户/活动/审核人，避免 open-in-view=false 下 Lazy 初始化异常）
+     */
+    @Query("SELECT ua FROM UserActivity ua "
+        + "JOIN FETCH ua.user "
+        + "JOIN FETCH ua.activity "
+        + "LEFT JOIN FETCH ua.reviewedBy "
+        + "WHERE ua.activity.id = :activityId "
+        + "ORDER BY ua.createdAt ASC")
+    List<UserActivity> findAllByActivityIdForExport(@Param("activityId") Long activityId);
+
     @Query(value = "SELECT ua FROM UserActivity ua "
         + "JOIN FETCH ua.user "
         + "JOIN FETCH ua.activity "
