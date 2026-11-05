@@ -5,6 +5,7 @@ import com.csr.common.GlobalExceptionHandler;
 import com.csr.common.JwtAuthFilter;
 import com.csr.common.JwtUtil;
 import com.csr.participation.dto.ParticipationResponse;
+import com.csr.participation.service.ParticipationExportService;
 import com.csr.participation.service.ParticipationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,8 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -39,6 +42,9 @@ class ParticipationControllerTest {
 
     @MockitoBean
     private ParticipationService participationService;
+
+    @MockitoBean
+    private ParticipationExportService participationExportService;
 
     @MockitoBean
     private JwtUtil jwtUtil;
@@ -80,6 +86,26 @@ class ParticipationControllerTest {
             .andExpect(jsonPath("$.code").value(200))
             .andExpect(jsonPath("$.data.content[0].state").value("PENDING"))
             .andExpect(jsonPath("$.data.content[0].userDisplayName").value("李四"));
+    }
+
+    @Test
+    @DisplayName("GET /participations/export 返回 xlsx 附件、导出条数并带下载文件名")
+    void exportParticipants_success() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(adminAuthentication());
+        byte[] xlsx = new byte[]{0x50, 0x4B, 0x03, 0x04};
+        when(participationExportService.exportParticipants(3L)).thenReturn(
+            new ParticipationExportService.ExportFile("参与人员信息_春季植树活动_20261105.xlsx", xlsx, 2));
+
+        mockMvc.perform(get("/api/v2/participations/export").param("activityId", "3"))
+            .andExpect(status().isOk())
+            .andExpect(header().string("Content-Type",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+            .andExpect(header().string("X-Export-Count", "2"))
+            .andExpect(header().string("Content-Disposition",
+                org.hamcrest.Matchers.allOf(
+                    org.hamcrest.Matchers.containsString("attachment"),
+                    org.hamcrest.Matchers.containsString("filename*=UTF-8''"))))
+            .andExpect(content().bytes(xlsx));
     }
 
     private UsernamePasswordAuthenticationToken adminAuthentication() {

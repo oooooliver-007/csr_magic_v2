@@ -36,4 +36,14 @@ export const participationApi = {
   /** 审核参与记录（通过/驳回） */
   review: (id: number, data: ReviewRequest) =>
     apiClient.patch<ApiResponse<Participation>>(`${BASE}/${id}/review`, data),
+
+  /**
+   * 管理端导出某活动的全部报名人员信息（.xlsx）
+   * 响应为二进制文件，文件名在 Content-Disposition，条数在 X-Export-Count
+   */
+  exportParticipants: (activityId: number) =>
+    apiClient.get<Blob>(`${BASE}/export`, {
+      params: { activityId },
+      responseType: 'blob',
+    }),
 };

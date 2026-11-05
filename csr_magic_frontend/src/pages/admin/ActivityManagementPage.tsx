@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Plus, Eye, Edit, Trash2 } from 'lucide-react';
+import { Search, Plus, Eye, Edit, Trash2, FileDown, Loader2 } from 'lucide-react';
 import { activityApi } from '../../services/activityApi';
 import { eventApi } from '../../services/eventApi';
+import { participationApi } from '../../services/participationApi';
 import type { Activity, ActivityStatus, TemplateType } from '../../types/activity';
 import type { Event } from '../../types/event';
 import ActivityFormDrawer from '../../components/admin/ActivityFormDrawer';
@@ -31,6 +32,9 @@ export default function ActivityManagementPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // 导出参与人员信息
+  const [exportingId, setExportingId] = useState<number | null>(null);
 
   // Toast
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -125,6 +129,28 @@ export default function ActivityManagementPage() {
       showToast(msg, 'error');
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleExport = async (activity: Activity) => {
+    setExportingId(activity.id);
+    try {
+      const res = await participationApi.exportParticipants(activity.id);
+      const count = Number(res.headers?.['x-export-count']);
+      const filename =
+        parseExportFilename(res.headers?.['content-disposition']) ??
+        `参与人员信息_${activity.name}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      triggerDownload(res.data, filename);
+
+      if (Number.isFinite(count) && count === 0) {
+        showToast('该活动暂无报名记录');
+      } else {
+        showToast(Number.isFinite(count) ? `已导出 ${count} 条报名记录` : '导出成功');
+      }
+    } catch (error) {
+      showToast(await readExportError(error), 'error');
+    } finally {
+      setExportingId(null);
     }
   };
 
@@ -290,6 +316,18 @@ export default function ActivityManagementPage() {
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-1">
                           <button
+                            onClick={() => handleExport(activity)}
+                            disabled={exportingId === activity.id}
+                            title="导出参加人员信息.xlsx"
+                            aria-label="导出参加人员信息"
+                            className="mr-1 inline-flex items-center gap-1 whitespace-nowrap rounded-lg border border-gray-200 px-2 py-1 text-xs font-medium text-[#1A2E22]/60 transition-colors hover:border-[#2EB87A]/40 hover:bg-[#2EB87A]/5 hover:text-[#2EB87A] disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {exportingId === activity.id
+                              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              : <FileDown className="w-3.5 h-3.5" />}
+                            导出人员
+                          </button>
+                          <button
                             onClick={() => handleView(activity)}
                             className="p-1.5 text-[#1A2E22]/40 hover:text-[#2EB87A] transition-colors rounded-lg hover:bg-[#2EB87A]/10"
                             title="查看"
@@ -405,6 +443,17 @@ export default function ActivityManagementPage() {
                   </div>
                   <div className="flex items-center gap-1">
                     <button
+                      onClick={() => handleExport(activity)}
+                      disabled={exportingId === activity.id}
+                      className="p-1.5 text-[#1A2E22]/40 hover:text-[#2EB87A] rounded-lg disabled:opacity-50"
+                      title="导出参加人员信息.xlsx"
+                      aria-label="导出参加人员信息"
+                    >
+                      {exportingId === activity.id
+                        ? <Loader2 className="w-4 h-4 animate-spin" />
+                        : <FileDown className="w-4 h-4" />}
+                    </button>
+                    <button
                       onClick={() => handleView(activity)}
                       className="p-1.5 text-[#1A2E22]/40 hover:text-[#2EB87A] rounded-lg"
                     >
@@ -515,4 +564,49 @@ export default function ActivityManagementPage() {
       />
     </div>
   );
+}
+
+/** 触发浏览器下载 */
+function triggerDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  // 立即 revoke 在部分浏览器会中断下载，稍后释放
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/** 从 Content-Disposition 解析文件名（优先 RFC 5987 的 filename*，兼容中文） */
+function parseExportFilename(disposition: string | undefined): string | null {
+  if (!disposition) return null;
+  const utf8Match = /filename\*=UTF-8''([^;]+)/i.exec(disposition);
+  const encoded = utf8Match?.[1];
+  if (encoded) {
+    try {
+      return decodeURIComponent(encoded.trim());
+    } catch {
+      // 编码异常时回退到普通 filename
+    }
+  }
+  const plainMatch = /filename="?([^";]+)"?/i.exec(disposition);
+  const plain = plainMatch?.[1];
+  return plain ? plain.trim() : null;
+}
+
+/** 二进制接口出错时后端返回的是 Blob，需要读出其中的 JSON message */
+async function readExportError(error: unknown): Promise<string> {
+  const fallback = '导出失败，请重试';
+  const data = (error as { response?: { data?: unknown } })?.response?.data;
+  if (data instanceof Blob) {
+    try {
+      const parsed = JSON.parse(await data.text()) as { message?: string };
+      return parsed.message ?? fallback;
+    } catch {
+      return fallback;
+    }
+  }
+  return (data as { message?: string } | undefined)?.message ?? fallback;
 }

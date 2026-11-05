@@ -88,6 +88,13 @@
             <version>2.7.0</version>
         </dependency>
 
+        <!-- Excel 导出（参与人员信息 .xlsx） -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.4.1</version>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
